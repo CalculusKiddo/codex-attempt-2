@@ -3,59 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>School Test</title>
+  <title>Bottle Flip</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #f3f5ff; color: #20213b; font-family: system-ui, sans-serif; }
-    main { position: relative; z-index: 1; width: min(100%, 700px); text-align: center; }
-    .confetti { position: fixed; top: -20px; z-index: 0; pointer-events: none; animation: fall var(--duration) ease-in forwards; }
-    @keyframes fall { to { transform: translate(var(--drift), 110vh) rotate(720deg); opacity: 0; } }
-    @media (prefers-reduced-motion: reduce) { .confetti { animation-duration: 0.01ms; } }
-    h1 { margin-bottom: 8px; }
-    p { color: #5b5f79; }
-    .buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 14px; margin: 30px 0; }
-    button { min-height: 72px; padding: 14px; border: 0; border-radius: 14px; color: white; font: inherit; font-weight: 700; cursor: pointer; box-shadow: 0 5px 0 #0002; transition: transform .15s, box-shadow .15s; }
-    button:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #0002; }
-    button:active { transform: translateY(3px); box-shadow: 0 2px 0 #0002; }
-    button:focus-visible { outline: 3px solid #20213b; outline-offset: 3px; }
-    #message { min-height: 80px; display: grid; place-items: center; padding: 20px; border-radius: 16px; background: white; font-size: 1.25rem; font-weight: 600; box-shadow: 0 8px 30px #25244b12; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 20px; background: #f3f7ff; color: #26334d; font-family: system-ui, sans-serif; }
+    main { width: min(100%, 560px); text-align: center; }
+    h1 { margin: 0; font-size: clamp(2.2rem, 8vw, 3.5rem); letter-spacing: -.04em; }
+    .intro { margin: 8px 0 20px; color: #63718b; }
+    .scores { display: flex; justify-content: center; gap: 12px; margin-bottom: 16px; }
+    .score { min-width: 110px; padding: 10px 20px; border-radius: 14px; background: white; box-shadow: 0 4px 20px #40567c10; font-weight: 700; }
+    .score span { display: block; color: #8490a3; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+    .scene { position: relative; height: 280px; overflow: hidden; border-radius: 24px; background: linear-gradient(#d9edff, #eef8ff); }
+    .cloud { position: absolute; width: 75px; height: 18px; border-radius: 30px; background: #fff9; }
+    .cloud:before, .cloud:after { content: ''; position: absolute; bottom: 4px; border-radius: 50%; background: inherit; }
+    .cloud:before { width: 30px; height: 30px; left: 12px; } .cloud:after { width: 38px; height: 38px; right: 10px; }
+    .cloud.one { top: 55px; left: 12%; } .cloud.two { top: 88px; right: 12%; transform: scale(.75); }
+    .ground { position: absolute; bottom: 0; width: 100%; height: 36px; background: #d6e4d7; }
+    .table { position: absolute; bottom: 36px; left: 10%; width: 80%; height: 14px; border-radius: 5px; background: #b47c52; box-shadow: 0 7px 0 #95603e; }
+    .bottle { position: absolute; bottom: 50px; left: calc(50% - 24px); width: 48px; height: 105px; transform-origin: center; }
+    .bottle-body { position: absolute; bottom: 0; width: 48px; height: 85px; border: 3px solid #438ab1; border-radius: 13px 13px 10px 10px; background: linear-gradient(to bottom, #ffffffa8 24%, #80cfec 25%, #55b6dc 100%); box-shadow: inset 6px 0 #ffffff55; }
+    .neck { position: absolute; top: 9px; left: 13px; width: 22px; height: 20px; border: 3px solid #438ab1; background: #c7edfa; border-radius: 4px 4px 0 0; }
+    .cap { position: absolute; top: 3px; left: 11px; width: 26px; height: 10px; border-radius: 4px; background: #3977c2; }
+    .meter-label { display: flex; justify-content: space-between; margin: 20px 0 7px; color: #63718b; font-size: .85rem; font-weight: 700; }
+    .meter { position: relative; height: 18px; overflow: hidden; border-radius: 20px; background: #dce5f2; }
+    .target { position: absolute; left: 60%; width: 20%; height: 100%; background: #92d5ad; }
+    .fill { width: 0; height: 100%; background: #5688e8; opacity: .8; }
+    #status { min-height: 28px; margin: 14px 0; font-weight: 700; }
+    button { width: 100%; min-height: 60px; border: 0; border-radius: 14px; background: #477de0; color: white; font: inherit; font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #3260b5; touch-action: none; user-select: none; }
+    button:active { transform: translateY(3px); box-shadow: 0 2px 0 #3260b5; }
+    button:focus-visible { outline: 3px solid #26334d; outline-offset: 4px; }
+    button:disabled { opacity: .65; cursor: default; }
+    .hint { margin-top: 15px; color: #74829a; font-size: .85rem; }
   </style>
 </head>
 <body>
   <main>
-    <h1>Colorful Button Party</h1>
-    <p>Click a button for a random surprise!</p>
-    <div class="buttons" id="buttons"></div>
-    <div id="message" role="status" aria-live="polite">Your surprise will appear here.</div>
+    <h1>Bottle Flip</h1>
+    <p class="intro">Can you stick the landing?</p>
+    <div class="scores"><div class="score"><span>Score</span><strong id="score">0</strong></div><div class="score"><span>Best streak</span><strong id="best">0</strong></div></div>
+    <div class="scene" aria-hidden="true"><div class="cloud one"></div><div class="cloud two"></div><div class="ground"></div><div class="table"></div><div class="bottle" id="bottle"><div class="neck"></div><div class="bottle-body"></div><div class="cap"></div></div></div>
+    <div class="meter-label"><span>FLIP POWER</span><span>Aim for green!</span></div>
+    <div class="meter" aria-hidden="true"><div class="target"></div><div class="fill" id="fill"></div></div>
+    <p id="status" role="status" aria-live="polite">Hold the button, then release to flip!</p>
+    <button id="flip" type="button">Hold to flip</button>
+    <p class="hint">Hold and release with your mouse, finger, or space bar.</p>
   </main>
   <script>
-    const colors = ['#e94f67', '#ef8a35', '#c39a00', '#36a978', '#278dc2', '#6561d8', '#aa58c6', '#d94f9d', '#477b56', '#ad654e', '#3972af', '#8b6bb5'];
-    const messages = ['You are doing great!', 'A tiny dragon says hello.', 'Today is a good day to learn something new.', 'What is your favorite color?', 'Imagine a penguin wearing sunglasses.', 'You found a lucky button!', 'Keep being curious!', 'A wild rainbow appeared!', 'High five!', 'If you could fly, where would you go?', 'The moon is made of... mystery!', 'Make someone smile today.'];
-    const container = document.getElementById('buttons');
-    const message = document.getElementById('message');
-    document.addEventListener('click', () => {
-      for (let i = 0; i < 45; i++) {
-        const piece = document.createElement('span');
-        piece.className = 'confetti';
-        piece.style.left = `${Math.random() * 100}vw`;
-        piece.style.width = `${6 + Math.random() * 8}px`;
-        piece.style.height = `${8 + Math.random() * 12}px`;
-        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.setProperty('--duration', `${1.5 + Math.random() * 2}s`);
-        piece.style.setProperty('--drift', `${Math.random() * 160 - 80}px`);
-        piece.addEventListener('animationend', () => piece.remove());
-        document.body.appendChild(piece);
+    const button = document.getElementById('flip');
+    const bottle = document.getElementById('bottle');
+    const fill = document.getElementById('fill');
+    const status = document.getElementById('status');
+    const scoreText = document.getElementById('score');
+    const bestText = document.getElementById('best');
+    let charging = false, flying = false, start = 0, power = 0, score = 0, best = 0, frame;
+    function charge(time) {
+      if (!charging) return;
+      // Sweep back and forth so the player can keep trying while holding.
+      const progress = ((time - start) / 1400) % 2;
+      power = progress <= 1 ? progress : 2 - progress;
+      fill.style.width = `${power * 100}%`;
+      frame = requestAnimationFrame(charge);
+    }
+    function begin() {
+      if (charging || flying) return;
+      charging = true; power = 0; start = performance.now();
+      bottle.style.transform = '';
+      status.textContent = 'Release in the green zone!';
+      frame = requestAnimationFrame(charge);
+    }
+    function release() {
+      if (!charging) return;
+      charging = false; cancelAnimationFrame(frame); flying = true; button.disabled = true;
+      const landed = power >= .6 && power <= .8;
+      const started = performance.now();
+      const duration = 850;
+      function animate(time) {
+        const t = Math.min((time - started) / duration, 1);
+        const height = Math.sin(Math.PI * t) * (100 + power * 55);
+        const rotation = landed ? 360 * t : 450 * t;
+        bottle.style.transform = `translateY(${-height}px) rotate(${rotation}deg)`;
+        if (t < 1) requestAnimationFrame(animate);
+        else {
+          flying = false; button.disabled = false;
+          if (landed) {
+            score++; best = Math.max(best, score);
+            status.textContent = 'Nice landing! Keep your streak going!';
+          } else {
+            score = 0;
+            status.textContent = 'Oof! Try landing in the green zone.';
+          }
+          scoreText.textContent = score; bestText.textContent = best;
+        }
       }
-    });
-    colors.forEach((color, index) => {
-      const button = document.createElement('button');
-      button.textContent = `Button ${index + 1}`;
-      button.style.backgroundColor = color;
-      button.addEventListener('click', () => {
-        message.textContent = messages[Math.floor(Math.random() * messages.length)];
-      });
-      container.appendChild(button);
-    });
+      requestAnimationFrame(animate);
+    }
+    button.addEventListener('pointerdown', event => { event.preventDefault(); button.setPointerCapture(event.pointerId); begin(); });
+    button.addEventListener('pointerup', release);
+    button.addEventListener('pointercancel', release);
+    button.addEventListener('keydown', event => { if ((event.code === 'Space' || event.code === 'Enter') && !event.repeat) { event.preventDefault(); begin(); } });
+    button.addEventListener('keyup', event => { if (event.code === 'Space' || event.code === 'Enter') { event.preventDefault(); release(); } });
+    button.addEventListener('blur', release);
   </script>
 </body>
 </html>
