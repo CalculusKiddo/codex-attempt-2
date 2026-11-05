@@ -7,7 +7,10 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #f3f5ff; color: #20213b; font-family: system-ui, sans-serif; }
-    main { width: min(100%, 700px); text-align: center; }
+    main { position: relative; z-index: 1; width: min(100%, 700px); text-align: center; }
+    .confetti { position: fixed; top: -20px; z-index: 0; pointer-events: none; animation: fall var(--duration) ease-in forwards; }
+    @keyframes fall { to { transform: translate(var(--drift), 110vh) rotate(720deg); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .confetti { animation-duration: 0.01ms; } }
     h1 { margin-bottom: 8px; }
     p { color: #5b5f79; }
     .buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 14px; margin: 30px 0; }
@@ -30,6 +33,20 @@
     const messages = ['You are doing great!', 'A tiny dragon says hello.', 'Today is a good day to learn something new.', 'What is your favorite color?', 'Imagine a penguin wearing sunglasses.', 'You found a lucky button!', 'Keep being curious!', 'A wild rainbow appeared!', 'High five!', 'If you could fly, where would you go?', 'The moon is made of... mystery!', 'Make someone smile today.'];
     const container = document.getElementById('buttons');
     const message = document.getElementById('message');
+    document.addEventListener('click', () => {
+      for (let i = 0; i < 45; i++) {
+        const piece = document.createElement('span');
+        piece.className = 'confetti';
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.width = `${6 + Math.random() * 8}px`;
+        piece.style.height = `${8 + Math.random() * 12}px`;
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.setProperty('--duration', `${1.5 + Math.random() * 2}s`);
+        piece.style.setProperty('--drift', `${Math.random() * 160 - 80}px`);
+        piece.addEventListener('animationend', () => piece.remove());
+        document.body.appendChild(piece);
+      }
+    });
     colors.forEach((color, index) => {
       const button = document.createElement('button');
       button.textContent = `Button ${index + 1}`;
