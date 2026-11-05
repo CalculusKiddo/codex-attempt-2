@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>School Test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #f3f5ff; color: #20213b; font-family: system-ui, sans-serif; }
+    main { width: min(100%, 700px); text-align: center; }
+    h1 { margin-bottom: 8px; }
+    p { color: #5b5f79; }
+    .buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 14px; margin: 30px 0; }
+    button { min-height: 72px; padding: 14px; border: 0; border-radius: 14px; color: white; font: inherit; font-weight: 700; cursor: pointer; box-shadow: 0 5px 0 #0002; transition: transform .15s, box-shadow .15s; }
+    button:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #0002; }
+    button:active { transform: translateY(3px); box-shadow: 0 2px 0 #0002; }
+    button:focus-visible { outline: 3px solid #20213b; outline-offset: 3px; }
+    #message { min-height: 80px; display: grid; place-items: center; padding: 20px; border-radius: 16px; background: white; font-size: 1.25rem; font-weight: 600; box-shadow: 0 8px 30px #25244b12; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Colorful Button Party</h1>
+    <p>Click a button for a random surprise!</p>
+    <div class="buttons" id="buttons"></div>
+    <div id="message" role="status" aria-live="polite">Your surprise will appear here.</div>
+  </main>
+  <script>
+    const colors = ['#e94f67', '#ef8a35', '#c39a00', '#36a978', '#278dc2', '#6561d8', '#aa58c6', '#d94f9d', '#477b56', '#ad654e', '#3972af', '#8b6bb5'];
+    const messages = ['You are doing great!', 'A tiny dragon says hello.', 'Today is a good day to learn something new.', 'What is your favorite color?', 'Imagine a penguin wearing sunglasses.', 'You found a lucky button!', 'Keep being curious!', 'A wild rainbow appeared!', 'High five!', 'If you could fly, where would you go?', 'The moon is made of... mystery!', 'Make someone smile today.'];
+    const container = document.getElementById('buttons');
+    const message = document.getElementById('message');
+    colors.forEach((color, index) => {
+      const button = document.createElement('button');
+      button.textContent = `Button ${index + 1}`;
+      button.style.backgroundColor = color;
+      button.addEventListener('click', () => {
+        message.textContent = messages[Math.floor(Math.random() * messages.length)];
+      });
+      container.appendChild(button);
+    });
+  </script>
+</body>
+</html>
