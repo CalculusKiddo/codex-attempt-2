@@ -325,7 +325,7 @@ function collideShape(n,b){collideSolid(n,b);}
 function firstSolidHit(ax,ay,bx,by,r=0){let first=null;for(const b of currentMap().solids){const h=segmentBox(ax,ay,bx,by,b,r);if(h&&(!first||h.t<first.t))first={...h,platform:b};}return first;}
 function collideMap(n){for(const b of currentMap().solids)collideSolid(n,b);}
 function settleSurfaceVelocity(n){for(const contact of n.surfaceContacts||[]){const b=contact.b;if(b&&!currentMap().solids.includes(b))continue;if(b?solidDistance(b,n.x,n.y)>n.r+.8:Math.abs((contact.nx?n.x:n.y)-contact.plane)>.8)continue;const angle=b?.angle||0,c=Math.cos(angle),s=Math.sin(angle),nx=contact.localNX*c-contact.localNY*s,ny=contact.localNX*s+contact.localNY*c,omega=b?.angularVelocity||0,cx=b?b.x+b.w/2:0,cy=b?b.y+b.h/2:0,surfaceVX=(b?.vx||0)-omega*(n.y-ny*n.r-cy),surfaceVY=(b?.vy||0)+omega*(n.x-nx*n.r-cx),inward=(n.vx-surfaceVX)*nx+(n.vy-surfaceVY)*ny;if(inward<0){n.vx-=nx*inward;n.vy-=ny*inward;}}}
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d',{willReadFrequently:true});
 const $=id=>document.getElementById(id),clamp=(n,a,b)=>Math.max(a,Math.min(b,n)),hypot=Math.hypot;
 let gameMode='match',practiceResetPending=false,practiceData={last:0,combo:0,hits:0,at:-Infinity,contact:false};
 let state='ready',fighters=[],teleportPulses=[],slamWaves=[],particles=[],projectiles=[],floaters=[],elapsed=0,simTime=0,shake=0,feedbackUntil=0,selected='sword',lastTime=0,accumulator=0,round=1,helpWasPlaying=false,grapple=null,grappleReadyAt=0,bodyImpactAt=-10,bodyImpactTouching=false;
