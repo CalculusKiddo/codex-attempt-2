@@ -259,9 +259,11 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
    // Recoil flash lasts one frame at the displayed speed; smoke lingers separately.
    if age<max(0.12,speed/24){ellipse(c,start.x,start.y,4,4,gold.withAlphaComponent(0.8));ellipse(c,start.x,start.y,1.8,1.8,paper)}
    if age<10 {let q=age/10;ellipse(c,start.x+q*12,start.y-q*8,3+q*10,3+q*7,paper.withAlphaComponent((1-q)*0.18))}
-   let rangeError=Double((e.serial*7)%5-2)*4.0
+   let rangeError=Double((e.serial*7)%5-2)*35.0
+   let safetySide=e.serial%2==0 ? 34.0:-34.0
+   let offHull=pt(-sin(b.yaw)*safetySide,cos(b.yaw)*safetySide)
    let spread=sin(Double(e.serial*23+j*11))*3.5
-   var end=pt(future.x+dir.x*(rangeError+spread)+normal.x*sin(Double(j*7+e.serial))*3,future.y+dir.y*(rangeError+spread)+normal.y*sin(Double(j*7+e.serial))*3)
+   var end=pt(future.x+offHull.x+dir.x*(rangeError+spread)+normal.x*sin(Double(j*7+e.serial))*3,future.y+offHull.y+dir.y*(rangeError+spread)+normal.y*sin(Double(j*7+e.serial))*3)
    if e.hit && j==0 {end=future}
    let q=min(1,age/flight)
    if age<flight {let pos=pt(mix(start.x,end.x,q),mix(start.y,end.y,q));ellipse(c,pos.x,pos.y,0.8,0.8,paper.withAlphaComponent(0.75))}
@@ -296,7 +298,7 @@ func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  let sim=real.truncatingRemainder(dividingBy:180)+300
  let actors=[Actor(model:shipModel,name:"BISMARCK",x:850,y:360,yaw:2.5,scale:0.85,tint:red),Actor(model:rodneyModel,name:"RODNEY",x:330,y:240,yaw:0.25,scale:0.84,tint:blue),Actor(model:kgvModel,name:"KING GEORGE V",x:430,y:490,yaw:-0.5,scale:0.84,tint:blue)]
  for (i,a) in actors.enumerated(){let p=a.position(sim);let target=actors[i==0 ? 1:0].position(sim);aimWorld=atan2(target.y-p.y,target.x-p.x)
-  c.saveGState();if shot==47 {c.setAlpha(max(0,1-u))};ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t);c.restoreGState();label(c,a.name,p.x,p.y-30,a.tint)
+  c.saveGState();if shot==47 {c.setAlpha(max(0,1-u))};ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t);c.restoreGState();label(c,a.name,p.x,p.y+(i==1 ? 80:-30),a.tint)
  }
  aimWorld=nil
  var events:[Salvo]=[]
@@ -309,7 +311,7 @@ func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  if shot==47 {let p=actors[0].position(sim);for j in 0..<5 {waterSplash(c,p.x+Double(j)*12,p.y,u*8,1)}}
  let secs=8*3600+47*60+Int(real)
  txt(String(format:"%02d:%02d:%02d",secs/3600,(secs/60)%60,secs%60),50,122,24,paper,true)
- txt("27 MAY / SELECTED MOMENTS ×10 / SYMBOLS ENLARGED",50,158,12,paper.withAlphaComponent(0.65))
+ txt("27 MAY / SELECTED MOMENTS ×10",50,158,12,paper.withAlphaComponent(0.65))
 }
 
 let coastlineJSON=(try! JSONSerialization.jsonObject(with:Data(contentsOf:root.appendingPathComponent("land.geojson")))) as! [String:Any]
@@ -450,10 +452,11 @@ if CommandLine.arguments.contains("--stills"){
 }else{
  let ffmpeg=CommandLine.arguments[2]
  let patch=CommandLine.arguments.contains("--patch")
- let firstFrame=patch ? 240*fps:0
- let lastFrame=patch ? 288*fps:duration*fps
+ let danish=CommandLine.arguments.contains("--patch-denmark")
+ let firstFrame=danish ? 72*fps:patch ? 240*fps:0
+ let lastFrame=danish ? 108*fps:patch ? 288*fps:duration*fps
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
- process.arguments=["-y","-v","error","-f","rawvideo","-pixel_format","argb","-video_size","1920x1080","-framerate","24","-i","pipe:0","-an","-c:v","libx264","-crf","17","-preset","fast","-pix_fmt","yuv420p","-movflags","+faststart",root.appendingPathComponent(patch ? "bismarck-patch.mp4":"bismarck-silent.mp4").path]
+ process.arguments=["-y","-v","error","-f","rawvideo","-pixel_format","argb","-video_size","1920x1080","-framerate","24","-i","pipe:0","-an","-c:v","libx264","-crf","17","-preset","fast","-pix_fmt","yuv420p","-movflags","+faststart",root.appendingPathComponent(danish ? "bismarck-denmark-patch.mp4":patch ? "bismarck-patch.mp4":"bismarck-silent.mp4").path]
  let pipe=Pipe();process.standardInput=pipe;try process.run()
  for frame in firstFrame..<lastFrame{autoreleasepool{render(Double(frame)/Double(fps),context);pipe.fileHandleForWriting.write(Data(bytesNoCopy:pixels,count:W*H*4,deallocator:.none))};if frame % 720==0 {print("Rendered \(frame/fps)s");fflush(stdout)}}
  try pipe.fileHandleForWriting.close();process.waitUntilExit();precondition(process.terminationStatus==0);print("VIDEO COMPLETE")

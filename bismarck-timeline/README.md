@@ -16,7 +16,7 @@ Shells fire in discrete groups with brief muzzle flashes, lingering smoke, trave
 
 The Denmark Strait sequence advances at **30×** speed and uses approximately **32 seconds of real shell-flight time at 20 km**. The final engagement presents selected moments at **10×** speed, with shorter flights as ranges close. Rodney's alternating five- and four-gun groups are reduced when the third turret cannot bear. The Prince of Wales illustration uses a reduced forward battery.
 
-This is an illustrative reconstruction, not a complete shot-by-shot simulation. Exact individual firing times, every malfunction, projectile dispersion and all maneuver tracks are not known or reproduced. Ship symbols are enlarged for legibility; weapon distances are compressed on the tactical diagram. Key event times, firing-group logic and ballistic delays are distinguished from those display choices. The route on the geographic map is schematic between known waypoints.
+This is an illustrative reconstruction, not a complete shot-by-shot simulation. Exact individual firing times, every malfunction, projectile dispersion and all maneuver tracks are not known or reproduced. Ship symbols and splash offsets are enlarged for legibility; weapon distances are compressed on the tactical diagram. Key event times, firing-group logic and ballistic delays are distinguished from those display choices. The route on the geographic map is schematic between known waypoints.
 
 ## Visual reference and research
 
@@ -48,6 +48,6 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 .venv/bin/python soundtrack.py
 ```
 
-Use `./render . --stills` for review images without replacing the video. Edit the `captions`, `denmark`, `finalBattle`, `makePlan` and camera functions in `render.swift` to change the sequence. The source includes an optional `--patch` render mode for the final engagement section; normal rendering exports the entire final revision.
+Use `./render . --stills` for review images without replacing the video. Edit the `captions`, `denmark`, `finalBattle`, `makePlan` and camera functions in `render.swift` to change the sequence. The source includes optional `--patch` and `--patch-denmark` render modes for reviewing individual battle sections; normal rendering exports the entire final revision.
 
 `ocean.py` creates the sea texture procedurally. `soundtrack.py` synthesizes the original score and effects, then combines the stereo audio with the silent video. These scripts require no API keys.
