@@ -46,8 +46,8 @@ for start in range(0,300,12):
     add(start,tone*env,.035 if start<288 else .025,-.2)
     add(start,tone*env,.025,.3)
 # Each shot cut gets a brief movement accent; historical moments get designed impacts.
-for shot in range(1,48):whoosh(shot*6-.18,.15 if shot in [12,15,28,32,34,40,47] else .065)
-for shot in [1,34,35,47]:boom(shot*6+.8,.4)
+for cut in [36,72,108,144,168,240,288]:whoosh(cut-.05,.12)
+for hit in [7,207,286]:boom(hit,.4)
 boom(90,.5) # Hood event, 06:01 in the compressed chronology.
 # Fire-group accents follow the authored salvo schedule, not a machine-gun rhythm.
 for real in [180,235,290,345,400,455,508,580,650,720,800,880,960]:
@@ -57,7 +57,7 @@ for real in range(30,971,55):boom(72+real/30,.17)
 for shot in range(40,46):
     for off in [.4,2.4,4.4]:boom(shot*6+off,.24)
 # Engine pass during launch and torpedo approach.
-for start in [162,174,180,186,192,198]:
+for start in [146,153.2,160.4,174,185,194]:
     t=timeline(5);f=72+12*np.sin(t*.5)
     phase=2*np.pi*np.cumsum(f)/rate
     engine=(np.sin(phase)+.3*np.sin(phase*3))*np.sin(np.pi*t/5)**2

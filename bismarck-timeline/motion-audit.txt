@@ -1,0 +1,2 @@
+MOTION AUDIT PASS: 4509 sampled poses, maximum sideslip ratio 0.0002379041489228407; forward torpedo release
+CAMERA AUDIT PASS: continuous position, speed and acceleration; no per-caption reset

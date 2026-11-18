@@ -155,6 +155,7 @@ var aimWorld:Double?=nil
 var currentTime=0.0
 func ship(_ c:CGContext,_ model:Model,_ x:Double,_ y:Double,_ scale:Double,_ yaw:Double,_ elevation:Double,_ t:Double,_ wake:Bool=true){
  let kind=model.kind
+ noteShipBody(pt(x,y),scale,yaw)
  c.saveGState();c.translateBy(x:x,y:y);c.rotate(by:yaw);c.scaleBy(x:scale,y:scale)
  if wake {for n in 0..<13{let q=(Double(n)/13+t*0.11).truncatingRemainder(dividingBy:1);let back = -126-q*100
   line(c,[pt(back,-q*15),pt(back+15,0),pt(back,q*15)],paper.withAlphaComponent((1-q)*0.23),0.5)
@@ -194,9 +195,9 @@ func aircraft(_ c:CGContext,_ x:Double,_ y:Double,_ scale:Double,_ angle:Double,
 }
 let seaImage=NSImage(contentsOf:root.appendingPathComponent("ocean.png"))!.cgImage(forProposedRect:nil,context:nil,hints:nil)!
 func ocean(_ c:CGContext,_ t:Double,_ storm:Bool=false){
- c.setFillColor(ink.cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:720))
+ c.setFillColor(ink.cgColor);c.fill(CGRect(x:-4096,y:-4096,width:8192,height:8192))
  c.saveGState();let drift=t*1.4;let offset=drift.truncatingRemainder(dividingBy:500)
- c.setAlpha(0.65);c.draw(seaImage,in:CGRect(x:-offset,y:-offset*0.35,width:1900,height:1300));c.restoreGState()
+ c.setAlpha(0.65);for ix in -2...2 {for iy in -2...2 {c.draw(seaImage,in:CGRect(x:Double(ix)*1536-offset,y:Double(iy)*1536-offset*0.35,width:1536,height:1536))}};c.restoreGState()
  let colors=[ink.cgColor,NSColor(calibratedRed:0.10,green:0.18,blue:0.20,alpha:1).cgColor] as CFArray
  let g=CGGradient(colorsSpace:CGColorSpaceCreateDeviceRGB(),colors:colors,locations:[0,1])!;c.saveGState();c.setAlpha(0.35);c.drawLinearGradient(g,start:pt(0,0),end:pt(1280,720),options:[]);c.restoreGState()
  for j in 0..<90{let y=Double((j*79)%720);let x=Double((j*137)%1500)-100+sin(t*0.4+Double(j))*15;let l=Double(20+(j*31)%160);line(c,[pt(x,y),pt(x+l,y-5)],paper.withAlphaComponent(storm ? 0.06:0.035),1)}
@@ -211,9 +212,7 @@ func blast(_ c:CGContext,_ x:Double,_ y:Double,_ age:Double,_ size:Double,_ fire
  }
  if fire && age<0.3 {ellipse(c,x,y,size*0.35,size*0.3,paper.withAlphaComponent(1-age/0.3))}
 }
-func label(_ c:CGContext,_ name:String,_ x:Double,_ y:Double,_ color:NSColor){
- line(c,[pt(x,y),pt(x+20,y-25),pt(x+140,y-25)],color,1.5);txt(name,x+25,y-52,17,color,true,230)
-}
+func label(_ c:CGContext,_ name:String,_ x:Double,_ y:Double,_ color:NSColor){annotations.append(Annotation(text:name,anchor:screen(pt(x,y)),color:color))}
 // Fifty six-second shots: concise captions, actions and camera setups.
 let captions=[
  "ONE TORPEDO.","AN ENTIRE PURSUIT CHANGES.",
@@ -277,8 +276,10 @@ func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  let actors=[Actor(model:shipModel,name:"BISMARCK",x:610,y:285,yaw:2.45,scale:0.90,tint:red),Actor(model:cruiserModel,name:"PRINZ EUGEN",x:390,y:225,yaw:2.45,scale:0.65,tint:red),Actor(model:hoodModel,name:"HOOD",x:880,y:425,yaw:-2.35,scale:0.90,tint:blue),Actor(model:kgvModel,name:"PRINCE OF WALES",x:1060,y:465,yaw:-2.35,scale:0.82,tint:blue)]
  for (i,a) in actors.enumerated(){let p=a.position(sim);let target=actors[i<2 ? 2:0].position(sim)
   aimWorld=atan2(target.y-p.y,target.x-p.x)
-  if i==2 && sim>540 {c.saveGState();c.setAlpha(max(0,1-(sim-540)/120));ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t);c.restoreGState();blast(c,p.x,p.y,(sim-540)/30,85,true)}
-  else {ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t);label(c,a.name,p.x,p.y-18,a.tint)}
+  let track:(Double)->Pose={r in Pose(p:a.position(r*30),yaw:a.yaw)}
+  if !(i==2 && sim>540) {wake(c,track,sim/30,a.scale)}
+  if i==2 && sim>540 {c.saveGState();c.setAlpha(max(0,1-(sim-540)/120));ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t,false);c.restoreGState();blast(c,p.x,p.y,(sim-540)/30,85,true)}
+  else {ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t,false);label(c,a.name,p.x,p.y-18,a.tint)}
  }
  aimWorld=nil
  var events:[Salvo]=[]
@@ -286,179 +287,356 @@ func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  for (n,fire) in stride(from:0.0,through:480,by:48).enumerated(){events.append(Salvo(fire:fire,from:2,to:1,guns:4,hit:false,serial:n+20))}
  for (n,fire) in stride(from:30.0,through:970,by:55).enumerated(){events.append(Salvo(fire:fire,from:3,to:0,guns:5,hit:n==3,serial:n+40))}
  gunnery(c,sim,30,actors,events,32)
- let seconds=5*3600+52*60+Int(sim)
- txt(String(format:"%02d:%02d:%02d",seconds/3600,(seconds/60)%60,seconds%60),50,122,24,paper,true)
- txt("24 MAY / TIME ×30 / SYMBOLS ENLARGED",50,158,12,paper.withAlphaComponent(0.65))
- if shot==14 {txt("≈20 km / ≈32 s SHELL FLIGHT",55,540,19,gold,true)}
+
 }
 func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  // Selected historical moments, not an asserted shot-for-shot record.
- let starts=[0.0,180,480,900,1380,2640,5580,6720]
- let real=starts[shot-40]+(t-Double(shot*6))*10
- let sim=real.truncatingRemainder(dividingBy:180)+300
+ let sim=(t-240)*10+300
  let actors=[Actor(model:shipModel,name:"BISMARCK",x:850,y:360,yaw:2.5,scale:0.85,tint:red),Actor(model:rodneyModel,name:"RODNEY",x:330,y:240,yaw:0.25,scale:0.84,tint:blue),Actor(model:kgvModel,name:"KING GEORGE V",x:430,y:490,yaw:-0.5,scale:0.84,tint:blue)]
  for (i,a) in actors.enumerated(){let p=a.position(sim);let target=actors[i==0 ? 1:0].position(sim);aimWorld=atan2(target.y-p.y,target.x-p.x)
-  c.saveGState();if shot==47 {c.setAlpha(max(0,1-u))};ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t);c.restoreGState();label(c,a.name,p.x,p.y+(i==1 ? 80:-30),a.tint)
+  let track:(Double)->Pose={r in Pose(p:a.position(r*10),yaw:a.yaw)}
+  if shot<47 {wake(c,track,sim/10,a.scale)}
+  c.saveGState();if shot==47 {c.setAlpha(max(0,1-(t-282)/6))};ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t,false);c.restoreGState();label(c,a.name,p.x,p.y+(i==1 ? 80:-30),a.tint)
  }
  aimWorld=nil
  var events:[Salvo]=[]
- if shot<46 {for (j,fire) in stride(from:0.0,through:600,by:20).enumerated(){events.append(Salvo(fire:fire,from:1,to:0,guns:j%2==0 ? 5:4,hit:j%9==0,serial:j))}
- for (j,fire) in stride(from:10.0,through:600,by:22).enumerated(){events.append(Salvo(fire:fire,from:2,to:0,guns:5,hit:j%11==0,serial:j+30))}
- if shot<45 {for (j,fire) in stride(from:6.0,through:600,by:48).enumerated(){events.append(Salvo(fire:fire,from:0,to:1,guns:4,hit:false,serial:j+60))}}
+ if shot<46 {for (j,fire) in stride(from:0.0,through:900,by:20).enumerated(){events.append(Salvo(fire:fire,from:1,to:0,guns:j%2==0 ? 5:4,hit:j%9==0,serial:j))}
+ for (j,fire) in stride(from:10.0,through:900,by:22).enumerated(){events.append(Salvo(fire:fire,from:2,to:0,guns:5,hit:j%11==0,serial:j+30))}
+ if shot<45 {for (j,fire) in stride(from:6.0,through:900,by:48).enumerated(){events.append(Salvo(fire:fire,from:0,to:1,guns:4,hit:false,serial:j+60))}}
  gunnery(c,sim,10,actors,events,shot<44 ? 22.4:11)
  }
  if shot==46 {let p=actors[0].position(sim);let q=u;line(c,[pt(mix(300,p.x,q),mix(450,p.y,q)),pt(mix(330,p.x,q),mix(450,p.y,q))],paper.withAlphaComponent(0.55),1.6)}
  if shot==47 {let p=actors[0].position(sim);for j in 0..<5 {waterSplash(c,p.x+Double(j)*12,p.y,u*8,1)}}
- let secs=8*3600+47*60+Int(real)
- txt(String(format:"%02d:%02d:%02d",secs/3600,(secs/60)%60,secs%60),50,122,24,paper,true)
- txt("27 MAY / SELECTED MOMENTS ×10",50,158,12,paper.withAlphaComponent(0.65))
+
 }
 
+// Motion and presentation are separate: the camera cannot change a vessel's course.
+struct Pose {let p:CGPoint;let yaw:Double}
+func movingPose(_ position:(Double)->CGPoint,_ t:Double)->Pose {
+ let p=position(t),a=position(t-0.0001),b=position(t+0.0001)
+ return Pose(p:p,yaw:atan2(Double(b.y-a.y),Double(b.x-a.x)))
+}
+func forward(_ start:CGPoint,_ heading:Double,_ speed:Double,_ t:Double)->Pose {
+ Pose(p:pt(start.x+cos(heading)*speed*t,start.y+sin(heading)*speed*t),yaw:heading)
+}
+func curved(_ center:CGPoint,_ radius:Double,_ startAngle:Double,_ speed:Double,_ t:Double)->Pose {
+ let a=startAngle+t*speed/radius
+ return Pose(p:pt(center.x+radius*cos(a),center.y+radius*sin(a)),yaw:a+Double.pi/2)
+}
+func bezier(_ a:CGPoint,_ b:CGPoint,_ c:CGPoint,_ d:CGPoint,_ u:Double)->CGPoint {
+ let v=1-u
+ return pt(v*v*v*a.x+3*v*v*u*b.x+3*v*u*u*c.x+u*u*u*d.x,v*v*v*a.y+3*v*v*u*b.y+3*v*u*u*c.y+u*u*u*d.y)
+}
+func smoothRoute(_ points:[CGPoint],_ progress:Double)->CGPoint {
+ let seg=max(0,min(points.count-2,Int(floor(progress)))),q=progress-Double(seg)
+ let a=points[seg],b=points[seg+1],prev=points[max(0,seg-1)],next=points[min(points.count-1,seg+2)]
+ let c1=pt(a.x+(b.x-prev.x)*0.16,a.y+(b.y-prev.y)*0.16)
+ let c2=pt(b.x-(next.x-a.x)*0.16,b.y-(next.y-a.y)*0.16)
+ return bezier(a,c1,c2,b,q)
+}
+func wake(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double){
+ // Water stays behind past stern positions, including through turns.
+ let before=path(t-0.02),after=path(t+0.02)
+ let speed=hypot(Double(after.p.x-before.p.x),Double(after.p.y-before.p.y))/0.04
+ let ageSpan=min(45,100*scale/max(0.1,speed))
+ for side in [-1.0,1.0] {
+  var a:[CGPoint]=[]
+  for n in 0...28 {let age=Double(n)/28*ageSpan,p=path(t-age),distance=125*scale
+   let spread=(3+Double(n)*0.32)*scale*side
+   a.append(pt(p.p.x-cos(p.yaw)*distance-sin(p.yaw)*spread,p.p.y-sin(p.yaw)*distance+cos(p.yaw)*spread))}
+  for n in 0..<a.count-1 {line(c,[a[n],a[n+1]],paper.withAlphaComponent(0.27*(1-Double(n)/Double(a.count))),max(0.4,scale*1.4))}
+ }
+ let p=path(t),bow=pt(p.p.x+cos(p.yaw)*123*scale,p.p.y+sin(p.yaw)*123*scale)
+ for side in [-1.0,1.0] {let a=pt(bow.x-cos(p.yaw)*8*scale-sin(p.yaw)*6*scale*side,bow.y-sin(p.yaw)*8*scale+cos(p.yaw)*6*scale*side)
+  line(c,[bow,a],paper.withAlphaComponent(0.42),max(0.5,scale*0.7))}
+}
+func vessel(_ c:CGContext,_ model:Model,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ name:String="",_ tint:NSColor=paper,_ trails:Bool=true){
+ if trails {wake(c,path,t,scale)}
+ let p=path(t);ship(c,model,p.p.x,p.p.y,scale,p.yaw,Double.pi/2,t,false)
+ if !name.isEmpty {label(c,name,p.p.x,p.p.y,tint)}
+}
+let groups=[0.0,12,36,72,108,144,168,216,240,288,300]
+func groupAt(_ t:Double)->Int {min(9,max(0,groups.lastIndex(where:{$0<=t}) ?? 0))}
+struct Cam {var x:Double;var y:Double;var z:Double;var angle:Double=0}
+struct Key {let t:Double;let cam:Cam}
+func cat(_ a:Double,_ b:Double,_ c:Double,_ d:Double,_ q:Double)->Double {
+ 0.5*((2*b)+(-a+c)*q+(2*a-5*b+4*c-d)*q*q+(-a+3*b-3*c+d)*q*q*q)
+}
+let cameraKeys:[[Key]]=[
+ [Key(t:0,cam:Cam(x:670,y:365,z:0.95)),Key(t:4,cam:Cam(x:470,y:420,z:1.4)),Key(t:8,cam:Cam(x:390,y:435,z:1.75)),Key(t:12,cam:Cam(x:680,y:375,z:0.96))],
+ [Key(t:0,cam:Cam(x:680,y:375,z:0.96)),Key(t:6,cam:Cam(x:720,y:375,z:1.12)),Key(t:12,cam:Cam(x:840,y:350,z:1.65)),Key(t:18,cam:Cam(x:690,y:370,z:1.03)),Key(t:24,cam:Cam(x:680,y:370,z:0.92))],
+ [Key(t:0,cam:Cam(x:760,y:365,z:0.85)),Key(t:10,cam:Cam(x:1000,y:315,z:1.25)),Key(t:20,cam:Cam(x:755,y:250,z:1.12)),Key(t:30,cam:Cam(x:460,y:280,z:1.45)),Key(t:36,cam:Cam(x:650,y:345,z:0.95))],
+ [Key(t:0,cam:Cam(x:760,y:365,z:0.9)),Key(t:7,cam:Cam(x:610,y:285,z:1.25)),Key(t:13,cam:Cam(x:760,y:350,z:0.94)),Key(t:18,cam:Cam(x:865,y:410,z:1.48)),Key(t:23,cam:Cam(x:820,y:400,z:1.03)),Key(t:30,cam:Cam(x:1000,y:430,z:1.18)),Key(t:36,cam:Cam(x:780,y:365,z:0.92))],
+ [Key(t:0,cam:Cam(x:580,y:370,z:0.95)),Key(t:10,cam:Cam(x:450,y:400,z:1.3)),Key(t:20,cam:Cam(x:470,y:460,z:1.1)),Key(t:28,cam:Cam(x:590,y:470,z:1.25)),Key(t:36,cam:Cam(x:730,y:440,z:1.0))],
+ [Key(t:0,cam:Cam(x:650,y:350,z:0.9)),Key(t:7,cam:Cam(x:870,y:360,z:1.4)),Key(t:13,cam:Cam(x:760,y:370,z:1.0)),Key(t:19,cam:Cam(x:1100,y:325,z:1.3)),Key(t:24,cam:Cam(x:1200,y:300,z:1.05))],
+ [Key(t:0,cam:Cam(x:500,y:390,z:0.9)),Key(t:10,cam:Cam(x:655,y:365,z:1.13)),Key(t:20,cam:Cam(x:790,y:355,z:1.15)),Key(t:26,cam:Cam(x:590,y:400,z:1.55)),Key(t:34,cam:Cam(x:650,y:380,z:1.5)),Key(t:39,cam:Cam(x:710,y:380,z:1.7)),Key(t:44,cam:Cam(x:810,y:365,z:1.3)),Key(t:48,cam:Cam(x:820,y:365,z:1.0))],
+ [Key(t:0,cam:Cam(x:820,y:365,z:1.0)),Key(t:7,cam:Cam(x:700,y:380,z:1.8)),Key(t:13,cam:Cam(x:830,y:380,z:1.18)),Key(t:20,cam:Cam(x:780,y:380,z:0.88)),Key(t:24,cam:Cam(x:760,y:370,z:0.9))],
+ [Key(t:0,cam:Cam(x:650,y:370,z:0.9)),Key(t:10,cam:Cam(x:800,y:350,z:1.08)),Key(t:19,cam:Cam(x:655,y:355,z:0.94)),Key(t:28,cam:Cam(x:860,y:365,z:1.3)),Key(t:36,cam:Cam(x:790,y:365,z:1.08)),Key(t:43,cam:Cam(x:865,y:375,z:1.5)),Key(t:48,cam:Cam(x:800,y:370,z:1.0))],
+ [Key(t:0,cam:Cam(x:640,y:360,z:1.0)),Key(t:12,cam:Cam(x:640,y:360,z:1.0))]
+]
+func camera(_ group:Int,_ elapsed:Double)->Cam {
+ let keys=cameraKeys[group];let t=max(0,min(keys.last!.t,elapsed));let i=min(keys.count-2,max(0,(keys.lastIndex(where:{$0.t<=t}) ?? 0)))
+ let h=keys[i+1].t-keys[i].t,q=(t-keys[i].t)/h
+ func component(_ get:(Cam)->Double)->Double {
+  func derivatives(_ j:Int)->(Double,Double) {
+   if j==0 || j==keys.count-1 {return (0,0)}
+   let prev=keys[j-1],cur=keys[j],next=keys[j+1],left=cur.t-prev.t,right=next.t-cur.t
+   let sl=(get(cur.cam)-get(prev.cam))/left,sr=(get(next.cam)-get(cur.cam))/right
+   return ((get(next.cam)-get(prev.cam))/(left+right),2*(sr-sl)/(left+right))
+  }
+  let p0=get(keys[i].cam),p1=get(keys[i+1].cam),d0=derivatives(i),d1=derivatives(i+1)
+  let a0=p0,a1=d0.0*h,a2=0.5*d0.1*h*h
+  let delta=p1-a0-a1-a2,dv=d1.0*h-a1-2*a2,da=d1.1*h*h-2*a2
+  let a3=10*delta-4*dv+0.5*da,a4 = -15*delta+7*dv-da,a5=6*delta-3*dv+0.5*da
+  return a0+a1*q+a2*q*q+a3*q*q*q+a4*pow(q,4)+a5*pow(q,5)
+ }
+ return Cam(x:component{$0.x},y:component{$0.y},z:component{$0.z},angle:component{$0.angle})
+}
+struct Annotation {let text:String;let anchor:CGPoint;let color:NSColor}
+var annotations:[Annotation]=[]
+var bodyRects:[CGRect]=[]
+func noteShipBody(_ p:CGPoint,_ scale:Double,_ yaw:Double){
+ let input:[CGPoint]=[pt(-125,-18),pt(125,-18),pt(125,18),pt(-125,18)]
+ var corners:[CGPoint]=[]
+ let co:Double=cos(yaw),si:Double=sin(yaw)
+ for v in input {let vx=Double(v.x),vy=Double(v.y);let x=Double(p.x)+(vx*co-vy*si)*scale;let y=Double(p.y)+(vx*si+vy*co)*scale;corners.append(screen(pt(x,y)))}
+ let xs:[CGFloat]=corners.map{$0.x},ys:[CGFloat]=corners.map{$0.y}
+ let minX:CGFloat=xs.min()!,minY:CGFloat=ys.min()!,width:CGFloat=xs.max()!-minX,height:CGFloat=ys.max()!-minY
+ bodyRects.append(CGRect(x:minX,y:minY,width:width,height:height).insetBy(dx:-7,dy:-7))
+}
+var annotationCamera=Cam(x:640,y:360,z:1)
+var annotationOffset=0.0
+func screen(_ p:CGPoint)->CGPoint {
+ let cam=annotationCamera,dx=Double(p.x)-cam.x,dy=Double(p.y)-cam.y
+ return pt(640+(dx*cos(cam.angle)-dy*sin(cam.angle))*cam.z+annotationOffset,355+(dx*sin(cam.angle)+dy*cos(cam.angle))*cam.z)
+}
+func drawAnnotations(_ c:CGContext){
+ var occupied:[CGRect]=[]
+ for a in annotations {
+  if a.anchor.x < -30 || a.anchor.x>1310 || a.anchor.y<103 || a.anchor.y>628 {continue}
+  let width=min(225.0,max(100,Double(a.text.count)*8.2)),height=25.0
+  var offsets=[pt(24,-45),pt(24,32),pt(-width-24,-45),pt(-width-24,32),pt(-width/2,-140),pt(-width/2,120)]
+  if let body=bodyRects.first(where:{$0.contains(a.anchor)}) {
+   offsets=[pt(body.maxX+12-a.anchor.x,body.minY-a.anchor.y),pt(body.minX-width-12-a.anchor.x,body.maxY-height-a.anchor.y),pt(body.midX-width/2-a.anchor.x,body.minY-height-12-a.anchor.y),pt(body.midX-width/2-a.anchor.x,body.maxY+12-a.anchor.y)]+offsets
+  }
+  var rect=CGRect.zero
+  for o in offsets {
+   let x=max(28,min(1252-width,Double(a.anchor.x+o.x))),y=max(115,min(590-height,Double(a.anchor.y+o.y)))
+   let r=CGRect(x:x,y:y,width:width,height:height)
+   if !occupied.contains(where:{$0.insetBy(dx:-10,dy:-8).intersects(r)}) && !bodyRects.contains(where:{$0.intersects(r)}) {rect=r;break}
+  }
+  if rect == .zero {continue};occupied.append(rect)
+  let end=pt(rect.midX,rect.midY < a.anchor.y ? rect.maxY:rect.minY)
+  line(c,[a.anchor,pt(end.x,end.y+(end.y<a.anchor.y ? 7:-7)),end],a.color.withAlphaComponent(0.6),0.9)
+  c.setFillColor(ink.withAlphaComponent(0.8).cgColor);c.fill(rect.insetBy(dx:-5,dy:-2))
+  txt(a.text,rect.minX,rect.minY,15,a.color,true,width)
+ }
+ annotations=[]
+}
 let coastlineJSON=(try! JSONSerialization.jsonObject(with:Data(contentsOf:root.appendingPathComponent("land.geojson")))) as! [String:Any]
 func geo(_ lon:Double,_ lat:Double)->CGPoint {pt(640+(lon+15)*18,360-(lat-57)*18)}
-func map(_ c:CGContext,_ shot:Int,_ u:Double,_ t:Double){
- c.saveGState();c.clip(to:CGRect(x:0,y:105,width:1280,height:485))
+let route=[geo(18.5,54.5),geo(12,54.6),geo(10.8,55.3),geo(10.4,57.7),geo(5.3,60.3),geo(-1,67),geo(-20,67),geo(-32,63),geo(-37,55),geo(-22,48),geo(-16.2,48.2)]
+func routeProgress(_ t:Double,_ chase:Bool)->Double {
+ let v:[Double]=chase ? [7.2,7.5,7.7,8.1,8.3,9.0,9.7]:[0.1,1.5,4.0,6.4,7.0,7.1,7.2]
+ func m(_ j:Int)->Double {
+  if j==0 {return (v[1]-v[0])/6};if j==6 {return (v[6]-v[5])/6}
+  let a=(v[j]-v[j-1])/6,b=(v[j+1]-v[j])/6;return 2*a*b/(a+b)
+ }
+ if t<0 {return v[0]+t*m(0)};if t>36 {return v[6]+(t-36)*m(6)}
+ let i=min(5,max(0,Int(t/6))),q=t/6-Double(i),q2=q*q,q3=q2*q
+ return (2*q3-3*q2+1)*v[i]+(q3-2*q2+q)*6*m(i)+(-2*q3+3*q2)*v[i+1]+(q3-q2)*6*m(i+1)
+}
+func routePose(_ t:Double,_ chase:Bool,_ lag:Double=0,_ offset:Double=0)->Pose {
+ movingPose({tt in
+  let p=routeProgress(tt-lag,chase),a=smoothRoute(route,p),b=smoothRoute(route,p+0.002)
+  let ang=atan2(Double(b.y-a.y),Double(b.x-a.x))
+  return pt(a.x-sin(ang)*offset,a.y+cos(ang)*offset)
+ },t)
+}
+func chart(_ c:CGContext){
  for feature in coastlineJSON["features"] as! [[String:Any]] {
   let g=feature["geometry"] as! [String:Any]
-  var polys:[[[[Double]]]]=[]
-  if g["type"] as! String == "Polygon" {polys=[g["coordinates"] as! [[[Double]]]]}
-  else {polys=g["coordinates"] as! [[[[Double]]]]}
-  for rings in polys {for ring in rings.prefix(1){let points=ring.map{geo($0[0],$0[1])};polygon(c,points,NSColor(calibratedRed:0.22,green:0.26,blue:0.23,alpha:1));line(c,points,paper.withAlphaComponent(0.22),0.9)}}
+  let polys=g["type"] as! String == "Polygon" ? [g["coordinates"] as! [[[Double]]]] : g["coordinates"] as! [[[[Double]]]]
+  for rings in polys {for ring in rings.prefix(1){let p=ring.map{geo($0[0],$0[1])};polygon(c,p,NSColor(calibratedRed:0.22,green:0.26,blue:0.23,alpha:1));line(c,p,paper.withAlphaComponent(0.24),0.85)}}
  }
- for lat in stride(from:45.0,through:75,by:5){line(c,[geo(-60,lat),geo(30,lat)],paper.withAlphaComponent(0.08),0.7)}
- for lon in stride(from:-60.0,through:30,by:10){line(c,[geo(lon,40),geo(lon,80)],paper.withAlphaComponent(0.08),0.7)}
- c.restoreGState()
+ for lat in stride(from:45.0,through:75,by:5){line(c,[geo(-60,lat),geo(30,lat)],paper.withAlphaComponent(0.1),0.6)}
+ for lon in stride(from:-60.0,through:30,by:10){line(c,[geo(lon,40),geo(lon,80)],paper.withAlphaComponent(0.1),0.6)}
  for (name,lon,lat) in [("GREENLAND",-44.0,70.0),("ICELAND",-21.5,66.0),("BRITAIN",-5.0,55.0),("NORWAY",8.0,65.0),("BREST",-6.0,48.4)] {let p=geo(lon,lat);txt(name,p.x,p.y,14,paper.withAlphaComponent(0.55),true,180)}
- let route=[geo(18.5,54.5),geo(12,54.6),geo(10.8,55.3),geo(10.4,57.7),geo(5.3,60.3),geo(-1,67),geo(-20,67),geo(-32,63),geo(-37,55),geo(-22,48),geo(-16.2,48.2)]
- line(c,route,paper.withAlphaComponent(0.15),2)
- let beginnings:[Double]=shot<12 ? [0,1.5,4,5.5,6.7,7] : [7.2,7.5,7.7,8,8.3,9.1]
- let durations:[Double]=shot<12 ? [1.5,1.5,1,1.2,0.3,0.2] : [0.3,0.2,0.3,0.3,0.2,0.6]
- let ri=shot<12 ? shot-6:shot-18
- let prog=beginnings[ri]+u*durations[ri]
- let seg=min(9,max(0,Int(prog)));let q=prog-Double(seg)
- let p=pt(mix(route[seg].x,route[seg+1].x,q),mix(route[seg].y,route[seg+1].y,q))
- line(c,Array(route.prefix(seg+1))+[p],red,2.5)
- ship(c,shipModel,p.x,p.y,0.39,atan2(route[seg+1].y-route[seg].y,route[seg+1].x-route[seg].x),1.45,t)
- label(c,"BISMARCK",p.x,p.y,red)
- if shot<9 {ship(c,cruiserModel,p.x-72,p.y+40,0.3,-2.5,1.45,t);label(c,"PRINZ EUGEN",p.x-72,p.y+40,paper)}
- if [10,11,18,19].contains(shot){ship(c,cruiserModel,p.x-170,p.y-70,0.26,0.5,1.45,t);label(c,shot==11 ? "NORFOLK":"SUFFOLK",p.x-170,p.y-70,blue)}
- if shot==22 {let r=30+u*140;c.setStrokeColor(gold.withAlphaComponent(1-u).cgColor);c.setLineWidth(2);c.strokeEllipse(in:CGRect(x:p.x-r,y:p.y-r,width:2*r,height:2*r));txt("CONTACT LOST",470,340,44,gold,true)}
- if shot==23 {aircraft(c,p.x-180+u*320,p.y-100,0.6,0,t);line(c,[pt(p.x-100+u*220,p.y-80),p],gold,1)}
+ var all:[CGPoint]=[];for i in 0...500{all.append(smoothRoute(route,Double(i)/50))}
+ line(c,all,paper.withAlphaComponent(0.15),1.8)
 }
-func render(_ t:Double,_ c:CGContext){
- let shot=min(49,Int(t/6)), local=t-Double(shot*6),u=local/6
- c.saveGState();c.translateBy(x:0,y:Double(H));c.scaleBy(x:1.5,y:-1.5);NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:c,flipped:true)
- ocean(c,t,shot>=28 && shot<40)
- let move=ease(local/0.9)
- c.saveGState()
- // Quick initial push, then a continuous tracking move. Captions remain locked to screen.
- let zoom=mix(1.30,1,move)+u*0.08
- c.translateBy(x:640,y:350);c.scaleBy(x:zoom,y:zoom);c.translateBy(x:-640+mix(70,0,move)-u*20,y:-350)
- if shot<2 {
-  ship(c,shipModel,710,410,3.1+u*0.4,-0.35+u*0.3,0.7,t)
-  line(c,[pt(100,530),pt(300+u*240,470)],paper.withAlphaComponent(0.6),3)
-  if shot==1 {blast(c,350,430,local-1,130,true)}
- } else if shot<6 {
-  let elev=shot==3 ? mix(1.5,1.25,u):mix(0.55,0.9,u)
-  let yaw=shot==4 ? -0.1+u*0.65 : -0.3+u*0.4
-  ship(c,shipModel,650,420,3.3+u*0.25,yaw,elev,t,false)
-  if shot==3 {line(c,[pt(225,530),pt(1065,530)],gold,1.5);for x in [225.0,1065.0]{line(c,[pt(x,520),pt(x,540)],gold,1.5)};txt("OVERALL LENGTH",520,542,13,gold,true)}
-  if shot==4 {for x in [380.0,440.0,790.0,880.0]{ellipse(c,x,400,5,5,gold)};txt("4 TWIN TURRETS",490,540,16,gold,true)}
-  if shot==5 {txt("36 m",70,240,52,gold,true);txt("BEAM",72,300,14,paper);txt("320 mm",980,240,52,gold,true);txt("MAIN ARMOUR BELT",980,300,14,paper);txt("150,170 hp / MAXIMUM OBTAINED",440,535,17,paper,true)}
- } else if shot<12 || (shot>=18 && shot<24){
-  map(c,shot,u,t)
- } else if shot<18 {
-  denmark(c,t,shot,u)
- } else if shot<28 {
-  // A distinct carrier silhouette and aircraft launch deck.
-  c.saveGState();c.translateBy(x:650-u*70,y:385);c.rotate(by:-0.14+u*0.08)
-  polygon(c,[pt(-420,-65),pt(420,-65),pt(440,65),pt(-420,65)],grey)
-  line(c,[pt(-410,65),pt(440,65)],paper.withAlphaComponent(0.5),1)
-  for j in -5...5{line(c,[pt(Double(j)*70,-60),pt(Double(j)*70,60)],paper.withAlphaComponent(0.15),1)}
-  line(c,[pt(-400,0),pt(400,0)],paper.withAlphaComponent(0.6),2)
-  polygon(c,[pt(-40,45),pt(80,45),pt(80,67),pt(-40,67)],grey)
-  for x in stride(from:-35.0,through:75,by:6){line(c,[pt(x,48),pt(x,62)],paper.withAlphaComponent(0.3),1)}
-  for n in 0..<6 {aircraft(c,-310+Double(n)*80,-23,0.4,0,t)}
+func overview(_ c:CGContext,_ t:Double,_ chase:Bool){
+ chart(c)
+ let end=routeProgress(t,chase)
+ let trail=(0...max(1,Int(end*50))).map{smoothRoute(route,Double($0)/50)}
+ line(c,trail,red.withAlphaComponent(0.65),2)
+ vessel(c,shipModel,{routePose($0,chase)},t,0.37,"BISMARCK",red)
+ if !chase && t<22 {vessel(c,cruiserModel,{routePose($0,false,1.6,16)},t,0.3,"PRINZ EUGEN",paper)}
+ if t>24 && !chase || chase && t<15 {vessel(c,cruiserModel,{routePose($0,chase,3.8,-60)},t,0.26,"SHADOWING CRUISER",blue)}
+ if chase && t>24 && t<30 {let p=routePose(t,true).p;let r=25+(t-24)*8;c.setStrokeColor(gold.withAlphaComponent(0.4).cgColor);c.setLineWidth(1);c.strokeEllipse(in:CGRect(x:p.x-r,y:p.y-r,width:2*r,height:2*r))}
+ if chase && t>30 {let p=forward(pt(450,330),0.18,18,t-30);aircraft(c,p.p.x,p.p.y,0.45,p.yaw,t)}
+}
+func attackShip(_ t:Double)->Pose {forward(pt(810,350),-0.15,1.5,t)}
+func attackPlane(_ t:Double,_ n:Int)->Pose {
+ movingPose({tt in
+  let elapsed=tt-Double(n)*1.8
+  let release=pt(565-Double(n)*40,500+Double(n)*55)
+  let target=attackShip(39+Double(n)*1.8),end=pt(target.p.x-cos(target.yaw)*112,target.p.y-sin(target.yaw)*112)
+  let angle=atan2(Double(end.y-release.y),Double(end.x-release.x)),speed=38.0
+  if elapsed<=26 {
+   let control=pt(release.x-cos(angle)*speed*26/3,release.y-sin(angle)*speed*26/3)
+   return bezier(pt(-450-Double(n)*65,650+Double(n)*55),pt(-100,640+Double(n)*55),control,release,elapsed/26)
+  }
+  return pt(release.x+cos(angle)*speed*(elapsed-26),release.y+sin(angle)*speed*(elapsed-26))
+ },t)
+}
+func torpedoPosition(_ t:Double)->CGPoint {
+ let a=attackPlane(26,0).p,ship=attackShip(39),end=pt(ship.p.x-cos(ship.yaw)*112,ship.p.y-sin(ship.yaw)*112)
+ return pt(mix(a.x,end.x,(t-26)/13),mix(a.y,end.y,(t-26)/13))
+}
+func damagedShip(_ t:Double)->Pose {
+ let start=attackShip(48),r=280.0
+ let distance=0.7*t+0.8*8*(1-exp(-t/8)),a=start.yaw+distance/r
+ return Pose(p:pt(start.p.x+r*(sin(a)-sin(start.yaw)),start.p.y+r*(-cos(a)+cos(start.yaw))),yaw:a)
+}
+func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
+ let e=t-groups[group],cam=camera(group,e)
+ c.saveGState();c.clip(to:CGRect(x:offset,y:0,width:1280,height:720));c.translateBy(x:offset,y:0)
+ annotationCamera=cam;annotationOffset=offset
+ c.translateBy(x:640,y:355);c.scaleBy(x:cam.z,y:cam.z);c.rotate(by:cam.angle);c.translateBy(x:-cam.x,y:-cam.y)
+ ocean(c,t,group==6 || group==7)
+ switch group {
+ case 0:
+  let path:(Double)->Pose={forward(pt(660,360),-0.2,2,$0)}
+  vessel(c,shipModel,path,e,2.6)
+  if e<7 {let target=path(7),end=pt(target.p.x-cos(target.yaw)*115*2.6,target.p.y-sin(target.yaw)*115*2.6);let p=pt(mix(0,end.x,e/7),mix(600,end.y,e/7));let ang=atan2(Double(end.y-600),Double(end.x));line(c,[pt(p.x-cos(ang)*70,p.y-sin(ang)*70),p],paper.withAlphaComponent(0.6),2);line(c,[p,pt(p.x+cos(ang)*18,p.y+sin(ang)*18)],paper,4)}
+  else {let p=path(e);blast(c,p.p.x-cos(p.yaw)*115*2.6,p.p.y-sin(p.yaw)*115*2.6,e-7,95,false)}
+ case 1:
+  let path:(Double)->Pose={forward(pt(660,360),-0.2,2,$0+12)}
+  vessel(c,shipModel,path,e,2.6,"",paper,false)
+  let p=path(e).p
+  if e<12 {line(c,[pt(p.x-330,p.y+100),pt(p.x+330,p.y+100)],gold,1);for x in [p.x-330,p.x+330]{line(c,[pt(x,p.y+94),pt(x,p.y+106)],gold,1)}}
+  if e>=12 && e<18 {for x in [72.0,46,-61,-91]{let q=path(e);let target=pt(q.p.x+cos(q.yaw)*x*2.6,q.p.y+sin(q.yaw)*x*2.6);ellipse(c,target.x,target.y,5,5,gold.withAlphaComponent(0.65))}}
+  if e>=18 {label(c,"36 m BEAM",p.x,p.y+50,gold);label(c,"320 mm MAIN BELT",p.x+240,p.y+20,gold)}
+ case 2:overview(c,e,false)
+ case 3:denmark(c,t,min(17,Int(t/6)),e/36)
+ case 4:overview(c,e,true)
+ case 5:
+  let carrier:(Double)->Pose={forward(pt(650,350),-0.12,2,$0)}
+  wake(c,carrier,e,2.5);let cp=carrier(e)
+  c.saveGState();c.translateBy(x:cp.p.x,y:cp.p.y);c.rotate(by:cp.yaw)
+  polygon(c,[pt(-370,-45),pt(350,-45),pt(370,-20),pt(370,25),pt(345,45),pt(-370,45)],grey)
+  for x in stride(from:-360.0,through:350,by:8){line(c,[pt(x,-43),pt(x,43)],paper.withAlphaComponent(0.13),0.4)}
+  for x in stride(from:-350.0,through:350,by:38){line(c,[pt(x,0),pt(x+19,0)],paper.withAlphaComponent(0.55),1)}
+  polygon(c,[pt(-15,28),pt(100,28),pt(105,47),pt(-15,47)],grey.blended(withFraction:0.3,of:.black)!)
+  for n in 0..<6 {let elapsed=e-(2+Double(n)*3.6);if elapsed<0 {aircraft(c,-280+Double(n)*62,-16,0.35,0,t)} }
   c.restoreGState()
-  aircraft(c,500+u*650,420-u*140,0.8,0,t)
-  label(c,shot==25 || shot==26 ? "HMS SHEFFIELD":"HMS ARK ROYAL",120,520,blue)
-  if shot==25 || shot==26 {txt("MISIDENTIFIED TARGET",770,225,23,gold,true);ship(c,cruiserModel,920,470,1.1,-0.4,1.1,t)}
- } else if shot<36 {
-  let attack=shot-28
-  if attack<4 {
-   ship(c,shipModel,950-u*60,335,1.1,-0.4,1.2,t)
-   for n in 0..<3 {let x=80+Double(n)*110+u*440,y=390+Double(n)*65-u*90;aircraft(c,x,y,1.1-Double(n)*0.18,-0.23,t)}
-   if attack>=2 {for n in 0..<8 {let q=(local+Double(n)*0.31).truncatingRemainder(dividingBy:2);blast(c,340+Double((n*97)%650),230+Double((n*83)%250),q,20,false)}}
-  } else if attack==4 {
-   aircraft(c,610+u*320,285-u*20,2.4,-0.05,t)
-   let tx=620+u*180,ty=320+u*u*180
-   line(c,[pt(tx-30,ty),pt(tx+30,ty)],paper,7);line(c,[pt(tx-45,ty),pt(tx-100,ty+15)],paper.withAlphaComponent(0.35),2)
-  } else if attack==5 {
-   ship(c,shipModel,930,360,1.9,1.0,1.45,t)
-   let x=mix(90,790,u),y=mix(550,460,u)
-   line(c,[pt(x-140,y+20),pt(x,y)],paper.withAlphaComponent(0.7),2);line(c,[pt(x-20,y+3),pt(x+15,y-2)],paper,6)
-   txt("ILLUSTRATIVE TORPEDO PATH",65,230,13,gold,true)
-  } else {
-   ship(c,shipModel,730,425,3.6,-0.25+u*0.4,0.65,t)
-   blast(c,310,450,local-0.8,140,true)
-   if attack==7 {ellipse(c,300,450,65,20,gold.withAlphaComponent(0.25));label(c,"STEERING HIT",300,450,gold)}
-  }
- } else if shot<40 {
-  if shot<39 {
-   // Cutaway stern: two rudders rotate away from the centerline.
-   c.saveGState();c.translateBy(x:660,y:350);c.rotate(by:-0.15+u*0.2)
-   polygon(c,[pt(-340,-85),pt(330,-40),pt(370,40),pt(-340,85)],grey.withAlphaComponent(0.6))
-   for yy in [-42.0,42.0]{
-    ellipse(c,-185,yy,24,24,deck)
-    c.saveGState();c.translateBy(x:-265,y:yy);c.rotate(by:0.65)
-    polygon(c,[pt(-45,-6),pt(40,-6),pt(40,6),pt(-45,6)],red);c.restoreGState()
-   }
-   line(c,[pt(-400,0),pt(400,0)],paper.withAlphaComponent(0.3),1)
-   c.restoreGState()
-   txt("STEERING DAMAGE / PLAN DIAGRAM",400,525,16,gold,true)
-  } else {
-   ship(c,shipModel,700,360,1.5,0.3+u*0.3,1.45,t)
-   for n in 0..<4{let a=Double(n)*1.4+u*0.3;let x=700+cos(a)*330,y=360+sin(a)*180;ship(c,cruiserModel,x,y,0.3,a+Double.pi,1.45,t);line(c,[pt(x,y),pt(mix(x,700,u),mix(y,360,u))],blue.withAlphaComponent(0.3),1)}
-  }
- } else if shot<48 {
-  finalBattle(c,t,shot,u)
- } else {
-  if shot==48 {ship(c,shipModel,650,390,2.4,-0.1,1.4,t,false);c.setFillColor(ink.withAlphaComponent(0.5).cgColor);c.fill(CGRect(x:0,y:130,width:1280,height:460));txt("2,000+ DEAD",375,270,72,paper,true);txt("A LITTLE OVER 100 SURVIVORS",375,355,26,paper)}
-  else {txt("OPERATION",75,210,28,gold,true);txt("RHEINÜBUNG",70,245,100,paper,true);txt("18–27 MAY 1941",75,365,25,paper);txt("Original animation • sources and reference in README",75,485,17,paper.withAlphaComponent(0.6))}
+  for n in 0..<6 {let elapsed=e-(2+Double(n)*3.6);if elapsed>=0 && elapsed<14 {
+   let plane=movingPose({tt in let ship=carrier(tt+2+Double(n)*3.6);let d = -280+min(tt,4)*min(tt,4)*32+max(0,tt-4)*256;return pt(ship.p.x+cos(ship.yaw)*d-sin(ship.yaw)*(-16),ship.p.y+sin(ship.yaw)*d+cos(ship.yaw)*(-16))},elapsed)
+   aircraft(c,plane.p.x,plane.p.y,0.5,plane.yaw,t)
+  }}
+  label(c,"HMS ARK ROYAL",cp.p.x,cp.p.y+50,blue)
+  if e>=6 && e<18 {vessel(c,cruiserModel,{forward(pt(1100,430),-0.12,2,$0)},e,0.6,"HMS SHEFFIELD",blue)}
+ case 6:
+  vessel(c,shipModel,attackShip,e,1.05,"BISMARCK",red)
+  for n in 0..<3 {let p=attackPlane(e,n);if e<35 {aircraft(c,p.p.x,p.p.y,0.66-Double(n)*0.07,p.yaw,t)}}
+  if e>12 && e<25 {for n in 0..<7{let age=(e+Double(n)*0.6).truncatingRemainder(dividingBy:3);blast(c,570+Double(n)*60,330+Double(n%3)*40,age,13,false)}}
+  if e>=26 && e<39 {let p=torpedoPosition(e),a=torpedoPosition(e-0.5),ang=atan2(Double(p.y-a.y),Double(p.x-a.x));line(c,[a,p],paper.withAlphaComponent(0.6),1.6);line(c,[p,pt(p.x+cos(ang)*13,p.y+sin(ang)*13)],paper,3)}
+  if e>=39 {let p=attackShip(39),hit=pt(p.p.x-cos(p.yaw)*112,p.p.y-sin(p.yaw)*112);blast(c,hit.x,hit.y,e-39,60,false);if e>42 {label(c,"STEERING HIT",hit.x,hit.y,gold)}}
+ case 7:
+  vessel(c,shipModel,damagedShip,e,1.05,"BISMARCK",red)
+  if e<16 {let p=damagedShip(e),stern=pt(p.p.x-cos(p.yaw)*110,p.p.y-sin(p.yaw)*110);label(c,"RUDDERS JAMMED",stern.x,stern.y,gold)}
+  if e>9 {for n in 0..<3 {
+   let start=pt(350+Double(n)*330,140+Double(n%2)*350),end=pt(720+Double(n)*130,340)
+   let path:(Double)->Pose={tt in movingPose({r in bezier(start,pt(start.x+140,start.y),pt(end.x-150,end.y-70),end,(r-9)/28)},tt)}
+   vessel(c,cruiserModel,path,e,0.3,n==0 ? "DESTROYERS":"",blue)
+  }}
+ case 8:finalBattle(c,t,min(47,Int(t/6)),e/48)
+ default:
+  if e<6 {txt("2,000+ DEAD",310,285,74,paper,true);txt("A LITTLE OVER 100 SURVIVORS",315,380,25,paper)}
+  else {txt("OPERATION",170,230,29,gold,true);txt("RHEINÜBUNG",165,270,92,paper,true);txt("18–27 MAY 1941",175,385,25,paper);txt("Sources and editable animation in the repository",175,455,16,paper.withAlphaComponent(0.65))}
  }
  c.restoreGState()
- // Restrained screen-space typography keeps the action dominant.
- c.setFillColor(ink.withAlphaComponent(0.88).cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:100))
- txt("RHEINÜBUNG",45,25,20,gold,true)
- let chapter=shot<2 ? "COLD OPEN / 26 MAY":shot<6 ? "THE SHIP":shot<12 ? "BREAKOUT":shot<18 ? "DENMARK STRAIT":shot<24 ? "THE CHASE":shot<28 ? "FORCE H":shot<36 ? "THE STRIKE":shot<40 ? "STEERING LOST":shot<48 ? "FINAL ENGAGEMENT":"AFTERMATH"
- txt(chapter,910,31,14,paper.withAlphaComponent(0.7),true,330)
- if shot<49 {
-  let sz=shot==5 ? 32.0:shot==36 ? 35.0:42.0
-  c.setFillColor(ink.withAlphaComponent(0.91).cgColor);c.fill(CGRect(x:0,y:600,width:1280,height:120))
-  c.setFillColor(gold.cgColor);c.fill(CGRect(x:45,y:624,width:4,height:47))
-  txt(captions[shot],65,622,sz,paper,true)
-  txt("ILLUSTRATIVE RECONSTRUCTION • ORIGINAL 2D PLAN ART",65,683,10,paper.withAlphaComponent(0.4))
- }
- let progress=t/300;line(c,[pt(0,718),pt(1280*progress,718)],gold,3)
- // Directional whip transitions, with no long black dissolves.
- if local<0.22 && shot>0 {let q=1-local/0.22;c.setFillColor(ink.withAlphaComponent(q*0.8).cgColor);c.fill(CGRect(x:-1280*(1-q),y:0,width:1280*q,height:720))}
- if shot==49 && local>4 {c.setFillColor(NSColor.black.withAlphaComponent((local-4)/2).cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:720))}
+}
+func smoother(_ x:Double)->Double {let q=max(0,min(1,x));return q*q*q*(q*(q*6-15)+10)}
+func render(_ t:Double,_ c:CGContext){
+ let group=groupAt(t),e=t-groups[group],shot=min(49,Int(t/6)),local=t-Double(shot*6)
+ c.saveGState();c.translateBy(x:0,y:Double(H));c.scaleBy(x:1.5,y:-1.5)
+ NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:c,flipped:true)
+ c.setFillColor(ink.cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:720))
+ annotations=[];bodyRects=[]
+ c.saveGState();c.clip(to:CGRect(x:0,y:100,width:1280,height:530))
+ // Actual scene-to-scene whip-pans. No opacity fade and no six-second camera restart.
+ if group>0 && group != 1 && group != 7 && e<0.85 {
+  let q=smoother(e/0.85)
+  drawWorld(c,group-1,t,-1280*q)
+  drawWorld(c,group,t,1280*(1-q))
+ }else {drawWorld(c,group,t)}
+ c.restoreGState();drawAnnotations(c)
+ // Stable UI, independently animated captions and a thin time bar.
+ c.setFillColor(ink.cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:100))
+ txt("RHEINÜBUNG",40,24,21,gold,true)
+ let names=["26 MAY / THE DECISIVE HIT","BISMARCK / TECHNICAL PLAN","18–23 MAY / BREAKOUT","24 MAY / DENMARK STRAIT","24–26 MAY / THE CHASE","26 MAY / FORCE H","26 MAY / THE STRIKE","26–27 MAY / STEERING LOST","27 MAY / FINAL ENGAGEMENT","AFTERMATH"]
+ txt(names[group],390,27,16,paper.withAlphaComponent(0.85),true,650)
+ if group==3 {let sec=5*3600+52*60+Int((t-72)*30);txt(String(format:"%02d:%02d:%02d",sec/3600,(sec/60)%60,sec%60),1100,27,18,paper,true,160);txt("TIME ×30 / SHIP SYMBOLS ENLARGED",390,61,11,paper.withAlphaComponent(0.6))}
+ else if group==8 {let starts=[0.0,180,480,900,1380,2640,5580,6720];let sec=8*3600+47*60+Int(starts[shot-40]+local*10);txt(String(format:"%02d:%02d:%02d",sec/3600,(sec/60)%60,sec%60),1100,27,18,paper,true,160);txt("SELECTED MOMENTS ×10 / SHIP SYMBOLS ENLARGED",390,61,11,paper.withAlphaComponent(0.6))}
+ else {txt("ORIGINAL 2D PLAN ART / ILLUSTRATIVE RECONSTRUCTION",390,61,10,paper.withAlphaComponent(0.5))}
+ c.setFillColor(ink.cgColor);c.fill(CGRect(x:0,y:630,width:1280,height:90))
+ c.setFillColor(gold.cgColor);c.fill(CGRect(x:40,y:650,width:3,height:42))
+ c.saveGState();c.clip(to:CGRect(x:60,y:637,width:1170,height:65))
+ if shot>0 && local<0.32 {let q=smoother(local/0.32);txt(captions[shot-1],60,648-q*70,shot-1==5 ? 30:36,paper,true);txt(captions[shot],60,718-q*70,shot==5 ? 30:36,paper,true)}
+ else {txt(captions[shot],60,648,shot==5 || shot==36 ? 30:36,paper,true)}
+ c.restoreGState()
+ line(c,[pt(0,718),pt(1280*t/300,718)],gold,2)
+ if t>298 {c.setFillColor(NSColor.black.withAlphaComponent(smoother((t-298)/2)).cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:720))}
  NSGraphicsContext.restoreGraphicsState();c.restoreGState()
+}
+func audit(){
+ let paths:[(String,(Double)->Pose,ClosedRange<Double>)]=[
+ ("breakout",{routePose($0,false)},0...36),("chase",{routePose($0,true)},0...36),
+ ("escort",{routePose($0,false,1.6,16)},3...20),("shadower",{routePose($0,true,3.8,-60)},0...15),
+ ("attack battleship",attackShip,0...48),("damaged battleship",damagedShip,0...24),
+ ("Swordfish 1",{attackPlane($0,0)},0...35),("Swordfish 2",{attackPlane($0,1)},0...35),
+ ("carrier",{forward(pt(650,350),-0.12,2,$0)},0...24)
+ ]
+ var total=0,maxError=0.0
+ for (name,path,range) in paths {for i in 0...500 {let t=range.lowerBound+(range.upperBound-range.lowerBound)*Double(i)/500,p=path(t),a=path(t-0.003),b=path(t+0.003),dx=Double(b.p.x-a.p.x),dy=Double(b.p.y-a.p.y)
+  let speed=hypot(dx,dy);if speed<1e-9 {continue}
+  let alignment=(cos(p.yaw)*dx+sin(p.yaw)*dy)/speed
+  let error=abs(sin(p.yaw)*dx-cos(p.yaw)*dy)/speed;maxError=max(maxError,error)
+  precondition(alignment>0.999 && error<0.01,"Sideslip or reversing: \(name) at \(t)")
+  precondition(p.p.x.isFinite && p.p.y.isFinite && p.yaw.isFinite)
+  total+=1
+ }}
+ let previous=attackShip(48),following=damagedShip(0)
+ precondition(hypot(Double(previous.p.x-following.p.x),Double(previous.p.y-following.p.y))<1e-8)
+ let a=attackShip(47.999),b=damagedShip(0.001)
+ precondition(abs(hypot(Double(previous.p.x-a.p.x),Double(previous.p.y-a.p.y))/0.001-hypot(Double(b.p.x-following.p.x),Double(b.p.y-following.p.y))/0.001)<0.01,"Speed jump at steering damage")
+ let release=attackPlane(26,0),torpA=torpedoPosition(26),torpB=torpedoPosition(26.01)
+ let tx=Double(torpB.x-torpA.x),ty=Double(torpB.y-torpA.y)
+ precondition((cos(release.yaw)*tx+sin(release.yaw)*ty)/hypot(tx,ty)>0.999,"Torpedo reverses at release")
+ print("MOTION AUDIT PASS: \(total) sampled poses, maximum sideslip ratio \(maxError); forward torpedo release")
+ // Camera curves must be position-continuous across all internal keyframes.
+ for group in 0..<10 {for k in cameraKeys[group].dropFirst().dropLast(){let a=camera(group,k.t-0.0001),b=camera(group,k.t+0.0001);precondition(hypot(a.x-b.x,a.y-b.y)<0.1 && abs(a.z-b.z)<0.01)}}
+ for group in 0..<10 {for k in cameraKeys[group].dropFirst().dropLast(){let dt=0.0001,a=camera(group,k.t-dt),b=camera(group,k.t),c=camera(group,k.t+dt)
+  precondition(abs((b.x-a.x)/dt-(c.x-b.x)/dt)<0.1 && abs((b.y-a.y)/dt-(c.y-b.y)/dt)<0.1,"Camera speed jump")
+  precondition(abs((b.z-a.z)/dt-(c.z-b.z)/dt)<0.001)
+ }}
+ print("CAMERA AUDIT PASS: continuous position, speed and acceleration; no per-caption reset")
 }
 let pixels=UnsafeMutableRawPointer.allocate(byteCount:W*H*4,alignment:64)
 let context=CGContext(data:pixels,width:W,height:H,bitsPerComponent:8,bytesPerRow:W*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.noneSkipFirst.rawValue)!
-if CommandLine.arguments.contains("--stills"){
- for t in [17.0,21,29,51,81,93,147,175,195,207,221,255,285,297]{try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(Int(t)).png"))}}
+if CommandLine.arguments.contains("--audit") {audit()}
+else if CommandLine.arguments.contains("--stills") {
+ for t in [5.0,17,21,29,35.7,36.35,51,71.7,72.4,81,93,147,165,175,195,207,221,235,255,285,297] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
- let ffmpeg=CommandLine.arguments[2]
- let patch=CommandLine.arguments.contains("--patch")
- let danish=CommandLine.arguments.contains("--patch-denmark")
- let firstFrame=danish ? 72*fps:patch ? 240*fps:0
- let lastFrame=danish ? 108*fps:patch ? 288*fps:duration*fps
+ let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
- process.arguments=["-y","-v","error","-f","rawvideo","-pixel_format","argb","-video_size","1920x1080","-framerate","24","-i","pipe:0","-an","-c:v","libx264","-crf","17","-preset","fast","-pix_fmt","yuv420p","-movflags","+faststart",root.appendingPathComponent(danish ? "bismarck-denmark-patch.mp4":patch ? "bismarck-patch.mp4":"bismarck-silent.mp4").path]
+ let output=preview ? "motion-preview.mp4":"bismarck-silent.mp4"
+ process.arguments=["-y","-v","error","-f","rawvideo","-pixel_format","argb","-video_size","1920x1080","-framerate","24","-i","pipe:0","-an","-c:v","libx264","-crf","17","-preset","fast","-pix_fmt","yuv420p","-movflags","+faststart",root.appendingPathComponent(output).path]
  let pipe=Pipe();process.standardInput=pipe;try process.run()
- for frame in firstFrame..<lastFrame{autoreleasepool{render(Double(frame)/Double(fps),context);pipe.fileHandleForWriting.write(Data(bytesNoCopy:pixels,count:W*H*4,deallocator:.none))};if frame % 720==0 {print("Rendered \(frame/fps)s");fflush(stdout)}}
+ let ranges:[Range<Int>]=preview ? [Int(32*fps)..<Int(41*fps),Int(163*fps)..<Int(177*fps),Int(211*fps)..<Int(227*fps)]:[0..<(duration*fps)]
+ for range in ranges {for frame in range {autoreleasepool{render(Double(frame)/Double(fps),context);pipe.fileHandleForWriting.write(Data(bytesNoCopy:pixels,count:W*H*4,deallocator:.none))};if frame%720==0 {print("Rendered \(frame/fps)s");fflush(stdout)}}}
  try pipe.fileHandleForWriting.close();process.waitUntilExit();precondition(process.terminationStatus==0);print("VIDEO COMPLETE")
 }
 pixels.deallocate()
