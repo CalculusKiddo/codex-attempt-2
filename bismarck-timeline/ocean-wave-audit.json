@@ -1,0 +1,13 @@
+{
+  "adjacent_frame_rmse_8bit": 2.050114154815674,
+  "one_pixel_camera_pan_rmse_8bit": 0.01041937991976738,
+  "best_translation_after_one_second_pixels": [
+    -12,
+    3
+  ],
+  "residual_after_best_translation_rmse_8bit": 17.436697006225586,
+  "night_to_morning_ocean_corner_rmse_8bit": 0.1556638926267624,
+  "wave_components": 48,
+  "wave_source": "ocean-waves.metal",
+  "static_texture_used": false
+}

@@ -2,7 +2,7 @@
 
 A eight-minute twelve-second original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. Animation artwork is drawn in native code, with a public-domain 1941 RAF reconnaissance photograph in the Bergen chapter. No AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v17-bergen/bismarck-timeline-v17.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v18-waves/bismarck-timeline-v18.mp4).
 
 The action fills the frame. The old header, footer, progress bar and large explanatory captions are removed. Compact ship-name leaders are restored specifically for the final action, as requested. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
@@ -60,7 +60,11 @@ Detailed original overhead plans are rendered at 4096-pixel source width. Class 
 
 Ark Royal has planked deck detail, lifts, arresting wires, runway markings, island glazing, funnel and edge fittings. Swordfish have ribs, bracing, roundels, propellers and visible underslung torpedoes; the Catalina has a boat hull, parasol wing, twin engines and floats.
 
-Animated wave crests overlay the procedural sea. Wakes follow past stern positions through turns, use a consistent age and distance fade and respect each hull's dimensions. Restrained rain streaks are a separate wind-driven screen layer. Explosions combine expanding shock rings, water columns, fire, sparks and drifting smoke instead of stacks of identical white circles.
+The sea is rebuilt each frame by `ocean-waves.metal`, replacing the sliding `ocean.png` background and the old repeated crest-line overlay. Forty-eight directional wave components have wavelength-dependent deep-water propagation speeds. Nonlinear harmonics shape the crests; changing surface normals drive shaded wave faces and overcast reflections. Irregular whitecaps respond to crest strength with a short trailing contribution, instead of repeating identical foam sprites. Fine waves fade with distance to reduce shimmer, and the surface uses world coordinates through camera pans, rotations and zooms. Geographic diagrams use a separate surface scale so ripples do not become continent-sized waves. The matched night-to-final-action transform preserves the same wave field and film clock. This is a procedural visual sea model, not a reconstruction of measured 1941 wave heights.
+
+`ocean-wave-audit.json` records adjacent-frame motion, residual deformation after the best image translation, a one-pixel camera-pan alignment check, and the night-to-morning ocean handoff. `verify_ocean.py` reproduces these checks from `./render . --ocean-review`. `--ocean-preview` exports a short sample with the specification shot, rough-sea air attack and final-action camera handoff.
+
+ Wakes follow past stern positions through turns, use a consistent age and distance fade and respect each hull's dimensions. Restrained rain streaks are a separate wind-driven screen layer. Explosions combine expanding shock rings, water columns, fire, sparks and drifting smoke instead of stacks of identical white circles.
 
 ## Ending
 
@@ -74,7 +78,7 @@ The survivor figure is deliberately approximate, as requested.
 
 `continuity-audit.txt` checks aircraft spacing, carried-to-released torpedo continuity, Sheffield's evasion, hull separation during manoeuvres, paired opening framing, matched carrier zoom and unchanged ship membership within each scene. Its ledger is generated from actual renderer draw calls.
 
-`preserved-attack-audit.txt` retains the v15 comparison against v13 for 1,152 decoded attack frames. It is a prior-edit check, not a byte-identity claim for v17: the Bergen insert shifts later film time by 24 seconds and the ocean clock advances continuously. Weapon and ship simulation tracks remain on their established local clocks.
+`preserved-attack-audit.txt` retains the v15 comparison against v13 for 1,152 decoded attack frames. It is a prior-edit check, not a byte-identity claim for v18: the Bergen insert shifts later film time by 24 seconds, and v18 replaces the ocean renderer while keeping that clock continuous. Weapon and ship simulation tracks remain on their established local clocks.
 
 `gun-damage-audit.txt` checks that the displayed bridge, director and turret damage beats coincide with hull impacts; no turret emits a selected salvo after its disabled state, and the main battery stops after Cäsar.
 
@@ -117,12 +121,11 @@ Contemporary accounts contain conflicting times, estimates and mistaken identifi
 
 ## Edit and render
 
-Requires macOS, Xcode Command Line Tools and Python 3.9+.
+Requires macOS with a Metal-capable GPU, Xcode Command Line Tools and Python 3.9+. The wave shader compiles at runtime through the built-in Metal framework; rendering needs GPU access. Position/ledger exports do not initialize the GPU.
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python ocean.py
 swiftc -O render.swift -o render
 FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
 ./render . --continuity-audit
@@ -133,7 +136,9 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . --export-cues
 ./render . --hull-audit
 ./render . --stills
+./render . --ocean-review
+.venv/bin/python verify_ocean.py
 ./render . "$FFMPEG"
 ```
 
-The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v17.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
+The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v18.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.

@@ -1,5 +1,6 @@
 import AppKit
 import CoreGraphics
+import Metal
 import Foundation
 
 let root=URL(fileURLWithPath:CommandLine.arguments[1])
@@ -266,21 +267,47 @@ func aircraft(_ c:CGContext,_ x:Double,_ y:Double,_ scale:Double,_ angle:Double,
  for side in [-1.0,1.0]{ellipse(c,1,side*29,3.8,3.8,blue);ellipse(c,1,side*29,2.5,2.5,paper);ellipse(c,1,side*29,1.3,1.3,red)}
  c.restoreGState()
 }
-let seaImage=NSImage(contentsOf:root.appendingPathComponent("ocean.png"))!.cgImage(forProposedRect:nil,context:nil,hints:nil)!
-func ocean(_ c:CGContext,_ time:Double,_ storm:Bool=false){
- let t=environmentClock ?? time
- if presenceAuditOnly{return}
- c.setFillColor(ink.cgColor);c.fill(CGRect(x:-4096,y:-4096,width:8192,height:8192))
- c.saveGState()
- let cam=annotationCamera,z=max(1,cam.z),tile=1536/z,drift=t*0.012
- let cx=Int(floor((cam.x+drift)/tile)),cy=Int(floor((cam.y+drift*0.35)/tile))
- c.setAlpha(0.65)
- for ix in (cx-2)...(cx+2) {for iy in (cy-2)...(cy+2) {c.draw(seaImage,in:CGRect(x:Double(ix)*tile-drift,y:Double(iy)*tile-drift*0.35,width:tile,height:tile))}}
- c.restoreGState()
- let colors=[ink.cgColor,NSColor(calibratedRed:0.10,green:0.18,blue:0.20,alpha:1).cgColor] as CFArray
- let g=CGGradient(colorsSpace:CGColorSpaceCreateDeviceRGB(),colors:colors,locations:[0,1])!;c.saveGState();c.setAlpha(0.35);c.drawLinearGradient(g,start:pt(0,0),end:pt(1280,720),options:[]);c.restoreGState()
- animatedSea(c,t,storm)
+final class OceanSurface {
+ let device:MTLDevice,queue:MTLCommandQueue,pipeline:MTLComputePipelineState,output:MTLBuffer,modes:MTLBuffer
+ let width=1920,height=1080
+ init(){
+  guard let d=MTLCreateSystemDefaultDevice() else{fatalError("An Apple Metal GPU is required for the animated wave renderer")};device=d;queue=d.makeCommandQueue()!
+  let source=try! String(contentsOf:root.appendingPathComponent("ocean-waves.metal"),encoding:.utf8)
+  let library=try! d.makeLibrary(source:source,options:nil)
+  pipeline=try! d.makeComputePipelineState(function:library.makeFunction(name:"oceanSurface")!)
+  output=d.makeBuffer(length:width*height*4,options:.storageModeShared)!
+  var waves:[SIMD4<Float>]=[]
+  func random(_ n:Double)->Double {let x=sin(n*127.1+1941.0)*43758.5453;return x-floor(x)}
+  for j in 0..<48 {
+   let q=Double(j)/47,lambda=exp(mix(log(120),log(2.6),q))*(0.90+random(Double(j)+0.4)*0.20)
+   let angle=(j%5==0 ? 0.65:-0.65)+(random(Double(j)+2.1)-0.5)*1.0,k=2*Double.pi/lambda
+   let amplitude=0.012*lambda*pow(lambda/120,0.18)
+   waves.append(SIMD4(Float(cos(angle)*k),Float(sin(angle)*k),Float(amplitude),Float(sqrt(9.81*k))))
+  }
+  modes=d.makeBuffer(bytes:waves,length:waves.count*MemoryLayout<SIMD4<Float>>.stride,options:.storageModeShared)!
+ }
+ func image(_ cam:Cam,_ time:Double,_ storm:Bool,_ metres:Double)->CGImage {
+  var uniforms=[SIMD4<Float>(Float(cam.x),Float(cam.y),Float(cam.z),Float(cam.angle)),SIMD4<Float>(Float(time),storm ? 1:0,Float(metres),0),SIMD4<Float>(Float(width),Float(height),0,0)]
+  let command=queue.makeCommandBuffer()!,encoder=command.makeComputeCommandEncoder()!
+  encoder.setComputePipelineState(pipeline);encoder.setBuffer(output,offset:0,index:0)
+  encoder.setBytes(&uniforms,length:uniforms.count*MemoryLayout<SIMD4<Float>>.stride,index:1);encoder.setBuffer(modes,offset:0,index:2)
+  encoder.dispatchThreads(MTLSize(width:width,height:height,depth:1),threadsPerThreadgroup:MTLSize(width:16,height:16,depth:1));encoder.endEncoding();command.commit();command.waitUntilCompleted()
+  precondition(command.status == .completed,"Wave compute failed: \(String(describing:command.error))")
+  let data=Data(bytes:output.contents(),count:width*height*4)
+  return CGImage(width:width,height:height,bitsPerComponent:8,bitsPerPixel:32,bytesPerRow:width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGBitmapInfo(rawValue:CGImageAlphaInfo.noneSkipLast.rawValue),provider:CGDataProvider(data:data as CFData)!,decode:nil,shouldInterpolate:true,intent:.defaultIntent)!
+ }
 }
+var oceanSurfaceCache:OceanSurface?=nil
+var waveSurface:OceanSurface {if let surface=oceanSurfaceCache{return surface};let surface=OceanSurface();oceanSurfaceCache=surface;return surface}
+func ocean(_ c:CGContext,_ time:Double,_ storm:Bool=false,_ metres:Double=1){
+ if presenceAuditOnly{return}
+ let cam=annotationCamera,image=waveSurface.image(cam,environmentClock ?? time,storm,metres)
+ // Invert only the view transform. Wave coordinates remain in the world, so a
+ // pan/rotation/zoom reveals the same surface rather than moving a bitmap tile.
+ c.saveGState();c.translateBy(x:cam.x,y:cam.y);c.rotate(by:-cam.angle);c.scaleBy(x:1/cam.z,y:1/cam.z);c.translateBy(x:-640,y:-355)
+ c.translateBy(x:0,y:720);c.scaleBy(x:1,y:-1);c.draw(image,in:CGRect(x:0,y:0,width:1280,height:720));c.restoreGState()
+}
+
 func blast(_ c:CGContext,_ x:Double,_ y:Double,_ age:Double,_ size:Double,_ fire:Bool=false){explosion(c,pt(x,y),age,size,fire)}
 func label(_ c:CGContext,_ name:String,_ x:Double,_ y:Double,_ color:NSColor){annotations.append(Annotation(text:name,anchor:screen(pt(x,y)),color:color))}
 // Fifty six-second shots: concise captions, actions and camera setups.
@@ -544,18 +571,6 @@ func rain(_ c:CGContext,_ t:Double){
   let fade=smoother((y+60)/50)*(1-smoother((y-720)/50))
   line(c,[pt(x,y),pt(x-5,y+length)],paper.withAlphaComponent((0.035+Double(j%3)*0.01)*strength*fade),0.65)
  }
-}
-func animatedSea(_ c:CGContext,_ t:Double,_ storm:Bool){
- let cam=annotationCamera,z=max(0.2,cam.z)
- c.saveGState();c.translateBy(x:cam.x,y:cam.y);c.rotate(by:-cam.angle);c.scaleBy(x:1/z,y:1/z)
- for j in 0..<110 {
-  let row=Double(j%14),col=Double(j/14),phase=t*(storm ? 0.8:0.45)+Double(j)*1.73
-  let x = -780+col*220+sin(phase*0.21)*30-cam.x*z*0.08,y = -440+row*68+sin(phase*0.18)*13-cam.y*z*0.08
-  let length=35+Double(j%6)*13,alpha=(storm ? 0.09:0.045)*pow(max(0,sin(phase)),2)
-  let path=CGMutablePath();path.move(to:pt(x,y));path.addCurve(to:pt(x+length,y-4),control1:pt(x+length*0.3,y-5),control2:pt(x+length*0.7,y+2))
-  c.addPath(path);c.setStrokeColor(paper.withAlphaComponent(alpha).cgColor);c.setLineWidth(storm ? 1.2:0.65);c.strokePath()
- }
- c.restoreGState()
 }
 
 func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
@@ -1289,7 +1304,7 @@ func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
  c.saveGState();c.clip(to:CGRect(x:offset,y:0,width:1280,height:720));c.translateBy(x:offset,y:0)
  annotationCamera=cam;annotationOffset=offset
  c.translateBy(x:640,y:355);c.scaleBy(x:cam.z,y:cam.z);c.rotate(by:cam.angle);c.translateBy(x:-cam.x,y:-cam.y)
- if group==8 {finalOcean(c,t,cam)}else{ocean(c,t,group>=5 && group<=8)}
+ if group==8 {finalOcean(c,t,cam)}else{ocean(c,t,group>=5 && group<=8,[1,2,10].contains(group) ? 1/0.012:group==4 ? 1/chaseMapScale:1)}
  suppressWorldText = group != 0
  switch group {
  case 0:
@@ -1480,7 +1495,7 @@ func beginWorld(_ c:CGContext,_ cam:Cam,_ offset:Double){
  c.translateBy(x:640,y:355);c.scaleBy(x:cam.z,y:cam.z);c.rotate(by:cam.angle);c.translateBy(x:-cam.x,y:-cam.y)
 }
 func drawLongApproach(_ c:CGContext,_ e:Double,_ offset:Double=0){
- let cam=longApproachCamera(e);beginWorld(c,cam,offset);ocean(c,72+e,false);chart(c)
+ let cam=longApproachCamera(e);beginWorld(c,cam,offset);ocean(c,72+e,false,1/0.012);chart(c)
  let routeAlpha=1-smoother((e-32)/8)
  if routeAlpha>0 {c.saveGState();c.setLineDash(phase:0,lengths:[1.2,1.8]);let origin=geo(-3.1,58.85)
   let leadIn=[origin,geo(-3.8,59.2),geo(-4.3,59.8),britishApproachTrack.points[0]]
@@ -1572,7 +1587,7 @@ func francePlan(_ c:CGContext,_ e:Double){
  let q=smoother((e-40)/2);if q<0.001{return}
  let r=freeInset(),cam=Cam(x:geo(-18,55.5).x,y:geo(-18,55.5).y,z:0.55),saved=annotationCamera
  c.saveGState();c.clip(to:CGRect(x:r.minX,y:r.minY,width:r.width,height:r.height*q));c.setFillColor(ink.cgColor);c.fill(r)
- c.translateBy(x:r.midX,y:r.midY);c.scaleBy(x:cam.z,y:cam.z);c.translateBy(x:-cam.x,y:-cam.y);annotationCamera=cam;ocean(c,e);chart(c)
+ c.translateBy(x:r.midX,y:r.midY);c.scaleBy(x:cam.z,y:cam.z);c.translateBy(x:-cam.x,y:-cam.y);annotationCamera=cam;ocean(c,e,false,1/0.012);chart(c)
  let a=geo(-31.8,63.3),b=geo(-38,56),d=geo(-2.4,47.3),control=geo(-26,48),progress=smoother((e-42)/10)
  var route:[CGPoint]=[];for i in 0...100 {route.append(bezier(a,b,control,d,progress*Double(i)/100))}
  c.saveGState();c.setLineDash(phase:0,lengths:[3,3]);line(c,route,gold,1.5);c.restoreGState()
@@ -1771,7 +1786,7 @@ func drawBergen(_ c:CGContext,_ e:Double){
   designFrame(c){
    let q=smoother(e/4),a=camera(1,24),b=geo(5.25,60.35)
    let cam=Cam(x:mix(a.x,b.x,q),y:mix(a.y,b.y,q),z:exp(mix(log(a.z),log(8),q)),angle:mix(a.angle,0,q))
-   beginWorld(c,cam,0);ocean(c,60+e);chart(c)
+   beginWorld(c,cam,0);ocean(c,60+e,false,1/0.012);chart(c)
    vessel(c,shipModel,{departurePose($0)},54+e,0.012,"BISMARCK",red)
    vessel(c,cruiserModel,{departurePose($0,true)},54+e,0.012,"PRINZ EUGEN",paper)
    let marker=geo(5.25,60.35);ellipse(c,marker.x,marker.y,3/cam.z,3/cam.z,gold)
@@ -2142,6 +2157,16 @@ if CommandLine.arguments.contains("--export-cues") {
 else if CommandLine.arguments.contains("--weapon-report") {
  for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")");if let hit=nightContacts[n] {print("VICTORIOUS LOCAL CONTACT: \(hullLocal(hit.point,chaseBismarck(hit.time),0.85))")}}
 }
+else if CommandLine.arguments.contains("--ocean-review") {
+ let cam=Cam(x:650,y:370,z:1.5)
+ for (name,time,view) in [("wave-a",100.0,cam),("wave-next",100.0+1.0/24,cam),("wave-b",101.0,cam),("wave-pan",100.0,Cam(x:cam.x+1/(1.5*cam.z),y:cam.y,z:cam.z))] {
+  let image=waveSurface.image(view,time,true,1),rep=NSBitmapImageRep(cgImage:image)
+  try! (image.dataProvider!.data! as Data).write(to:root.appendingPathComponent(name+".rgba"))
+  try! rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent(name+".png"))
+ }
+ for (name,time) in [("handoff-before",413.999),("handoff-after",414.0)] {render(time,context);try! Data(bytes:pixels,count:W*H*4).write(to:root.appendingPathComponent(name+".argb"))}
+ print("Wave review images and handoff frames exported")
+}
 else if CommandLine.arguments.contains("--bergen-audit") {
  let a=camera(1,24),prior=camera(1,23.999),p=departurePose(54),old=departurePose(53.999);precondition(hypot(a.x-prior.x,a.y-prior.y)<0.01 && hypot(p.p.x-old.p.x,p.p.y-old.p.y)<0.001)
  precondition(releaseFilmTime(60)==84 && releaseFilmTime(468)==492)
@@ -2158,14 +2183,14 @@ else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [59.99,60.0,62.0,65.0,69.0,73.0,77.0,80.0,82.0,83.99,84.0,477.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [45.0,156.0,237.0,354.0,413.99,414.0,436.0,477.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
- let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
+ let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview"),wavePreview=CommandLine.arguments.contains("--ocean-preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
- let output=preview ? "motion-preview.mp4":"bismarck-silent.mp4"
+ let output=wavePreview ? "ocean-motion-preview.mp4":preview ? "motion-preview.mp4":"bismarck-silent.mp4"
  process.arguments=["-y","-v","error","-f","rawvideo","-pixel_format","argb","-video_size","1920x1080","-framerate","24","-i","pipe:0","-an","-c:v","libx264","-crf","17","-preset","fast","-pix_fmt","yuv420p","-movflags","+faststart",root.appendingPathComponent(output).path]
  let pipe=Pipe();process.standardInput=pipe;try process.run()
- let ranges:[Range<Int>]=preview ? [Int(65*fps)..<Int(260*fps)]:[0..<(duration*fps)]
+ let ranges:[Range<Int>]=wavePreview ? [40*fps..<44*fps,345*fps..<350*fps,410*fps..<418*fps]:preview ? [Int(65*fps)..<Int(260*fps)]:[0..<(duration*fps)]
  for range in ranges {for frame in range {autoreleasepool{render(Double(frame)/Double(fps),context);pipe.fileHandleForWriting.write(Data(bytesNoCopy:pixels,count:W*H*4,deallocator:.none))};if frame%720==0 {print("Rendered \(frame/fps)s");fflush(stdout)}}}
  try pipe.fileHandleForWriting.close();process.waitUntilExit();precondition(process.terminationStatus==0);print("VIDEO COMPLETE")
 }
