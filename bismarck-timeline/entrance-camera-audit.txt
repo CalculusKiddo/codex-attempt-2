@@ -1,0 +1,3 @@
+FINAL HANDOFF: centre error 0.0 px, scale error 0.0, bearing error 0.0
+MORNING AIRCRAFT: 12 continuous tracks, minimum separation 23.999999999999886, minimum stand-off from Bismarck 139.97672999357516
+ENTRANCE PASS: matched hull and inherited wake/ocean mapping; camera reveals offscreen battleships and then focuses the pair. Earlier torpedo/AA sequences retained; morning force arrives armed and holds off.

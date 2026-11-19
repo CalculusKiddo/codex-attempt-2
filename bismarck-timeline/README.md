@@ -2,7 +2,7 @@
 
 A seven-and-a-half-minute original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v13-final-stations/bismarck-timeline-v13.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v14-battlefleet-reveal/bismarck-timeline-v14.mp4).
 
 The action fills the frame. The old header, footer, progress bar and large explanatory captions are removed. Compact ship-name leaders are restored specifically for the final action, as requested. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
@@ -34,9 +34,11 @@ At approximately 03:01, a selected Prince of Wales return salvo now visibly trav
 
 Selected salvos replace the earlier continuous volume of fire. Battle formations move, gun mounts train, and shell launch points agree with the rendered muzzle positions. A live close-up follows the decisive shell toward Hood. The probable penetration and aft-magazine explosion are explained with a small unlabelled section diagram and a short script cue. Hood's hull breaks and submerges; it is not restored later.
 
-The final action (06:30–07:18) now uses north-up, chart-derived schematic tracks for Bismarck, HMS Rodney, HMS King George V, HMS Norfolk and HMS Dorsetshire. All five carry explicit moving name labels. Rodney and King George V approach from WNW, separate, make independent closing passes and then retire north-east; offscreen retirement markers preserve their names. Norfolk maintains a separate flank station, and Dorsetshire approaches from the opposite quarter before moving around the bow. The final three representative torpedoes use swept hull contacts: two against the starboard side and one against the port side. British gunfire stops before the closing Dorsetshire sequence.
+The final action (06:30–07:18) now uses north-up, chart-derived schematic tracks for Bismarck, HMS Rodney, HMS King George V, HMS Norfolk and HMS Dorsetshire. All five carry explicit moving name labels. The night-to-morning handoff now closes on Bismarck, preserving its projected hull position, scale and bearing. The outgoing wake and ocean use the same similarity mapping as the incoming view. A continuous pullback reveals Rodney and King George V from outside the close-up; the camera then zooms onto the pair and tracks them before returning to the wider engagement. No scene wipe inserts the battleships. Rodney and King George V approach from WNW, separate, make independent closing passes and then retire north-east; offscreen retirement markers preserve their names. Norfolk maintains a separate flank station, and Dorsetshire approaches from the opposite quarter before moving around the bow. The final three representative torpedoes use swept hull contacts: two against the starboard side and one against the port side. British gunfire stops before the closing Dorsetshire sequence.
 
-Selected stations are interpreted from the British track chart reproduced by INRO/NavWeaps and checked against Tovey’s and Patterson’s reports. Symbols are enlarged and intermediate turns/spacing are interpolated for readable hull separation. These drawing coordinates do not establish exact bearings, ranges, speeds or geographic fixes at every frame. Contemporary reports differ on details and times. `final-action-stations.csv` records the source-supported relations used in the staging. The night destroyers are not relocated into an invented close gunfire ring; Maori’s later rescue role remains documented, and ships elsewhere retain their registry identities.
+Selected stations are interpreted from the British track chart reproduced by INRO/NavWeaps and checked against Tovey’s and Patterson’s reports. Symbols are enlarged and intermediate turns/spacing are interpolated for readable hull separation. These drawing coordinates do not establish exact bearings, ranges, speeds or geographic fixes at every frame. Contemporary reports differ on details and times. `final-action-stations.csv` records the source-supported relations used in the staging. The earlier aircraft torpedo attacks and sourced AA fire remain in place. Twelve armed Swordfish approach continuously from the south during the morning finale and circle outside the gun action; the camera widens to retain them. They do not release another torpedo salvo: the morning force held clear during the bombardment. This is a distinct morning sortie, not a replay of the previous evening’s steering attack.
+
+The night destroyers are not relocated into an invented close gunfire ring; Maori’s later rescue role remains documented, and ships elsewhere retain their registry identities.
 
 Bismarck progressively scorches, rolls and submerges in the final sequence. **Only Bismarck sinks there**. Rodney, King George V, Norfolk and Dorsetshire remain afloat and continue moving. The stern steering section is an explanatory reconstruction; precise impact side, plate deformation and failure geometry remain uncertain.
 
@@ -60,6 +62,10 @@ The survivor figure is deliberately approximate, as requested.
 
 `continuity-audit.txt` checks aircraft spacing, carried-to-released torpedo continuity, Sheffield's evasion, hull separation during manoeuvres, paired opening framing, matched carrier zoom and unchanged ship membership within each scene. Its ledger is generated from actual renderer draw calls.
 
+`preserved-attack-audit.txt` confirms that all 1,152 decoded frames of the earlier 05:18–06:06 torpedo/AA sequence match v13 exactly.
+
+`entrance-camera-audit.txt` checks the night/morning projected hull match, offscreen starting positions of the battleships, the pair-focus framing, and separation and stand-off for twelve continuous morning aircraft tracks.
+
 `final-action-audit.txt` samples the new five-ship tracks at 24 fps for hull separation, opening framing, motion alignment, relative stations, north-east retirement and the side of all three Dorsetshire contacts.
 
 `weapon-contact-audit.txt` records the corrected Victorious impact at local hull x ≈ 20.03, y ≈ +17.70 (starboard amidships), with the other two representative torpedoes missing. The launch heading and carrier station are adjusted together, preserving the carried-to-released weapon position.
@@ -70,6 +76,7 @@ The survivor figure is deliberately approximate, as requested.
 
 ## Historical sources and limits
 
+- [Ark Royal aircraft chronology](https://www.kbismarck.com/ark-royal.html): twelve Swordfish launched on 27 May and their arrival/held-off attack during the final bombardment.
 - [Captain Patterson’s final-action report](https://www.kbismarck.com/patterson-bismarck-report.html): Rodney’s opening station relative to King George V, courses, phases, retirement and ceasefire.
 - [British final-action track chart reproduced by INRO/NavWeaps](https://www.navweaps.com/index_inro/no21993-pic3.jpg): selected schematic stations and the broad shapes of the independent tracks; the chart is referenced, not embedded as artwork.
 - [Admiral Tovey's official despatch, ADM 234/509](https://www.hmshood.org.uk/reference/official/adm234/adm234-509tovey.htm): shadowing stations, loss of contact during zigzags, Force H, Sheffield's evasion and withdrawal, the night destroyers, and King George V's reported positions.
@@ -96,6 +103,7 @@ python3 -m venv .venv
 swiftc -O render.swift -o render
 FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
 ./render . --continuity-audit
+./render . --entrance-audit
 ./render . --final-audit
 ./render . --long-audit
 ./render . --export-cues
@@ -104,4 +112,4 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . "$FFMPEG"
 ```
 
-The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v13.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
+The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v14.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.

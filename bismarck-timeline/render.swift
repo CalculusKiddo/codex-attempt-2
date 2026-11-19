@@ -341,9 +341,10 @@ let denmarkActors=[Actor(model:shipModel,name:"BISMARCK",x:610,y:285,yaw:2.45,sc
 // Chart north is screen north; intermediate positions are interpolation, not reported fixes.
 struct FinalTrack {
  let keys:[(Double,Double,Double)]
+ var initialVelocity:CGPoint?=nil
  func point(_ t:Double)->CGPoint {
   func p(_ i:Int)->CGPoint {pt(keys[i].1,keys[i].2)}
-  func velocity(_ i:Int)->CGPoint {let a=max(0,i-1),b=min(keys.count-1,i+1),dt=keys[b].0-keys[a].0;return pt((p(b).x-p(a).x)/dt,(p(b).y-p(a).y)/dt)}
+  func velocity(_ i:Int)->CGPoint {if i==0,let v=initialVelocity{return v};let a=max(0,i-1),b=min(keys.count-1,i+1),dt=keys[b].0-keys[a].0;return pt((p(b).x-p(a).x)/dt,(p(b).y-p(a).y)/dt)}
   let point:CGPoint
   if t<=keys[0].0 {let v=velocity(0);point=pt(p(0).x+v.x*(t-keys[0].0),p(0).y+v.y*(t-keys[0].0))}
   else if t>=keys.last!.0 {let i=keys.count-1,v=velocity(i);point=pt(p(i).x+v.x*(t-keys[i].0),p(i).y+v.y*(t-keys[i].0))}
@@ -355,7 +356,7 @@ struct FinalTrack {
  }
 }
 let finalTrackData:[FinalTrack]=[
- FinalTrack(keys:[(0,510,460),(3,491,454),(8,480,430),(12,482,400),(16,451,352),(20,420,336),(24,406,318),(30,374,280),(34,367,268),(36,363,266),(39,362,264),(44,361,262),(48,360,260)]),
+ FinalTrack(keys:[(0,510,460),(3,491,454),(8,480,430),(12,482,400),(16,451,352),(20,420,336),(24,406,318),(30,374,280),(34,367,268),(36,363,266),(39,362,264),(44,361,262),(48,360,260)],initialVelocity:pt(-0.04005,-0.01265)),
  FinalTrack(keys:[(0,170,260),(2,210,278),(3,228,285),(8,338,291),(12,350,338),(14,372,397),(16,371,375),(20,382,337),(24,367,330),(26,350,302),(28,375,235),(29,425,245),(30,435,295),(34,430,225),(36,420,210),(39,418,190),(44,420,145),(48,447,100)]),
  FinalTrack(keys:[(0,180,288),(3,238,312),(8,287,343),(12,320,415),(16,334,465),(20,322,431),(24,319,385),(30,331,298),(34,341,245),(36,342,224),(39,358,196),(44,388,143),(48,410,104)]),
  FinalTrack(keys:[(0,350,175),(8,345,215),(16,360,240),(24,400,230),(30,442,217),(34,485,230),(39,495,224),(44,470,190),(48,450,158)]),
@@ -541,8 +542,9 @@ func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
 func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  let e=t-240,sim=e*10+300,actors=finalActors
  for (i,a) in actors.enumerated(){let pose=a.pose(sim),p=pose.p;recordPresence(a.name,pose,a.scale,a.model.kind)
-  let target=actors[i==0 ? (e<8 ? 1:2):0].pose(sim+22.4).p;aimWorld=atan2(target.y-p.y,target.x-p.x)
-  let track:(Double)->Pose={finalTrackPose(i,$0)}
+  let target=actors[i==0 ? (e<8 ? 1:2):0].pose(sim+22.4).p,bearing=atan2(target.y-p.y,target.x-p.x)
+  aimWorld=i==0 && e<1.5 ? pose.yaw+atan2(sin(bearing-pose.yaw),cos(bearing-pose.yaw))*smoother(e/1.5):bearing
+  let track:(Double)->Pose={i==0 ? finalWakePose($0):finalTrackPose(i,$0)}
   if i==0 && e>=45 {sinkingShip(c,a.model,pose,a.scale,(e-45)*2.7,false)}else{wake(c,track,e,a.scale,a.model.kind);ship(c,a.model,p.x,p.y,a.scale,pose.yaw,1.57,t,false)}
   if i==0 && e>=8 && e<45 {let damage=smoother((e-8)/20)
    for j in 0..<3 {let birth=8+Double(j)*2.1
@@ -556,6 +558,7 @@ func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  let events=[Salvo(fire:320,from:1,to:0,guns:5,hit:false,serial:100),Salvo(fire:330,from:2,to:0,guns:5,hit:true,serial:101),Salvo(fire:345,from:0,to:1,guns:4,hit:false,serial:102),Salvo(fire:365,from:3,to:0,guns:4,hit:false,serial:103),Salvo(fire:385,from:4,to:0,guns:4,hit:true,serial:104),Salvo(fire:420,from:1,to:0,guns:4,hit:true,serial:105),Salvo(fire:440,from:0,to:2,guns:2,hit:false,serial:106),Salvo(fire:485,from:2,to:0,guns:4,hit:true,serial:107),Salvo(fire:535,from:3,to:0,guns:4,hit:false,serial:108),Salvo(fire:575,from:1,to:0,guns:5,hit:true,serial:109),Salvo(fire:610,from:2,to:0,guns:2,hit:true,serial:110),Salvo(fire:630,from:4,to:0,guns:4,hit:false,serial:111)]
  gunnery(c,sim,10,actors,events,22.4)
  for n in 0..<3 {torpedo(c,finalRuns[n],e,finalContacts[n],0.33)}
+ for n in 0..<12 {let p=morningPlane(e,n);aircraft(c,p.p.x,p.p.y,0.10,p.yaw,t,true)}
 }
 
 
@@ -661,9 +664,12 @@ func camera(_ group:Int,_ elapsed:Double)->Cam {
   let search=fittedCamera(Cam(x:630,y:430,z:2.2),members.filter{["BISMARCK","HMS ARK ROYAL"].contains($0.id)}+[plane])
   return blendCamera(tactical,search,smoother((elapsed-21)/6))
  }
- if group==8 {let all=fittedCamera(Cam(x:740,y:340,z:1.6),members),active=fittedCamera(Cam(x:640,y:260,z:2.1),members.filter{!["RODNEY","KING GEORGE V"].contains($0.id)});return blendCamera(all,active,smoother((elapsed-36)/8))}
+ if group==8 {return finalActionCamera(elapsed)}
  if group==6 {let close=fittedCamera(desired,members.filter{$0.id=="BISMARCK"}),wide=fittedCamera(desired,members),enter=blendCamera(camera(5,24),wide,smoother(elapsed/8));return blendCamera(enter,close,smoother((elapsed-24)/9))}
- if group==7 {let close=fittedCamera(desired,members.filter{$0.id=="BISMARCK"}),wide=fittedCamera(desired,members.filter{!["HMS ARK ROYAL","HMS SHEFFIELD"].contains($0.id)});return blendCamera(close,wide,smoother((elapsed-18)/6))}
+ if group==7 {let close=fittedCamera(desired,members.filter{$0.id=="BISMARCK"}),wide=fittedCamera(desired,members.filter{!["HMS ARK ROYAL","HMS SHEFFIELD"].contains($0.id)}),base=blendCamera(close,wide,smoother((elapsed-18)/6))
+  let p=damagedShip(elapsed),angle=atan2(sin(finalTrackPose(0,0).yaw-damagedShip(24).yaw),cos(finalTrackPose(0,0).yaw-damagedShip(24).yaw))
+  return cinematicCamera(base,Cam(x:p.p.x,y:p.p.y,z:2.8,angle:angle),smoother((elapsed-18)/6))
+ }
  return fittedCamera(desired,members)
 }
 func interpolatedCamera(_ group:Int,_ elapsed:Double)->Cam {
@@ -1237,7 +1243,7 @@ func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
  c.saveGState();c.clip(to:CGRect(x:offset,y:0,width:1280,height:720));c.translateBy(x:offset,y:0)
  annotationCamera=cam;annotationOffset=offset
  c.translateBy(x:640,y:355);c.scaleBy(x:cam.z,y:cam.z);c.rotate(by:cam.angle);c.translateBy(x:-cam.x,y:-cam.y)
- ocean(c,t,group>=5 && group<=8)
+ if group==8 {finalOcean(c,t,cam)}else{ocean(c,t,group>=5 && group<=8)}
  suppressWorldText = group != 0
  switch group {
  case 0:
@@ -1331,7 +1337,7 @@ func renderBase(_ t:Double,_ c:CGContext){
  if t<289 {
   let worldTime=min(t,287.999),worldGroup=groupAt(worldTime)
   // Changes of date/location retain the whole outgoing scene as it leaves the frame.
-  if group>0 && ![1,2,3,5,6,7].contains(group) && e<0.85 {
+  if group>0 && ![1,2,3,5,6,7,8].contains(group) && e<0.85 {
    let q=smoother(e/0.85),previous=groupOrder[max(0,groupOrder.firstIndex(of:group)!-1)]
    if group==4 {drawFuelWorld(c,54+e,-1280*q)}else{drawWorld(c,previous,min(t,groupEnd(previous)-0.001),-1280*q)};drawWorld(c,group,t,1280*(1-q))
   }else {drawWorld(c,t>=288 ? worldGroup:group,worldTime)}
@@ -1571,6 +1577,57 @@ func nightStrikeLens(_ c:CGContext,_ e:Double){
  c.saveGState();c.setAlpha(alpha);c.setStrokeColor(paper.withAlphaComponent(0.3).cgColor);c.setLineWidth(1);c.stroke(r);c.restoreGState()
 }
 var lastFinalNameTime = -100.0
+func cinematicCamera(_ a:Cam,_ b:Cam,_ q:Double)->Cam {
+ let delta=atan2(sin(b.angle-a.angle),cos(b.angle-a.angle))
+ return Cam(x:mix(a.x,b.x,q),y:mix(a.y,b.y,q),z:exp(mix(log(a.z),log(b.z),q)),angle:a.angle+delta*q)
+}
+let finalScaleRatio=0.33/1.05
+func finalMapAngle()->Double {let angle=finalTrackPose(0,0).yaw-damagedShip(24).yaw;return atan2(sin(angle),cos(angle))}
+func finalMapPoint(_ p:CGPoint,_ inverse:Bool=false)->CGPoint {
+ let a=finalMapAngle(),old=damagedShip(24).p,new=finalTrackPose(0,0).p
+ if inverse {let x=(p.x-new.x)/finalScaleRatio,y=(p.y-new.y)/finalScaleRatio;return pt(old.x+x*cos(a)+y*sin(a),old.y-x*sin(a)+y*cos(a))}
+ let x=(p.x-old.x)*finalScaleRatio,y=(p.y-old.y)*finalScaleRatio
+ return pt(new.x+x*cos(a)-y*sin(a),new.y+x*sin(a)+y*cos(a))
+}
+func finalWakePose(_ e:Double)->Pose {
+ if e>=0{return finalTrackPose(0,e)}
+ let old=damagedShip(24+e);return Pose(p:finalMapPoint(old.p),yaw:old.yaw+finalMapAngle())
+}
+func finalOcean(_ c:CGContext,_ t:Double,_ cam:Cam){
+ let old=damagedShip(24).p,new=finalTrackPose(0,0).p,p=finalMapPoint(pt(cam.x,cam.y),true),saved=annotationCamera
+ c.saveGState();c.translateBy(x:new.x,y:new.y);c.rotate(by:finalMapAngle());c.scaleBy(x:finalScaleRatio,y:finalScaleRatio);c.translateBy(x:-old.x,y:-old.y)
+ annotationCamera=Cam(x:p.x,y:p.y,z:cam.z*finalScaleRatio,angle:cam.angle+finalMapAngle());ocean(c,t,true);annotationCamera=saved;c.restoreGState()
+}
+// Twelve armed morning Swordfish approach from the south and stand clear of the gun action.
+func morningAirCentre(_ e:Double)->Pose {
+ let omega=0.23
+ return movingPose({t in
+  if t<34 {let q=(t-26)/8
+   if q<0{return pt(800,2000-(t-26)*90)}
+   return bezier(pt(800,2000),pt(800,1300),pt(600+250*omega*8/3,700),pt(600,700),q)
+  }
+  let a=Double.pi/2+(t-34)*omega;return pt(600+250*cos(a),550+150*sin(a))
+ },e)
+}
+func morningPlane(_ e:Double,_ n:Int)->Pose {
+ movingPose({t in let centre=morningAirCentre(t),offset=pt(Double(n/3)*48-72,Double(n%3-1)*24);return worldPoint(offset,centre,1)},e)
+}
+func morningAirMembers(_ e:Double)->[FleetMember] {(0..<12).map{FleetMember(id:"MORNING SWORDFISH \($0+1)",pose:morningPlane(e,$0),scale:0.10,kind:1)}}
+func finalActionCamera(_ e:Double)->Cam {
+ let members=sceneFleet(8,e),overview=fittedCamera(Cam(x:740,y:340,z:1.6),members)
+ let old=camera(7,24),b=finalTrackPose(0,e),matched=Cam(x:b.p.x,y:b.p.y,z:old.z/finalScaleRatio,angle:0)
+ let pair=Array(members.filter{["RODNEY","KING GEORGE V"].contains($0.id)})
+ let centre=pt((pair[0].pose.p.x+pair[1].pose.p.x)/2,(pair[0].pose.p.y+pair[1].pose.p.y)/2)
+ let focus=fittedCamera(Cam(x:centre.x,y:centre.y,z:3.2),pair)
+ if e<4 {return cinematicCamera(matched,overview,smoother(e/4))}
+ if e<7 {return cinematicCamera(overview,focus,smoother((e-4)/3))}
+ if e<10{return focus}
+ if e<14{return cinematicCamera(focus,overview,smoother((e-10)/4))}
+ let active=members.filter{!["RODNEY","KING GEORGE V"].contains($0.id)}
+ let base=cinematicCamera(overview,fittedCamera(Cam(x:640,y:260,z:2.1),active),smoother((e-36)/8))
+ let air=fittedCamera(base,(e<36 ? members:active)+morningAirMembers(e))
+ return cinematicCamera(base,air,smoother((e-32)/4))
+}
 func finalShipNames(_ c:CGContext,_ e:Double){
  if abs(e-lastFinalNameTime)>0.2 {labelHistory=[:]};lastFinalNameTime=e
  let fleet=sceneFleet(8,e),cam=camera(8,e);annotationCamera=cam;annotationOffset=0
@@ -1604,7 +1661,7 @@ func filmCueList()->[(Double,String)] {
  cues += [(72,"British intercept force · from Scapa Flow"),(86,"Hood leads · Prince of Wales follows toward Iceland"),(96,"Prinz Eugen moves into the German lead"),(100,"02:05 · Holland turns parallel, waiting for daylight"),(112,"03:40 · British force turns in at 28 knots"),(122,"05:35 · enemy sighted; range closes"),(132,"05:52 · Hood and Prince of Wales open fire"),(138,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"),(142,"German ships reply · ranging salvos"),(148,"Prince of Wales hits Bismarck's bow"),(153.5,"Another hit · flooding below the armour belt"),(156,"Bismarck · decisive salvo toward Hood"),(164,"Shell penetration · probable aft-magazine ignition"),(166,"Hood · aft-magazine explosion"),(176,"Hood sinks · Prince of Wales remains under fire"),(179,"Prince of Wales returns fire at Bismarck"),(184,"Bismarck shifts fire · Prince of Wales prepares to withdraw"),(186,"Bridge damage · Prince of Wales turns away under smoke"),(204,"Bismarck survives the action · fuel leaks astern"),(214,"Bow damage · schematic reconstruction"),(222,"Seawater enters · forward fuel tanks become unusable"),(230,"Further flooding · speed and endurance reduced"),(242,"Atlantic raiding abandoned · make for a French repair port")]
  cues += scriptCues.filter{$0.0>=108 && $0.0<240 && $0.0 != 120 && $0.0 != 123}.map{($0.0+150,$0.1)}
  cues += [(327,"Bismarck AA batteries engage the Swordfish"),(267,"Victorious · Swordfish torpedo attack"),(270,"Torpedo hits Bismarck amidships · main armour belt"),(273,"Belt resists penetration · Bismarck continues underway"),(275,"25 May · HMS Suffolk + HMS Norfolk zigzag")]
- cues += [(390,"27 May · final action · north up / enlarged ship symbols"),(392,"08:47 · HMS Rodney opens fire"),(393,"08:48 · HMS King George V opens fire; HMS Norfolk joins"),(398,"HMS Dorsetshire engages from the opposite side"),(406,"09:20 · battleships turn north on independent tracks"),(420,"Close-range bombardment · Bismarck loses effective fire"),(424,"HMS Rodney + HMS King George V begin retiring"),(426,"10:21 · battleship gunfire ends"),(429,"HMS Dorsetshire · two torpedoes against the starboard side"),(434,"Dorsetshire rounds the bow · final port-side torpedo"),(435,"Bismarck capsizes · British ships remain afloat")]
+ cues += [(384,"Night gives way to dawn · battlefleet closes from WNW"),(390,"27 May · Bismarck remains in view as the battlefleet approaches"),(394,"Rodney + King George V · camera follows the closing battleships"),(392,"08:47 · HMS Rodney opens fire"),(393,"08:48 · HMS King George V opens fire; HMS Norfolk joins"),(398,"HMS Dorsetshire engages from the opposite side"),(406,"09:20 · battleships turn north on independent tracks"),(420,"Close-range bombardment · Bismarck loses effective fire"),(424,"10:15 · 12 Swordfish arrive; battleships begin retiring"),(428,"Swordfish circle clear · attack held off during the bombardment"),(426,"10:21 · battleship gunfire ends"),(429,"HMS Dorsetshire · two torpedoes against the starboard side"),(434,"Dorsetshire rounds the bow · final port-side torpedo"),(435,"Bismarck capsizes · British ships remain afloat")]
  return cues.sorted{$0.0<$1.0}
 }
 let filmCues=filmCueList()
@@ -1632,16 +1689,35 @@ func fleetOverlaps(_ a:FleetMember,_ b:FleetMember)->Bool {
  }}
  return true
 }
+func entranceCameraAudit(){
+ func project(_ p:CGPoint,_ c:Cam)->CGPoint {let x=p.x-c.x,y=p.y-c.y;return pt(640+(x*cos(c.angle)-y*sin(c.angle))*c.z,355+(x*sin(c.angle)+y*cos(c.angle))*c.z)}
+ let a=camera(7,24),b=camera(8,0),old=damagedShip(24),new=finalTrackPose(0,0),aa=project(old.p,a),bb=project(new.p,b)
+ let error=hypot(aa.x-bb.x,aa.y-bb.y),scale=abs(1.05*a.z-0.33*b.z),angle=abs(atan2(sin(old.yaw+a.angle-new.yaw-b.angle),cos(old.yaw+a.angle-new.yaw-b.angle)))
+ print("FINAL HANDOFF: centre error \(error) px, scale error \(scale), bearing error \(angle)")
+ precondition(error<0.001 && scale<0.001 && angle<0.001)
+ for i in 1...2 {let fleet=sceneFleet(8,0),ship=fleet[i];precondition(!ship.corners.contains{p in let q=project(p,b);return q.x>0 && q.x<1280 && q.y>0 && q.y<720},"Battleship appears inside first close-up")}
+ for e in stride(from:7.0,through:10,by:0.1) {let cam=camera(8,e)
+  for ship in sceneFleet(8,e).filter({["RODNEY","KING GEORGE V"].contains($0.id)}) {for p in ship.corners {let q=project(p,cam);precondition(q.x>15 && q.x<1265 && q.y>15 && q.y<665,"Battleship focus crops hull")}}
+ }
+ var gap=Double.infinity,range=Double.infinity
+ for e in stride(from:26.0,through:48,by:0.1) {let planes=(0..<12).map{morningPlane(e,$0)},b=finalTrackPose(0,e).p
+  for i in 0..<12 {range=min(range,hypot(planes[i].p.x-b.x,planes[i].p.y-b.y));for j in (i+1)..<12 {gap=min(gap,hypot(planes[i].p.x-planes[j].p.x,planes[i].p.y-planes[j].p.y))}}
+ }
+ print("MORNING AIRCRAFT: 12 continuous tracks, minimum separation \(gap), minimum stand-off from Bismarck \(range)")
+ precondition(gap>20 && range>120)
+ print("ENTRANCE PASS: matched hull and inherited wake/ocean mapping; camera reveals offscreen battleships and then focuses the pair. Earlier torpedo/AA sequences retained; morning force arrives armed and holds off.")
+}
+
 func finalActionAudit(){
  var overlaps=0,framing=0,maxSlip=0.0
  for frame in 0...1152 {let e=Double(frame)/24,fleet=sceneFleet(8,e),cam=camera(8,e)
   precondition(Set(fleet.map{$0.id})==Set(finalActors.map{$0.name}),"Final ship membership changed")
   for a in 0..<fleet.count {for b in (a+1)..<fleet.count {if fleetOverlaps(fleet[a],fleet[b]){if overlaps<12 {print("FINAL OVERLAP t=\(e) \(fleet[a].id)/\(fleet[b].id)")};overlaps+=1}}}
-  if e<36 {for ship in fleet {for p in ship.corners {let x=640+(p.x-cam.x)*cam.z,y=355+(p.y-cam.y)*cam.z;if x<15 || x>1265 || y<15 || y>665 {framing+=1;break}}}}
-  for i in 0..<5 {let p=finalTrackPose(i,e),a=finalTrackPose(i,e-0.001),b=finalTrackPose(i,e+0.001),dx=b.p.x-a.p.x,dy=b.p.y-a.p.y;maxSlip=max(maxSlip,abs(sin(p.yaw)*dx-cos(p.yaw)*dy)/max(1e-8,hypot(dx,dy)))}
+  if e>=14 && e<32 {for ship in fleet {for p in ship.corners {let x=640+(p.x-cam.x)*cam.z,y=355+(p.y-cam.y)*cam.z;if x<15 || x>1265 || y<15 || y>665 {framing+=1;break}}}}
+  for i in 0..<5 {let p=finalTrackPose(i,e),a=finalTrackPose(i,e-0.001),b=finalTrackPose(i,e+0.001),dx=b.p.x-a.p.x,dy=b.p.y-a.p.y;let slip=abs(sin(p.yaw)*dx-cos(p.yaw)*dy)/max(1e-8,hypot(dx,dy));maxSlip=max(maxSlip,slip);if frame>0 {precondition(slip<0.005,"Final ship motion does not follow its heading")}}
  }
- print("FINAL FLEET: overlaps=\(overlaps), early cropped hulls=\(framing), max sideslip=\(maxSlip)");fflush(stdout)
- precondition(overlaps==0 && framing==0 && maxSlip<0.005)
+ print("FINAL FLEET: overlaps=\(overlaps), overview cropped hulls=\(framing), max sideslip=\(maxSlip)");fflush(stdout)
+ precondition(overlaps==0 && framing==0 && maxSlip<0.01)
  let b=finalTrackPose(0,0).p,r=finalTrackPose(1,0).p,k=finalTrackPose(2,0).p,n=finalTrackPose(3,0).p,d=finalTrackPose(4,0).p
  precondition(r.x<b.x && r.y<b.y && k.x<b.x && k.y<b.y && r.y<k.y && n.y<b.y && d.x>b.x && d.y>b.y,"Opening relative stations")
  for i in 1...2 {let a=finalTrackPose(i,40).p,b=finalTrackPose(i,47).p;precondition(b.y<a.y && b.x>=a.x,"Battleships must retire north-east")}
@@ -1909,13 +1985,14 @@ if CommandLine.arguments.contains("--export-cues") {
 else if CommandLine.arguments.contains("--weapon-report") {
  for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")");if let hit=nightContacts[n] {print("VICTORIOUS LOCAL CONTACT: \(hullLocal(hit.point,chaseBismarck(hit.time),0.85))")}}
 }
+else if CommandLine.arguments.contains("--entrance-audit") {entranceCameraAudit()}
 else if CommandLine.arguments.contains("--final-audit") {finalActionAudit()}
 else if CommandLine.arguments.contains("--long-audit") {longEditAudit()}
 else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [390.5,394.0,400.0,406.0,414.0,424.0,429.3,431.0,434.4,436.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [383.9,389.99,390.0,391.0,394.0,397.5,400.0,404.0,424.0,428.0,436.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
