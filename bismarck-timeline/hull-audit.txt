@@ -1,0 +1,3 @@
+CARRIER AUDIT PASS: Ark Royal island and all six parked aircraft footprints inside deck
+HULL AUDIT PASS: all 5 ship classes; 15480 muzzle positions across 360°; turret mounts contained
+RASTER AUDIT PASS: 4743912 visible pixels across 120 ship/bearing combinations; maximum antialias fringe 0.13932746049781009 drawing units

@@ -51,7 +51,7 @@ func makeShip(_ kind:Int=0,_ turretAngle:Double=0,_ damaged:Bool=false)->Model{
  m.cylinder(-13,0,7,5,14,17,grey);m.cylinder(-13,0,6,4,31,1.5,NSColor.black)
  m.box(16,-0.5,1,1,34,22,grey);m.box(7,-0.5,20,1,48,0.7,grey)
  m.box(-37,-0.5,1,1,15,26,grey);m.box(-46,-0.5,18,1,33,0.5,grey)
- if kind==2 {for i in structureStart..<m.f.count {let f=m.f[i];m.f[i]=Face(v:f.v.map{V($0.x-65,$0.y,$0.z)},c:f.c)}}
+ if kind==2 {for i in structureStart..<m.f.count {let f=m.f[i];m.f[i]=Face(v:f.v.map{V($0.x-40,$0.y,$0.z)},c:f.c)}}
  // Main turrets are drawn independently so they train toward the target.
  if kind==1 || kind==4 {m.cylinder(-44,0,6,4,14,15,grey);m.cylinder(-44,0,5,3,29,1.5,NSColor.black)}
  for side in [-1.0,1.0]{
@@ -59,7 +59,7 @@ func makeShip(_ kind:Int=0,_ turretAngle:Double=0,_ damaged:Bool=false)->Model{
   for x in [-50.0,-27.0,3.0,35.0]{m.cylinder(x,11*side,1.7,1.7,15,2,NSColor(calibratedWhite:0.55,alpha:1))}
   for x in [-34.0,-23.0]{m.prism([pt(x-4,7*side),pt(x+4,7*side),pt(x+5,9*side),pt(x-4,10*side)],15,1,paper)}
   // Railings, anchors and capstans.
-  m.box(-82,16*side,160,0.25,9,1.5,grey)
+  // Railings follow the hull contour in the plan renderer.
  }
  m.cylinder(107,0,1.6,1.6,9,0.6,grey);m.box(-5,-18,1,36,15,0.7,grey)
  if kind==4 {m.f=m.f.map{Face(v:$0.v.map{V($0.x*1.046,$0.y*0.894,$0.z)},c:$0.c)}}
@@ -69,13 +69,39 @@ func makeShip(_ kind:Int=0,_ turretAngle:Double=0,_ damaged:Bool=false)->Model{
 let shipModel=makeShip(), cruiserModel=makeShip(1), rodneyModel=makeShip(2), kgvModel=makeShip(3), hoodModel=makeShip(4)
 // Original, high-resolution 2D plan sprites; no generated imagery is used.
 struct PlanSprite {let image:CGImage;let kind:Int}
+func classScale(_ kind:Int)->CGPoint {kind==1 ? pt(0.82,0.8):kind==4 ? pt(1.046,0.894):pt(1,1)}
+let shipOutlines=(0...4).map{kind in makeShip(kind).f[0].v.map{pt($0.x,$0.y)}}
+func outlinePath(_ points:[CGPoint])->CGPath {let p=CGMutablePath();p.addLines(between:points);p.closeSubpath();return p}
+let canonicalHull=outlinePath(shipOutlines[0])
+let shipHullPaths=shipOutlines.map{outlinePath($0)}
+let carrierHull=[pt(-370,-45),pt(350,-45),pt(370,-20),pt(370,25),pt(345,45),pt(-370,45)]
+let carrierIsland=[pt(-15,28),pt(100,28),pt(105,41),pt(-15,41)]
+func canonicalInside(_ p:CGPoint)->Bool {canonicalHull.contains(p)}
+// Mount positions, detail geometry and deck textures all use the same class transform.
+func turretAim(_ relative:Double,_ kind:Int)->Double {let s=classScale(kind);return atan2(sin(relative)/s.y,cos(relative)/s.x)}
+func barrelLength(_ tx:Double,_ yy:Double,_ angle:Double)->Double {
+ func fits(_ length:Double)->Bool {
+  for edge in [-0.75,0.75] {let y=yy+edge,p=pt(tx+cos(angle)*length-sin(angle)*y,sin(angle)*length+cos(angle)*y);if !canonicalInside(p){return false}}
+  return true
+ }
+ if fits(26.6){return 26.6}
+ var lo=7.0,hi=26.6
+ for _ in 0..<24 {let m=(lo+hi)/2;if fits(m){lo=m}else{hi=m}}
+ return max(7,lo-0.2)
+}
+func muzzleLocal(_ kind:Int,_ tx:Double,_ yy:Double,_ relative:Double)->CGPoint {
+ let a=turretAim(relative,kind),length=barrelLength(tx,yy,a),s=classScale(kind)
+ return pt((tx+cos(a)*length-sin(a)*yy)*s.x,(sin(a)*length+cos(a)*yy)*s.y)
+}
 func makePlan(_ kind:Int)->PlanSprite {
  let width=4096,height=960
  let ctx=CGContext(data:nil,width:width,height:height,bitsPerComponent:8,bytesPerRow:width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue)!
  ctx.translateBy(x:2048,y:480);ctx.scaleBy(x:14,y:14)
- let model=makeShip(kind)
+ let model=makeShip(kind),dimensions=classScale(kind)
+ ctx.scaleBy(x:dimensions.x,y:dimensions.y)
+ ctx.addPath(canonicalHull);ctx.clip()
  // Select level top faces, keeping the vertical presentation strictly orthographic.
- let faces=model.f.filter{f in let z=f.v[0].z;return f.v.allSatisfy{abs($0.z-z)<0.05}}
+ let faces=model.f.filter{f in let z=f.v[0].z;return f.v.allSatisfy{abs($0.z-z)<0.05}}.map{f in Face(v:f.v.map{V($0.x/dimensions.x,$0.y/dimensions.y,$0.z)},c:f.c)}
  for f in faces.sorted(by:{$0.v[0].z<$1.v[0].z}) {
   let path=f.v.map{pt($0.x,$0.y)}
   ctx.saveGState();ctx.setShadow(offset:CGSize(width:0.45,height:-0.5),blur:0.55,color:NSColor.black.withAlphaComponent(0.5).cgColor)
@@ -147,6 +173,8 @@ func makePlan(_ kind:Int)->PlanSprite {
  for side in [-1.0,1.0] {for x in [-34.0,-23]{for n in -3...3{line(ctx,[pt(x+Double(n),side*7.4),pt(x+Double(n),side*9.3)],grey,0.12)}}}
  for x in stride(from:-6.0,through:2,by:0.6){line(ctx,[pt(x,-16),pt(x+0.6,16)],grey,0.12)}
  for a in [-37.0,16] {line(ctx,[pt(a-9,0),pt(a+9,0)],paper.withAlphaComponent(0.7),0.15);line(ctx,[pt(a,-7),pt(a,7)],paper.withAlphaComponent(0.7),0.15)}
+ // Railings are inset from the actual curved sheer instead of drawn as straight outriggers.
+ line(ctx,shipOutlines[0].map{pt($0.x*0.975,$0.y*0.965)}+[pt(shipOutlines[0][0].x*0.975,shipOutlines[0][0].y*0.965)],paper.withAlphaComponent(0.55),0.16)
  let img=ctx.makeImage()!
  return PlanSprite(image:img,kind:kind)
 }
@@ -160,16 +188,18 @@ func ship(_ c:CGContext,_ model:Model,_ x:Double,_ y:Double,_ scale:Double,_ yaw
  if wake {for n in 0..<13{let q=(Double(n)/13+t*0.11).truncatingRemainder(dividingBy:1);let back = -126-q*100
   line(c,[pt(back,-q*15),pt(back+15,0),pt(back,q*15)],paper.withAlphaComponent((1-q)*0.23),0.5)
  }}
+ c.addPath(shipHullPaths[kind]);c.clip()
  c.setShadow(offset:CGSize(width:1,height:1),blur:1.5,color:NSColor.black.withAlphaComponent(0.4).cgColor)
  c.draw(plans[kind].image,in:CGRect(x:-2048.0/14,y:-480.0/14,width:4096.0/14,height:960.0/14));c.setShadow(offset:.zero,blur:0,color:nil)
- // Dynamic main turrets, independently trained to target bearings.
+ // Dynamic main turrets share the same hull coordinates as the static sprite.
+ let dimensions=classScale(kind);c.scaleBy(x:dimensions.x,y:dimensions.y)
  let locations:[Double]=kind==2 ? [76,45,12]:kind==3 ? [72,46,-85]:[72,46,-61,-91]
  for (j,tx) in locations.enumerated(){
   let defaultA=(kind==2 || j<2) ? 0.0:Double.pi
   let aim=(aimWorld ?? (yaw+defaultA))-yaw
   let relative=abs(atan2(sin(aim),cos(aim)))
   let canBear = kind==2 && j==2 ? relative>0.61 && relative<2.53 : (j<2 || kind==2) ? relative<2.53 : relative>0.61
-  let angle=canBear ? aim:defaultA
+  let angle=turretAim(canBear ? aim:defaultA,kind)
   ellipse(c,tx,0,8.2,8.2,grey)
   c.saveGState();c.translateBy(x:tx,y:0);c.rotate(by:angle)
   polygon(c,[pt(-7,-6),pt(5,-6),pt(9,-3.5),pt(9,3.5),pt(5,6),pt(-7,6)],NSColor(calibratedWhite:0.36,alpha:1))
@@ -177,7 +207,7 @@ func ship(_ c:CGContext,_ model:Model,_ x:Double,_ y:Double,_ scale:Double,_ yaw
   line(c,[pt(-5,4.7),pt(5,4.7)],NSColor.black.withAlphaComponent(0.5),0.14)
   for h in [-2.0,2.0]{polygon(c,[pt(-4,h-0.7),pt(-2,h-0.7),pt(-2,h+0.7),pt(-4,h+0.7)],grey)}
   let barrels:[Double]=kind==2 ? [-3,0,3]:kind==3 && j != 1 ? [-3,-1,1,3]:[-2.4,2.4]
-  for yy in barrels{line(c,[pt(7,yy),pt(26.6,yy)],NSColor.darkGray,1.15);line(c,[pt(8,yy-0.19),pt(26.3,yy-0.19)],NSColor(calibratedWhite:0.67,alpha:1),0.24);ellipse(c,26.6,yy,0.28,0.43,NSColor.black)}
+  for yy in barrels{let length=barrelLength(tx,yy,angle);line(c,[pt(7,yy),pt(length,yy)],NSColor.darkGray,1.15);line(c,[pt(7.2,yy-0.19),pt(length-0.15,yy-0.19)],NSColor(calibratedWhite:0.67,alpha:1),0.24);ellipse(c,length,yy,0.18,0.43,NSColor.black)}
   line(c,[pt(-1,-9),pt(-1,9)],grey,0.65)
   c.restoreGState()
  }
@@ -259,7 +289,8 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
    if a.model.kind==2 && gun.0==12 && relative<0.61 {continue}
    if a.model.kind != 2 && gun.0<0 && relative<0.61 {continue}
    if gun.0>0 && relative>2.53 {continue}
-   let start=pt(origin.x+cos(a.yaw)*gun.0*a.scale+dir.x*26.6*a.scale+normal.x*gun.1*a.scale,origin.y+sin(a.yaw)*gun.0*a.scale+dir.y*26.6*a.scale+normal.y*gun.1*a.scale)
+   let local=muzzleLocal(a.model.kind,gun.0,gun.1,bearing-a.yaw)
+   let start=worldPoint(local,Pose(p:origin,yaw:a.yaw),a.scale)
    // Recoil flash lasts one frame at the displayed speed; smoke lingers separately.
    if age<max(0.12,speed/24){ellipse(c,start.x,start.y,4,4,gold.withAlphaComponent(0.8));ellipse(c,start.x,start.y,1.8,1.8,paper)}
    if age<10 {let q=age/10;ellipse(c,start.x+q*12,start.y-q*8,3+q*10,3+q*7,paper.withAlphaComponent((1-q)*0.18))}
@@ -549,7 +580,7 @@ func overview(_ c:CGContext,_ t:Double,_ chase:Bool){
  if chase && t>30 {let p=forward(pt(450,330),0.18,18,t-30);aircraft(c,p.p.x,p.p.y,0.45,p.yaw,t)}
 }
 // The rendered hull polygon is also the collision hull. Projectiles never use the label or sprite rectangle.
-let collisionHulls:[[CGPoint]]=(0...4).map {kind in makeShip(kind).f[0].v.map{pt($0.x,$0.y)}}
+let collisionHulls=shipOutlines
 func hullLocal(_ p:CGPoint,_ pose:Pose,_ scale:Double)->CGPoint {
  let x=Double(p.x-pose.p.x)/scale,y=Double(p.y-pose.p.y)/scale
  return pt(x*cos(pose.yaw)+y*sin(pose.yaw),-x*sin(pose.yaw)+y*cos(pose.yaw))
@@ -701,10 +732,10 @@ func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
   let carrier:(Double)->Pose={forward(pt(650,350),-0.12,2,$0)}
   wake(c,carrier,e,2.5);let cp=carrier(e)
   c.saveGState();c.translateBy(x:cp.p.x,y:cp.p.y);c.rotate(by:cp.yaw)
-  polygon(c,[pt(-370,-45),pt(350,-45),pt(370,-20),pt(370,25),pt(345,45),pt(-370,45)],grey)
+  polygon(c,carrierHull,grey)
   for x in stride(from:-360.0,through:350,by:8){line(c,[pt(x,-43),pt(x,43)],paper.withAlphaComponent(0.13),0.4)}
   for x in stride(from:-350.0,through:350,by:38){line(c,[pt(x,0),pt(x+19,0)],paper.withAlphaComponent(0.55),1)}
-  polygon(c,[pt(-15,28),pt(100,28),pt(105,47),pt(-15,47)],grey.blended(withFraction:0.3,of:.black)!)
+  polygon(c,carrierIsland,grey.blended(withFraction:0.3,of:.black)!)
   for n in 0..<6 {let elapsed=e-(2+Double(n)*3.6);if elapsed<0 {aircraft(c,-280+Double(n)*62,-16,0.35,0,t)} }
   c.restoreGState()
   for n in 0..<6 {let elapsed=e-(2+Double(n)*3.6);if elapsed>=0 && elapsed<14 {
@@ -806,6 +837,73 @@ func render(_ t:Double,_ c:CGContext){
  if t>298 {c.setFillColor(NSColor.black.withAlphaComponent(smoother((t-298)/2)).cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:720))}
  NSGraphicsContext.restoreGraphicsState();c.restoreGState()
 }
+func hullAudit(){
+ let models=[shipModel,cruiserModel,rodneyModel,kgvModel,hoodModel]
+ let names=["BISMARCK","PRINZ EUGEN","RODNEY","KING GEORGE V","HOOD"]
+ var muzzleChecks=0,pixelChecks=0,maxFringe=0.0
+ for kind in 0..<5 {
+  let locations:[Double]=kind==2 ? [76,45,12]:kind==3 ? [72,46,-85]:[72,46,-61,-91]
+  for degrees in 0..<360 {
+   let angle=Double(degrees)*Double.pi/180
+   for (j,tx) in locations.enumerated(){
+    let barrels:[Double]=kind==2 ? [-3,0,3]:kind==3 && j != 1 ? [-3,-1,1,3]:[-2.4,2.4]
+    for yy in barrels {
+     let p=muzzleLocal(kind,tx,yy,angle)
+     precondition(shipHullPaths[kind].contains(p),"Muzzle outside hull: \(names[kind]), \(degrees)°")
+     muzzleChecks+=1
+    }
+    for n in 0..<36 {let a=Double(n)*Double.pi/18,scale=classScale(kind)
+     precondition(shipHullPaths[kind].contains(pt((tx+cos(a)*8.2)*scale.x,sin(a)*8.2*scale.y)),"Turret mount outside hull")
+    }
+   }
+  }
+  for degrees in stride(from:0,through:345,by:15) {
+   let w=800,h=240
+   let ctx=CGContext(data:nil,width:w,height:h,bitsPerComponent:8,bytesPerRow:w*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue)!
+   ctx.translateBy(x:400,y:120);ctx.scaleBy(x:2.5,y:2.5)
+   aimWorld=Double(degrees)*Double.pi/180
+   ship(ctx,models[kind],0,0,1,0,Double.pi/2,0,false)
+   let bytes=ctx.data!.assumingMemoryBound(to:UInt8.self)
+   for y in 0..<h {for x in 0..<w {
+    if bytes[(y*w+x)*4+3]<16 {continue}
+    pixelChecks+=1
+    let p=pt((Double(x)+0.5-400)/2.5,(Double(y)+0.5-120)/2.5)
+    if shipHullPaths[kind].contains(p){continue}
+    var distance=Double.infinity;let hull=shipOutlines[kind]
+    for i in hull.indices {let a=hull[i],b=hull[(i+1)%hull.count],dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy
+     if den<1e-16 {continue}
+     let u=max(0,min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/den))
+     distance=min(distance,hypot(Double(p.x-a.x-u*dx),Double(p.y-a.y-u*dy)))
+    }
+    maxFringe=max(maxFringe,distance)
+    precondition(distance<0.35,"Sprite pixels outside hull: \(names[kind]), \(degrees)°, \(p), distance \(distance)")
+   }}
+  }
+ }
+ aimWorld=nil
+ let carrier=outlinePath(carrierHull)
+ for p in carrierIsland {precondition(carrier.contains(p),"Carrier island outside deck")}
+ for n in 0..<6 {let x = -280+Double(n)*62
+  for dx in [-34.0,38] {for dy in [-43.0,43] {precondition(carrier.contains(pt(x+dx*0.35,-16+dy*0.35)),"Parked aircraft over carrier deck edge")}}
+ }
+ print("CARRIER AUDIT PASS: Ark Royal island and all six parked aircraft footprints inside deck")
+ print("HULL AUDIT PASS: all 5 ship classes; \(muzzleChecks) muzzle positions across 360°; turret mounts contained")
+ print("RASTER AUDIT PASS: \(pixelChecks) visible pixels across 120 ship/bearing combinations; maximum antialias fringe \(maxFringe) drawing units")
+ // A native contact sheet shows each class fore-and-aft, oblique and broadside.
+ let ctx=CGContext(data:nil,width:1920,height:1080,bitsPerComponent:8,bytesPerRow:1920*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue)!
+ ctx.translateBy(x:0,y:1080);ctx.scaleBy(x:1.5,y:-1.5)
+ NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:ctx,flipped:true)
+ ctx.setFillColor(ink.cgColor);ctx.fill(CGRect(x:0,y:0,width:1280,height:720))
+ txt("HULL FIT / ALL FIVE SHIP CLASSES",35,18,23,gold,true)
+ for (col,bearing) in [0.0,45,90].enumerated(){txt("GUN BEARING \(Int(bearing))°",55+Double(col)*420,58,15,paper,true)}
+ for kind in 0..<5 {let y=145.0+Double(kind)*112
+  txt(names[kind],35,y-40,14,gold,true)
+  for (col,bearing) in [0.0,45,90].enumerated(){aimWorld=bearing*Double.pi/180;ship(ctx,models[kind],220+Double(col)*420,y,1.25,0,Double.pi/2,0,false)}
+ }
+ aimWorld=nil;NSGraphicsContext.restoreGraphicsState()
+ let rep=NSBitmapImageRep(cgImage:ctx.makeImage()!);try! rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("hull-fit-review.png"))
+}
+
 func audit(){
  let paths:[(String,(Double)->Pose,ClosedRange<Double>)]=[
  ("breakout",{routePose($0,false)},0...36),("chase",{routePose($0,true)},0...36),
@@ -852,7 +950,8 @@ func audit(){
 }
 let pixels=UnsafeMutableRawPointer.allocate(byteCount:W*H*4,alignment:64)
 let context=CGContext(data:pixels,width:W,height:H,bitsPerComponent:8,bytesPerRow:W*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.noneSkipFirst.rawValue)!
-if CommandLine.arguments.contains("--audit") {audit()}
+if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
+else if CommandLine.arguments.contains("--audit") {audit()}
 else if CommandLine.arguments.contains("--stills") {
  for t in [0.0,8,17,29,35.7,36.35,39,43.5,51,58,65,71.7,81,195,204,209.5,215,220,225,235,255,297] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{

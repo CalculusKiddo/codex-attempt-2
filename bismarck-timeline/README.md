@@ -2,7 +2,7 @@
 
 A five-minute **2D** documentary animation with detailed overhead ships, continuous camera choreography, path-following vessel motion, brief captions, ship specifications and no audio track.
 
-[Download the full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v5-realism/bismarck-timeline.mp4). The video is distributed as a GitHub Release asset so it can retain full quality beyond the repository file-size limit.
+[Download the full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v6-hull-fit/bismarck-timeline.mp4). The video is distributed as a GitHub Release asset so it can retain full quality beyond the repository file-size limit.
 
 - 1920 × 1080, 24 fps, H.264 MP4, no audio track.
 - Eleven sequences with fifty brief caption cues. Ship plans are rendered from original native drawing code at 4096-pixel source width.
@@ -12,9 +12,14 @@ A five-minute **2D** documentary animation with detailed overhead ships, continu
 - Labels enter with a short slide and eased opacity, leave at chapter boundaries, and avoid ship silhouettes and each other. Timestamps stay fixed in the header. The opening dotted journey line disappears before the close-up.
 - Planked decks, anchor chains, hatches, ventilation grilles, boats, cranes, rangefinders, secondary batteries and independently trained main turrets.
 - 250.5 m overall length, 36 m beam, eight 380 mm guns, 320 mm main belt are shown in the specifications sequence. The length line grows from one end and places its value beside the line.
+- Deck planking, fittings, sprite shadows and dynamic guns share the same class-specific hull coordinates and are bounded by the actual hull outline. Railings follow the tapered hull; Rodney's aft structure is inset. Gun barrel endpoints remain inside the hull for this requested presentation, and shell launches use those same displayed muzzles.
 - No AI-generated imagery is used in this revision.
 
 The current release has **no audio stream**: no music, effects, narration or other sounds.
+
+## Hull-fit validation
+
+`./render . --hull-audit` checks all five illustrated ship classes. It tests 15,480 muzzle positions across 360 degrees, samples every turret mount perimeter, and inspects 4,743,912 visible raster pixels across 120 ship/bearing combinations. The only coverage outside the mathematical boundary is the subpixel antialias fringe (maximum 0.14 drawing units). Ark Royal’s island and all six parked aircraft footprints are also checked against its deck outline. `hull-fit-review.png` shows the five classes at fore-and-aft, oblique and broadside gun bearings; `hull-audit.txt` contains the results. These bounds are a display choice for this film and do not imply that real gun barrels could never overhang a ship's side.
 
 ## Opening order
 
