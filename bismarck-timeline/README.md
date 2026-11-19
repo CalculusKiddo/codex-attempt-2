@@ -2,7 +2,7 @@
 
 A eight-minute twelve-second original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. Animation artwork is drawn in native code, with a public-domain 1941 RAF reconnaissance photograph in the Bergen chapter. No AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v18-waves/bismarck-timeline-v18.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v19-specs/bismarck-timeline-v19.mp4).
 
 The action fills the frame. The old header, footer, progress bar and large explanatory captions are removed. Compact ship-name leaders are restored specifically for the final action, as requested. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
@@ -13,6 +13,10 @@ A new 01:00–01:24 chapter locates the Bergen fjord area, then moves into the o
 The photograph enters and leaves with smooth lateral movement, while its camera crop advances toward the actual ship. Its small source credit sits at bottom left. Subsequent chapters shift by 24 seconds; the current timecodes are exported in `script-cues.csv`. The film now fades at 08:00, shows the human cost at 08:01, and ends on the title/dates from 08:06.
 
 `bergen-photo-attribution.json` records the source and expired Crown copyright status. The image is a historical photograph, not generated artwork. `bergen-audit.txt` checks photographic crop coverage, the chapter handoffs and the film clock. Archival ledger states leave coordinates blank instead of inventing a precise photo navigation fix.
+
+## Visible specification labels
+
+At 00:51, six specifications appear together in a readable display below Bismarck: overall length 250.5 m, beam 36 m, main battery 8 × 380 mm, main belt armour 320 mm, trial top speed 30.1 knots and full-load displacement approximately 51,800 metric tonnes. The length value also appears beside the measurement line. Screen-space text bypasses the scene’s ship-name suppression; the original world-space spec text had been hidden. The display fades in from 00:47.5 and out by 00:58, without covering either hull or changing camera movement. `bismarck-specifications.csv` records the values, rounding and technical-data source.
 
 ## Continuity and staging
 
@@ -141,4 +145,4 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . "$FFMPEG"
 ```
 
-The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v18.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
+The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v19.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.

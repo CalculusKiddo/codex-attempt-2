@@ -891,6 +891,25 @@ func departure(_ c:CGContext,_ e:Double,_ specs:Bool=false){
   c.restoreGState()
  }
 }
+// Draw specification typography in screen space, after the world-name suppression.
+func specificationText(_ c:CGContext,_ e:Double){
+ let p=departurePose(30+e),saved=suppressWorldText;suppressWorldText=false
+ defer{suppressWorldText=saved}
+ let lengthAlpha=smoother((e-7.2)/0.5)*(1-smoother((e-21)/1))
+ if lengthAlpha>0 {let a=screen(worldPoint(pt(-125,34),p,0.012)),b=screen(worldPoint(pt(125,34),p,0.012))
+  c.saveGState();c.setAlpha(lengthAlpha);txt("250.5 m OVERALL",(a.x+b.x)/2-75,max(a.y,b.y)+8,17,gold,true,170);c.restoreGState()
+ }
+ let alpha=smoother((e-11.5)/0.5)*(1-smoother((e-21)/1));if alpha<0.001{return}
+ let centre=screen(p.p),x=max(30,min(650,centre.x-300)),y=470.0
+ c.saveGState();c.setAlpha(alpha);c.setFillColor(ink.withAlphaComponent(0.90).cgColor);c.fill(CGRect(x:x,y:y,width:600,height:152))
+ line(c,[pt(x,y),pt(x+600,y)],gold.withAlphaComponent(0.65),1)
+ txt("BISMARCK · SPECIFICATIONS",x+14,y+8,14,paper,true,570)
+ let items=[("OVERALL LENGTH","250.5 m"),("BEAM","36 m"),("MAIN BATTERY","8 × 380 mm"),("MAIN BELT ARMOUR","320 mm"),("TRIAL TOP SPEED","30.1 knots"),("FULL-LOAD DISPLACEMENT","≈51,800 t")]
+ for (i,item) in items.enumerated(){let col=Double(i%3),row=Double(i/3),px=x+14+col*196,py=y+35+row*55
+  txt(item.0,px,py,11,paper,false,188);txt(item.1,px,py+16,22,gold,true,188)
+ }
+ c.restoreGState()
+}
 func approachPose(_ t:Double,_ escort:Bool=false)->Pose {
  let path:(Double)->CGPoint={v in
   let a=geo(3.5,58.25),b=geo(-25,65),heading=atan2(Double(b.y-a.y),Double(b.x-a.x))
@@ -1406,6 +1425,7 @@ func renderBase(_ t:Double,_ c:CGContext){
   if group==3 {bowHitLens(c,t);battleLens(c,t);if e>17 && e<25 {hoodSection(c,e)}}
   if group==7 {suppressWorldText=true;steeringCutaway(c,e);suppressWorldText=false}
   if group==8 {suppressWorldText=false;finalShipNames(c,e);gunDamageLabels(c,e)}
+  if group==1 {specificationText(c,e)}
   rain(c,t)
   // No ship-name leaders, header, footer, progress bar or large narration cards.
   if !suppressScriptCues,let cue=scriptCues.last(where:{$0.0<=t}) {let alpha=min(1,(t-cue.0)/0.35);c.saveGState();c.setAlpha(alpha)
@@ -2183,7 +2203,7 @@ else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [45.0,156.0,237.0,354.0,413.99,414.0,436.0,477.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [48.5,51.0,54.0,57.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview"),wavePreview=CommandLine.arguments.contains("--ocean-preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
