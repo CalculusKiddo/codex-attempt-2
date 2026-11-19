@@ -1205,9 +1205,9 @@ func steeringCutaway(_ c:CGContext,_ e:Double){
 
 let scriptCues:[(Double,String)]=[
  (0,"Operation Rheinübung · 18–27 May 1941"),(6,"20 May · leaving Europe"),(24,"North Sea · clear of the narrows"),(36,"Bismarck · technical inspection"),
- (60,"21–23 May · passage toward Denmark Strait"),(72,"24 May · Denmark Strait"),(84,"Bismarck · decisive salvo"),(88,"Shell penetration · probable aft-magazine ignition"),(90,"Hood · aft magazine explosion"),(101,"Prince of Wales · breaking off"),
- (108,"24 May · Prinz Eugen separates"),(114,"Victorious · Swordfish night strike"),(120,"25 May · British cruisers zigzag at radar range"),(126,"Bismarck turns astern · contact lost"),
- (129,"Cruisers search · Prince of Wales rejoins the fleet"),(132,"26 May · Catalina leaves Lough Erne"),(138,"Catalina · visual contact regained"),(144,"Ark Royal · first strike launches"),(153,"Mistaken target · HMS Sheffield evades"),(156,"Premature magnetic pistols · remaining torpedoes evaded"),(161,"Return, rearm · second strike"),
+ (60,"21–23 May · passage toward Denmark Strait"),(70,"HMS Suffolk · radar contact"),(71,"HMS Norfolk · joins the shadow"),(72,"24 May · Denmark Strait"),(84,"Bismarck · decisive salvo"),(88,"Shell penetration · probable aft-magazine ignition"),(90,"Hood · aft magazine explosion"),(101,"Prince of Wales · breaking off"),
+ (108,"24 May · Prinz Eugen separates"),(114,"Victorious · Swordfish night strike"),(120,"25 May · HMS Suffolk + HMS Norfolk zigzag"),(123,"HMS Suffolk · radar contact at extreme range"),(126,"Bismarck turns astern · Suffolk loses contact"),
+ (129,"HMS Suffolk + HMS Norfolk search · Prince of Wales departs"),(132,"26 May · Catalina leaves Lough Erne"),(138,"Catalina · visual contact regained"),(144,"Ark Royal · first strike launches"),(153,"Mistaken target · HMS Sheffield evades"),(156,"Premature magnetic pistols · remaining torpedoes evaded"),(161,"Return, rearm · second strike"),
  (168,"Swordfish · approach to Bismarck"),(192,"Torpedoes away"),(207,"Stern hit · steering disabled"),(217,"Steering damage · schematic section"),(231,"British destroyers close through the night"),
  (240,"27 May · Rodney and King George V close"),(252,"Selected salvos · progressive damage"),(276,"Dorsetshire · torpedo attack"),(282,"Bismarck sinks · British ships remain afloat")]
 func render(_ t:Double,_ c:CGContext){

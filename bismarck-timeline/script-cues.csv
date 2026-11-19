@@ -4,6 +4,8 @@ film_seconds,timecode,script_cue
 24.0,00:24,North Sea · clear of the narrows
 36.0,00:36,Bismarck · technical inspection
 60.0,01:00,21–23 May · passage toward Denmark Strait
+70.0,01:10,HMS Suffolk · radar contact
+71.0,01:11,HMS Norfolk · joins the shadow
 72.0,01:12,24 May · Denmark Strait
 84.0,01:24,Bismarck · decisive salvo
 88.0,01:28,Shell penetration · probable aft-magazine ignition
@@ -11,9 +13,10 @@ film_seconds,timecode,script_cue
 101.0,01:41,Prince of Wales · breaking off
 108.0,01:48,24 May · Prinz Eugen separates
 114.0,01:54,Victorious · Swordfish night strike
-120.0,02:00,25 May · British cruisers zigzag at radar range
-126.0,02:06,Bismarck turns astern · contact lost
-129.0,02:09,Cruisers search · Prince of Wales rejoins the fleet
+120.0,02:00,25 May · HMS Suffolk + HMS Norfolk zigzag
+123.0,02:03,HMS Suffolk · radar contact at extreme range
+126.0,02:06,Bismarck turns astern · Suffolk loses contact
+129.0,02:09,HMS Suffolk + HMS Norfolk search · Prince of Wales departs
 132.0,02:12,26 May · Catalina leaves Lough Erne
 138.0,02:18,Catalina · visual contact regained
 144.0,02:24,Ark Royal · first strike launches

@@ -2,9 +2,9 @@
 
 A five-minute original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v8-continuity/bismarck-timeline.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v9-named-cruisers/bismarck-timeline.mp4).
 
-The action fills the frame. The old header, footer, progress bar, ship-name leaders and large explanatory captions are removed. Small bottom-left cues identify shots for a separate script. `script-cues.csv` lists those cues and timecodes.
+The action fills the frame. The old header, footer, progress bar, ship-name leaders and large explanatory captions are removed. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
 ## Continuity and staging
 
