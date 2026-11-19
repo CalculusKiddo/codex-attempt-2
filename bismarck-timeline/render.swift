@@ -3,7 +3,7 @@ import CoreGraphics
 import Foundation
 
 let root=URL(fileURLWithPath:CommandLine.arguments[1])
-let W=1920, H=1080, fps=24, duration=468
+let W=1920, H=1080, fps=24, duration=492
 let ink=NSColor(calibratedRed:0.045,green:0.09,blue:0.115,alpha:1)
 let paper=NSColor(calibratedRed:0.89,green:0.90,blue:0.85,alpha:1)
 let gold=NSColor(calibratedRed:0.92,green:0.67,blue:0.34,alpha:1)
@@ -1368,7 +1368,7 @@ func steeringCutaway(_ c:CGContext,_ e:Double){
 
 let scriptCues:[(Double,String)]=[
  (0,"Operation Rheinübung · 18–27 May 1941"),(6,"20 May · leaving Europe"),(24,"North Sea · clear of the narrows"),(36,"Bismarck · technical inspection"),
- (60,"21–23 May · passage toward Denmark Strait"),(70,"HMS Suffolk · radar contact"),(71,"HMS Norfolk · joins the shadow"),(72,"24 May · Denmark Strait"),(84,"Bismarck · decisive salvo"),(88,"Shell penetration · probable aft-magazine ignition"),(90,"Hood · aft magazine explosion"),(101,"Prince of Wales · breaking off"),
+ (60,"22–23 May · from Norwegian waters toward Denmark Strait"),(70,"HMS Suffolk · radar contact"),(71,"HMS Norfolk · joins the shadow"),(72,"24 May · Denmark Strait"),(84,"Bismarck · decisive salvo"),(88,"Shell penetration · probable aft-magazine ignition"),(90,"Hood · aft magazine explosion"),(101,"Prince of Wales · breaking off"),
  (108,"24 May · Prinz Eugen separates"),(114,"Victorious · Swordfish night strike"),(120,"25 May · HMS Suffolk + HMS Norfolk zigzag"),(123,"HMS Suffolk · radar contact at extreme range"),(126,"Bismarck turns astern · Suffolk loses contact"),
  (129,"HMS Suffolk + HMS Norfolk search · Prince of Wales departs"),(132,"26 May · Catalina leaves Lough Erne"),(138,"Catalina · visual contact regained"),(144,"Ark Royal · first strike launches"),(153,"Mistaken target · HMS Sheffield evades"),(156,"Premature magnetic pistols · remaining torpedoes evaded"),(161,"Return, rearm · second strike"),
  (168,"Swordfish · approach to Bismarck"),(192,"Torpedoes away"),(207,"Stern hit · steering disabled"),(217,"Steering damage · schematic section"),(231,"British destroyers close through the night"),
@@ -1383,7 +1383,7 @@ func renderBase(_ t:Double,_ c:CGContext){
  if t<289 {
   let worldTime=min(t,287.999),worldGroup=groupAt(worldTime)
   // Changes of date/location retain the whole outgoing scene as it leaves the frame.
-  if group>0 && ![1,2,3,5,6,7,8].contains(group) && e<0.85 {
+  if group>0 && ![1,2,3,5,6,7,8,10].contains(group) && e<0.85 {
    let q=smoother(e/0.85),previous=groupOrder[max(0,groupOrder.firstIndex(of:group)!-1)]
    if group==4 {drawFuelWorld(c,54+e,-1280*q)}else{drawWorld(c,previous,min(t,groupEnd(previous)-0.001),-1280*q)};drawWorld(c,group,t,1280*(1-q))
   }else {drawWorld(c,t>=288 ? worldGroup:group,worldTime)}
@@ -1739,8 +1739,8 @@ let filmCues=filmCueList().map{(gunFilmTime($0.0),$0.1)}
 func designFrame(_ c:CGContext,_ draw:()->Void){
  c.saveGState();c.translateBy(x:0,y:Double(H));c.scaleBy(x:1.5,y:-1.5);NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:c,flipped:true);draw();NSGraphicsContext.restoreGraphicsState();c.restoreGState()
 }
-func render(_ t:Double,_ c:CGContext){
- environmentClock=t;suppressScriptCues=true
+func renderLegacy(_ t:Double,_ c:CGContext){
+ environmentClock=releaseFilmTime(t);suppressScriptCues=true
  let cut=gunStoryTime(t)
  if cut<72 {renderBase(cut,c)}
  else if cut<132 {designFrame(c){annotations=[];bodyRects=[];drawLongApproach(c,cut-72)}}
@@ -1750,6 +1750,59 @@ func render(_ t:Double,_ c:CGContext){
  suppressScriptCues=false
  if t<456,let cue=filmCues.last(where:{$0.0<=t}) {designFrame(c){suppressWorldText=false;let a=smoother((t-cue.0)/0.35);c.setAlpha(a);c.setFillColor(ink.withAlphaComponent(0.72).cgColor);c.fill(CGRect(x:22,y:670,width:min(1000,Double(cue.1.count)*8.4+24),height:30));txt(cue.1,34,674,15,paper,false,1150)}}
  environmentClock=nil
+}
+
+// A dated archival insert bridges the North Sea breakout and the northern passage.
+func releaseFilmTime(_ legacy:Double)->Double {legacy<60 ? legacy:legacy+24}
+let bergenPhoto=NSImage(contentsOf:root.appendingPathComponent("bergen-reconnaissance-1941.jpg"))!.cgImage(forProposedRect:nil,context:nil,hints:nil)!
+let bergenCues:[(Double,String)]=[
+ (60,"21 May · Bergen area, occupied Norway"),
+ (64,"Bismarck anchors in Grimstadfjord"),
+ (68,"Prinz Eugen refuels farther north · Bismarck takes no fuel"),
+ (72,"RAF reconnaissance photographs the German ships near Bergen"),
+ (74,"Photographs confirm the German breakout to British intelligence"),
+ (76,"21 May evening · German ships depart in worsening weather"),
+ (80,"22 May · follow-up reconnaissance finds the anchorages empty")]
+func drawBergen(_ c:CGContext,_ e:Double){
+ environmentClock=60+e;narrativeClock=60;annotations=[];bodyRects=[]
+ if e>=19 {
+  designFrame(c){drawWorld(c,10,60+min(0,(e-24)*0.08))}
+ }else{
+  designFrame(c){
+   let q=smoother(e/4),a=camera(1,24),b=geo(5.25,60.35)
+   let cam=Cam(x:mix(a.x,b.x,q),y:mix(a.y,b.y,q),z:exp(mix(log(a.z),log(8),q)),angle:mix(a.angle,0,q))
+   beginWorld(c,cam,0);ocean(c,60+e);chart(c)
+   vessel(c,shipModel,{departurePose($0)},54+e,0.012,"BISMARCK",red)
+   vessel(c,cruiserModel,{departurePose($0,true)},54+e,0.012,"PRINZ EUGEN",paper)
+   let marker=geo(5.25,60.35);ellipse(c,marker.x,marker.y,3/cam.z,3/cam.z,gold)
+   c.restoreGState()
+   let p=screen(geo(5.25,60.35));c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:p.x+12,y:p.y-35,width:197,height:29));txt("BERGEN / FJORD ANCHORAGES",p.x+19,p.y-30,13,gold,true,188)
+  }
+ }
+ designFrame(c){
+  let enter=smoother((e-3.6)/1.2),leave=smoother((e-19)/1.4),offset=1280*(1-enter)+1280*leave
+  if enter>0 && leave<1 {
+   c.saveGState();c.translateBy(x:offset,y:0);c.clip(to:CGRect(x:0,y:0,width:1280,height:720))
+   let q=smoother((e-5)/12),scale=mix(0.66,1.0,q),cx=mix(976,1280,q),cy=mix(886,850,q)
+   let x=640-cx*scale,y=355-cy*scale,w=1952*scale,h=1772*scale
+   c.saveGState();c.translateBy(x:x,y:y+h);c.scaleBy(x:1,y:-1);c.draw(bergenPhoto,in:CGRect(x:0,y:0,width:w,height:h));c.restoreGState()
+   let bx=x+1430*scale,by=y+850*scale,a=smoother((e-6)/0.8)
+   c.setAlpha(a);let color=gold
+   for side in [-1.0,1.0] {for vertical in [-1.0,1.0] {let p=pt(bx+side*60*scale,by+vertical*110*scale);line(c,[pt(p.x-side*14,p.y),p,pt(p.x,p.y-vertical*14)],color,1.2)}}
+   let lx=max(40,bx-320*scale),ly=max(90,by-140*scale)
+   line(c,[pt(bx-45*scale,by-75*scale),pt(lx+200,ly+16)],color,1)
+   c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:lx,y:ly,width:220,height:30));txt("BISMARCK · AT ANCHOR",lx+8,ly+5,15,gold,true,205)
+   c.setAlpha(1);c.setFillColor(ink.withAlphaComponent(0.85).cgColor);c.fill(CGRect(x:22,y:641,width:580,height:24));txt("F/O Michael Suckling · RAF photograph, 21 May 1941 · IWM CS 159",34,645,11,paper,false,560)
+   c.restoreGState()
+  }
+  // A geographic locator stays attached to the actual Norwegian coast after the photo leaves.
+  if e>=20.4 {let p=screen(geo(5.25,60.35)),a=smoother((e-20.4)/0.6);c.setAlpha(a);ellipse(c,p.x,p.y,3,3,gold);line(c,[p,pt(p.x+25,p.y-25)],gold,1);c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:p.x+25,y:p.y-49,width:169,height:27));txt("BERGEN · NOW EMPTY",p.x+33,p.y-44,13,gold,true,155);c.setAlpha(1)}
+  if let cue=bergenCues.last(where:{$0.0<=60+e}) {let a=smoother((60+e-cue.0)/0.35);c.setAlpha(a);c.setFillColor(ink.withAlphaComponent(0.85).cgColor);c.fill(CGRect(x:22,y:670,width:min(1120,Double(cue.1.count)*8.4+24),height:30));txt(cue.1,34,674,15,paper,false,1150)}
+ }
+ environmentClock=nil
+}
+func render(_ t:Double,_ c:CGContext){
+ if t>=60 && t<84 {drawBergen(c,t-60)}else{renderLegacy(t<60 ? t:t-24,c)}
 }
 
 func fleetOverlaps(_ a:FleetMember,_ b:FleetMember)->Bool {
@@ -1765,7 +1818,7 @@ func gunDamageAudit(){
  let beats:[(Int,String,Double)]=[(105,"BRIDGE / FORWARD CONTROL",bridgeHitTime),(113,"ANTON",15.2),(114,"BRUNO",15.6),(116,"AFT DIRECTOR",aftDirectorHitTime),(117,"DORA",19.1),(118,"CÄSAR",21.8)]
  for (serial,name,beat) in beats {let salvo=finalSalvos.first{$0.serial==serial}!,impact=(salvo.fire+22.4-300)/10,b=finalActors[0],target=b.pose(salvo.fire+22.4),end=salvoAim(salvo,finalActors[salvo.from],b,target)
   precondition(abs(impact-beat)<0.00001 && insideHull(end,target,b.scale),"Damage beat does not match a hull impact")
-  print("DAMAGE HIT \(name): film \(gunFilmTime(390+beat))s, local \(hullLocal(end,target,b.scale))")
+  print("DAMAGE HIT \(name): film \(releaseFilmTime(gunFilmTime(390+beat)))s, local \(hullLocal(end,target,b.scale))")
  }
  var shots=0
  for salvo in finalSalvos where salvo.from==0 {let clock=(salvo.fire-300)/10,muzzles=Array(activeMainMuzzles(clock).prefix(salvo.guns))
@@ -1776,7 +1829,7 @@ func gunDamageAudit(){
  precondition(activeMainMuzzles(21.8).isEmpty && activeMainMuzzles(30).isEmpty)
  precondition(activeMainMuzzles(19.5).allSatisfy{$0.0 == -61})
  print("GUN STATE PASS: \(shots) selected return salvos; destroyed turrets never emit later shots; Cäsar remains after Dora; all main guns stop after the last hit. Frozen turret training and persistent bridge/turret wreck overlays share these states.")
- print("CLOCK PASS: 468 seconds, damage explanation stretched from 10 to 28 seconds; scene tracks and final contacts stay on their existing simulation clocks.")
+ print("CLOCK PASS: 492 seconds; Bergen insert adds 24 seconds, damage explanation stretched from 10 to 28 seconds; scene tracks and final contacts stay on their existing simulation clocks.")
 }
 
 func entranceCameraAudit(){
@@ -1877,8 +1930,22 @@ func longEditAudit(){
   samples+=1
  }
  presenceAuditOnly=false;environmentClock=nil;explicitFuelOil=false;NSGraphicsContext.restoreGraphicsState()
+ var ledgerRows=csv.split(separator:"\n").dropFirst().map{line -> String in let index=line.firstIndex(of:",")!,t=Double(line[..<index])!;return "\(releaseFilmTime(t))"+line[index...]}
+ for frame in 120..<168 {let t=Double(frame)/2,e=t-60
+  for id in registry {
+   var state="other_location",x="",y="",heading="",scale="",coords=""
+   if id=="BISMARCK" || id=="PRINZ EUGEN" {
+    if e<4.8 || e>=20.4 {let p=e<4.8 ? departurePose(54+e,id=="PRINZ EUGEN"):approachPose(min(0,(e-24)*0.08),id=="PRINZ EUGEN");state="in_frame_or_offscreen";x="\(p.p.x)";y="\(p.p.y)";heading="\(p.yaw)";scale=e<4.8 ? "0.012":"0.07";coords="geographic_projection"}
+    else {state=id=="BISMARCK" ? "archival_photo_at_anchor":"anchored_other_fjord"}
+   }
+   ledgerRows.append("\(t),Bergen archival chapter,\(id),\(state),\(x),\(y),\(heading),\(scale),\(coords)")
+  }
+ }
+ func rowTime(_ row:String)->Double {Double(row.split(separator:",",maxSplits:1)[0])!}
+ ledgerRows.sort{rowTime($0)<rowTime($1)}
+ csv="film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system\n"+ledgerRows.joined(separator:"\n")+"\n"
  try! csv.write(to:root.appendingPathComponent("ship-state-ledger.csv"),atomically:true,encoding:.utf8)
- print("EXTENDED LEDGER PASS: \(samples) sampled frames, 17 persistent ship identities, 468-second film")
+ print("EXTENDED LEDGER PASS: \(samples+48) sampled frames, 17 persistent ship identities, 492-second film; archival states carry no invented coordinates")
 }
 
 func continuityAudit(){
@@ -2068,12 +2135,20 @@ let pixels=UnsafeMutableRawPointer.allocate(byteCount:W*H*4,alignment:64)
 let context=CGContext(data:pixels,width:W,height:H,bitsPerComponent:8,bytesPerRow:W*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.noneSkipFirst.rawValue)!
 if CommandLine.arguments.contains("--export-cues") {
  var csv="film_seconds,timecode,script_cue\n"
- let cues=filmCues+[(456.0,"Fade to black"),(457.0,"Human cost · 2,000+ dead / ~100 survivors"),(462.0,"Operation Rheinübung · 18–27 May 1941")]
+ let cues=(filmCues.map{(releaseFilmTime($0.0),$0.1)}+bergenCues+[(480.0,"Fade to black"),(481.0,"Human cost · 2,000+ dead / ~100 survivors"),(486.0,"Operation Rheinübung · 18–27 May 1941")]).sorted{$0.0<$1.0}
  for (t,label) in cues {let time=String(format:"%02d:%04.1f",Int(t)/60,t.truncatingRemainder(dividingBy:60)),quoted=label.replacingOccurrences(of:"\"",with:"\"\"");csv += "\(t),\(time),\"\(quoted)\"\n"}
  try! csv.write(to:root.appendingPathComponent("script-cues.csv"),atomically:true,encoding:.utf8);print("Script cues exported")
 }
 else if CommandLine.arguments.contains("--weapon-report") {
  for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")");if let hit=nightContacts[n] {print("VICTORIOUS LOCAL CONTACT: \(hullLocal(hit.point,chaseBismarck(hit.time),0.85))")}}
+}
+else if CommandLine.arguments.contains("--bergen-audit") {
+ let a=camera(1,24),prior=camera(1,23.999),p=departurePose(54),old=departurePose(53.999);precondition(hypot(a.x-prior.x,a.y-prior.y)<0.01 && hypot(p.p.x-old.p.x,p.p.y-old.p.y)<0.001)
+ precondition(releaseFilmTime(60)==84 && releaseFilmTime(468)==492)
+ for frame in 0...576 {let e=Double(frame)/24,q=smoother((e-5)/12),scale=mix(0.66,1.0,q),cx=mix(976,1280,q),cy=mix(886,850,q),x=640-cx*scale,y=355-cy*scale
+  precondition(x<=0 && x+1952*scale>=1280 && y<=0 && y+1772*scale>=720,"Photograph crop exposes an empty edge")
+ }
+ print("BERGEN PASS: 60–84s archival insert; outgoing and incoming map cameras retained; 577 photo crops cover the full frame; 492-second clock; later fleet simulation unchanged")
 }
 else if CommandLine.arguments.contains("--damage-audit") {gunDamageAudit()}
 else if CommandLine.arguments.contains("--entrance-audit") {entranceCameraAudit()}
@@ -2083,7 +2158,7 @@ else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [438.5,440.5,453.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [59.99,60.0,62.0,65.0,69.0,73.0,77.0,80.0,82.0,83.99,84.0,477.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)

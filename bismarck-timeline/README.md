@@ -1,10 +1,18 @@
 # Operation Rheinübung — silent script-cue edition
 
-A seven-minute forty-eight-second original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
+A eight-minute twelve-second original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. Animation artwork is drawn in native code, with a public-domain 1941 RAF reconnaissance photograph in the Bergen chapter. No AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v16-scuttling/bismarck-timeline-v16.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v17-bergen/bismarck-timeline-v17.mp4).
 
 The action fills the frame. The old header, footer, progress bar and large explanatory captions are removed. Compact ship-name leaders are restored specifically for the final action, as requested. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
+
+## Bergen and the reconnaissance sighting
+
+A new 01:00–01:24 chapter locates the Bergen fjord area, then moves into the original 21 May RAF reconnaissance photograph by F/O Michael Suckling (IWM CS 159). A travelling crop and attached bracket identify Bismarck at anchor in Grimstadfjord. This photograph shows Bismarck; it does not claim to show Prinz Eugen beside her. The cruiser refuelled farther north at Kalvenes Bay from Wollin, while Bismarck did not refuel. The captions connect photographic confirmation to British intelligence, the German evening departure in worsening weather, and the 22 May follow-up that found the anchorages empty. The outgoing view returns to the established North Sea / Denmark Strait passage map. The insert bridges dates and places; it is not a continuous real-time voyage into and out of a fjord.
+
+The photograph enters and leaves with smooth lateral movement, while its camera crop advances toward the actual ship. Its small source credit sits at bottom left. Subsequent chapters shift by 24 seconds; the current timecodes are exported in `script-cues.csv`. The film now fades at 08:00, shows the human cost at 08:01, and ends on the title/dates from 08:06.
+
+`bergen-photo-attribution.json` records the source and expired Crown copyright status. The image is a historical photograph, not generated artwork. `bergen-audit.txt` checks photographic crop coverage, the chapter handoffs and the film clock. Archival ledger states leave coordinates blank instead of inventing a precise photo navigation fix.
 
 ## Continuity and staging
 
@@ -20,7 +28,7 @@ The Catalina is a distinct flying-boat drawing. Its water takeoff is from Lough 
 
 ## Denmark Strait approach and fuel damage
 
-The 01:12 passage now opens into a full minute of British approach: a Scapa Flow route marker, Hood leading Prince of Wales, the parallel course, the turn in at 28 knots and sighting before opening fire. The camera ends at the exact projected hull positions and scales used by the battle. These tracks illustrate the documented sequence, not precise reported fixes throughout the approach. Prinz Eugen moves into the German lead with lateral passing clearance.
+The 01:36 passage now opens into a full minute of British approach: a Scapa Flow route marker, Hood leading Prince of Wales, the parallel course, the turn in at 28 knots and sighting before opening fire. The camera ends at the exact projected hull positions and scales used by the battle. These tracks illustrate the documented sequence, not precise reported fixes throughout the approach. Prinz Eugen moves into the German lead with lateral passing clearance.
 
 The battle lasts 72 seconds. Prince of Wales scores a bow hit and a below-belt hit; the bow projectile passes through without detonating. Oil trails the moving ship. The aftermath includes a small section showing flooded bow compartments, isolated forward fuel and a separate below-belt flood. Fuel leaking out and fuel made inaccessible by flooding are different problems. Reduced speed and endurance lead into a planned French repair-port route, followed by the existing pursuit. No exact lost-fuel tonnage is asserted.
 
@@ -28,19 +36,19 @@ The battle lasts 72 seconds. Prince of Wales scores a bow hit and a below-belt h
 
 The geographic Ark Royal and its close-up share projected position, scale and heading at the start of the zoom. Three representative Swordfish roll out in order, fly toward Sheffield, drop their carried torpedoes, circle back on separated landing approaches, brake on deck, rearm and launch again. The second launch continues directly into the final approach. Aircraft are not replaced by newly appearing airframes mid-flight. The representative aircraft count is not the historical strength of every strike.
 
-Torpedoes start at the same leading-tip position as their underslung carried bodies, drop slightly into the sea, decelerate through water entry and run unguided. The Sheffield sequence shows a premature water detonation and running torpedoes evaded during the turn, without Sheffield firing at the friendly aircraft. The final attack has an amidships hit, a miss and a stern hit. Tip contacts use the actual rendered hull polygon and swept intersections; foam persists after the body reaches contact. The separate Victorious night attack likewise has one representative hit and two misses. At 04:27–04:35 a live enlargement follows the actual carried torpedo and its hull contact at approximately 04:30. A waterline flash, spray, persistent foam and a small surface scar make the impact visible while the hull keeps moving. The main belt resists penetration; the brief captions explain why the hit did not stop the ship. The carrier, other aircraft and shadowers remain on their existing map tracks. The older five-minute cut placed this episode around 02:09.
+Torpedoes start at the same leading-tip position as their underslung carried bodies, drop slightly into the sea, decelerate through water entry and run unguided. The Sheffield sequence shows a premature water detonation and running torpedoes evaded during the turn, without Sheffield firing at the friendly aircraft. The final attack has an amidships hit, a miss and a stern hit. Tip contacts use the actual rendered hull polygon and swept intersections; foam persists after the body reaches contact. The separate Victorious night attack likewise has one representative hit and two misses. At 04:51–04:59 a live enlargement follows the actual carried torpedo and its hull contact at approximately 04:54. A waterline flash, spray, persistent foam and a small surface scar make the impact visible while the hull keeps moving. The main belt resists penetration; the brief captions explain why the hit did not stop the ship. The carrier, other aircraft and shadowers remain on their existing map tracks. The older five-minute cut placed this episode around 02:09.
 
-At approximately 03:01, a selected Prince of Wales return salvo now visibly travels toward Bismarck while German fire continues. This is representative staging of the documented exchange after Hood’s loss, not a claim to an exact salvo log. Withdrawal smoke originates at the moving funnel, with fixed emission births, asymmetric contours, size and shade variation, wind drift and finite lifetimes. Gun smoke likewise starts at the rendered muzzle. During the Swordfish approach from 05:27, nine staggered representative AA rounds show a mount flash, short shell path and airburst; each smoke cloud has that visible cause. The aircraft continue on their tracks without invented losses.
+At approximately 03:25, a selected Prince of Wales return salvo now visibly travels toward Bismarck while German fire continues. This is representative staging of the documented exchange after Hood’s loss, not a claim to an exact salvo log. Withdrawal smoke originates at the moving funnel, with fixed emission births, asymmetric contours, size and shade variation, wind drift and finite lifetimes. Gun smoke likewise starts at the rendered muzzle. During the Swordfish approach from 05:51, nine staggered representative AA rounds show a mount flash, short shell path and airburst; each smoke cloud has that visible cause. The aircraft continue on their tracks without invented losses.
 
 Selected salvos replace the earlier continuous volume of fire. Battle formations move, gun mounts train, and shell launch points agree with the rendered muzzle positions. A live close-up follows the decisive shell toward Hood. The probable penetration and aft-magazine explosion are explained with a small unlabelled section diagram and a short script cue. Hood's hull breaks and submerges; it is not restored later.
 
-The final action (06:30–07:36) now uses north-up, chart-derived schematic tracks for Bismarck, HMS Rodney, HMS King George V, HMS Norfolk and HMS Dorsetshire. All five carry explicit moving name labels. The night-to-morning handoff now closes on Bismarck, preserving its projected hull position, scale and bearing. The outgoing wake and ocean use the same similarity mapping as the incoming view. A continuous pullback reveals Rodney and King George V from outside the close-up; the camera then zooms onto the pair and tracks them before returning to the wider engagement. No scene wipe inserts the battleships. Rodney and King George V approach from WNW, separate, make independent closing passes and then retire north-east; offscreen retirement markers preserve their names. Norfolk maintains a separate flank station, and Dorsetshire approaches from the opposite quarter before moving around the bow. The final three representative torpedoes use swept hull contacts: two against the starboard side and one against the port side. British gunfire stops before the closing Dorsetshire sequence.
+The final action (06:54–08:00) now uses north-up, chart-derived schematic tracks for Bismarck, HMS Rodney, HMS King George V, HMS Norfolk and HMS Dorsetshire. All five carry explicit moving name labels. The night-to-morning handoff now closes on Bismarck, preserving its projected hull position, scale and bearing. The outgoing wake and ocean use the same similarity mapping as the incoming view. A continuous pullback reveals Rodney and King George V from outside the close-up; the camera then zooms onto the pair and tracks them before returning to the wider engagement. No scene wipe inserts the battleships. Rodney and King George V approach from WNW, separate, make independent closing passes and then retire north-east; offscreen retirement markers preserve their names. Norfolk maintains a separate flank station, and Dorsetshire approaches from the opposite quarter before moving around the bow. The final three representative torpedoes use swept hull contacts: two against the starboard side and one against the port side. British gunfire stops before the closing Dorsetshire sequence.
 
 Selected stations are interpreted from the British track chart reproduced by INRO/NavWeaps and checked against Tovey’s and Patterson’s reports. Symbols are enlarged and intermediate turns/spacing are interpolated for readable hull separation. These drawing coordinates do not establish exact bearings, ranges, speeds or geographic fixes at every frame. Contemporary reports differ on details and times. `final-action-stations.csv` records the source-supported relations used in the staging. The earlier aircraft torpedo attacks and sourced AA fire remain in place. Twelve armed Swordfish approach continuously from the south during the morning finale and circle outside the gun action; the camera widens to retain them. They do not release another torpedo salvo: the morning force held clear during the bombardment. This is a distinct morning sortie, not a replay of the previous evening’s steering attack.
 
 The night destroyers are not relocated into an invented close gunfire ring; Maori’s later rescue role remains documented, and ships elsewhere retain their registry identities.
 
-The damage explanation is extended by 18 seconds, making the film 07:48. Between approximately 06:48 and 07:10 the camera follows Bismarck at close range, with small live callouts for Anton, Bruno, Cäsar, Dora, the bridge/forward control position and aft director. An incoming hit shatters the upper bridge/forward command structure, leaving charred, broken framing visible in later shots. Forward turrets are disabled; loss of the aft rangefinder transfers the remaining fire to local control; Dora stops and Cäsar makes the last selected return salvo. A disabled turret holds its damaged training position and cannot emit later muzzle flashes or shells. The ship and all other vessels stay on their existing tracks while the explanation runs more slowly. Ship-name callouts resume as the camera widens.
+The damage explanation remains extended by 18 seconds; with the Bergen chapter, the film runs 08:12. Between approximately 07:12 and 07:34 the camera follows Bismarck at close range, with small live callouts for Anton, Bruno, Cäsar, Dora, the bridge/forward control position and aft director. An incoming hit shatters the upper bridge/forward command structure, leaving charred, broken framing visible in later shots. Forward turrets are disabled; loss of the aft rangefinder transfers the remaining fire to local control; Dora stops and Cäsar makes the last selected return salvo. A disabled turret holds its damaged training position and cannot emit later muzzle flashes or shells. The ship and all other vessels stay on their existing tracks while the explanation runs more slowly. Ship-name callouts resume as the camera widens.
 
 This is an illustrative equipment-damage reconstruction. Contemporary reports and later chronologies differ on precise times, individual shell assignments and some turret failure details. The labels use broad supported descriptions, not invented internal failure mechanisms. A late forward salvo is reported in some accounts without secure identification as Anton or Bruno, so it is not assigned to a named turret here. `gun-damage-sequence.csv` records the evidence and the film beats.
 
@@ -56,9 +64,9 @@ Animated wave crests overlay the procedural sea. Wakes follow past stern positio
 
 ## Ending
 
-- **07:36:** fade to black begins while the surviving British ships remain afloat.
-- **07:37–07:42:** human cost, `2,000+ DEAD` and `~100 SURVIVORS`.
-- **07:42–07:48:** only `OPERATION RHEINÜBUNG` and `18–27 MAY 1941`.
+- **08:00:** fade to black begins while the surviving British ships remain afloat.
+- **08:01–08:06:** human cost, `2,000+ DEAD` and `~100 SURVIVORS`.
+- **08:06–08:12:** only `OPERATION RHEINÜBUNG` and `18–27 MAY 1941`.
 
 The survivor figure is deliberately approximate, as requested.
 
@@ -66,7 +74,7 @@ The survivor figure is deliberately approximate, as requested.
 
 `continuity-audit.txt` checks aircraft spacing, carried-to-released torpedo continuity, Sheffield's evasion, hull separation during manoeuvres, paired opening framing, matched carrier zoom and unchanged ship membership within each scene. Its ledger is generated from actual renderer draw calls.
 
-`preserved-attack-audit.txt` confirms that all 1,152 decoded frames of the earlier 05:18–06:06 torpedo/AA sequence match v13 exactly.
+`preserved-attack-audit.txt` retains the v15 comparison against v13 for 1,152 decoded attack frames. It is a prior-edit check, not a byte-identity claim for v17: the Bergen insert shifts later film time by 24 seconds and the ocean clock advances continuously. Weapon and ship simulation tracks remain on their established local clocks.
 
 `gun-damage-audit.txt` checks that the displayed bridge, director and turret damage beats coincide with hull impacts; no turret emits a selected salvo after its disabled state, and the main battery stops after Cäsar.
 
@@ -82,9 +90,13 @@ The survivor figure is deliberately approximate, as requested.
 
 ## Historical sources and limits
 
+- [Contemporary German operational account](https://www.kbismarck.com/bismarck-atlantic-operation.html): Bergen anchorages, Prinz Eugen’s refuelling, regrouping and evening departure.
+- [Coastal Command’s published operations report](https://www.kbismarck.com/coastal-command-bismarck.html): 21 May photographic identification, worsening weather and the 22 May Maryland report of empty anchorages.
+- [Original RAF reconnaissance photograph, IWM CS 159 via Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Bismarck_reconnaissance.jpg): Bismarck at anchor in Grimstadfjord, 21 May 1941.
+
 - [Royal Navy account of Bismarck’s sinking](https://www.royalnavy.mod.uk/news/2021/may/27/20210527-bismarck-sunk): scuttling charges and Dorsetshire’s torpedoes in the final loss, alongside the survivor reports below.
 
-The scuttling captions appear at 7:18 (preparation), 7:20 (charges fired), and 7:33 (sinking after scuttling and British attacks).
+The scuttling captions appear at 07:42 (preparation), 07:44 (charges fired), and 07:57 (sinking after scuttling and British attacks).
 
 - [Ark Royal aircraft chronology](https://www.kbismarck.com/ark-royal.html): twelve Swordfish launched on 27 May and their arrival/held-off attack during the final bombardment.
 - [Bismarck final-action chronology](https://www.kbismarck.com/histoperi.html) and [action narrative](https://www.kbismarck.com/bismarck-last-battle.html): staged turret/control losses and the uncertain late forward salvo, compared against the contemporary survivor reports.
@@ -124,4 +136,4 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . "$FFMPEG"
 ```
 
-The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v16.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
+The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v17.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.

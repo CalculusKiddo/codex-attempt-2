@@ -1,1 +1,2 @@
+ARCHIVED V15 CHECK: the comparison below predates the v17 Bergen insert. V17 shifts the film clock by 24 seconds and advances the ocean continuously; no pixel-identity claim is made for this release.
 PRESERVED ATTACK PASS: all 1,152 decoded frames from 05:18 through 06:06 match the retained v13 reference exactly (24 fps). Earlier torpedo runs, impacts, aircraft and sourced AA retained.

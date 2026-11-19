@@ -29,6 +29,6 @@ for tag,a,b in atoms(0,len(data)):
       if t4==b'stsd':
        entry=k+8;track['codec']=data[entry+4:entry+8].decode();track['width'],track['height']=struct.unpack_from('>HH',data,entry+32)
   tracks.append(track)
-assert duration==468 and len(tracks)==1 and tracks[0]=={'type':'vide','codec':'avc1','width':1920,'height':1080,'frames':11232},(duration,tracks)
+assert duration==492 and len(tracks)==1 and tracks[0]=={'type':'vide','codec':'avc1','width':1920,'height':1080,'frames':11808},(duration,tracks)
 report={'duration_seconds':duration,'fps':24,'tracks':tracks,'audio_tracks':0,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'decode':'Full ffmpeg decode with -xerror completed without errors'}
 print(json.dumps(report,indent=2));Path('video-verification.json').write_text(json.dumps(report,indent=2)+'\n')
