@@ -1,10 +1,10 @@
 # Operation Rheinübung — Hunt for Bismarck
 
-A five-minute **2D** documentary animation with detailed overhead ships, continuous camera choreography, path-following vessel motion, brief captions, ship specifications and an original stereo score.
+A five-minute **2D** documentary animation with detailed overhead ships, continuous camera choreography, path-following vessel motion, brief captions, ship specifications and no audio track.
 
-[Download the full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v3/bismarck-timeline.mp4). The video is distributed as a GitHub Release asset so it can retain full quality beyond the repository file-size limit.
+[Download the full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v4-silent/bismarck-timeline.mp4). The video is distributed as a GitHub Release asset so it can retain full quality beyond the repository file-size limit.
 
-- 1920 × 1080, 24 fps, H.264 MP4, stereo AAC audio.
+- 1920 × 1080, 24 fps, H.264 MP4, no audio track.
 - Ten continuous sequences with fifty brief caption cues. Ship plans are rendered from original native drawing code at 4096-pixel source width.
 - Camera paths preserve position, velocity and acceleration across internal keyframes. Caption changes do not reset the camera.
 - Continuous match moves connect the opening and ship inspection, and the torpedo strike and steering-damage sequence. Chapter changes use animated scene-to-scene pans rather than opacity fades.
@@ -13,6 +13,8 @@ A five-minute **2D** documentary animation with detailed overhead ships, continu
 - Planked decks, anchor chains, hatches, ventilation grilles, boats, cranes, rangefinders, secondary batteries and independently trained main turrets.
 - 250.5 m overall length, 36 m beam, eight 380 mm guns, 320 mm main belt and approximately 30-knot trial speed are shown in the specifications sequence.
 - No AI-generated imagery is used in this revision.
+
+The current release has **no audio stream**: no music, effects, narration or other sounds.
 
 ## Gunnery treatment
 
@@ -49,9 +51,8 @@ python3 -m venv .venv
 swiftc -O render.swift -o render
 FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
 ./render . "$FFMPEG"
-.venv/bin/python soundtrack.py
 ```
 
 Use `./render . --audit` to check bow/velocity alignment, forward torpedo release and camera continuity. Use `./render . --stills` for review frames, or `./render . "$FFMPEG" --preview` for a 39-second motion review. Edit `cameraKeys`, `drawWorld`, `routePose`, `attackPlane`, `denmark`, `finalBattle` and `makePlan` to change the sequence. Normal rendering exports the full film.
 
-`ocean.py` creates the sea texture procedurally. `soundtrack.py` synthesizes the original score and effects, then combines the stereo audio with the silent video. These scripts require no API keys.
+`ocean.py` creates the sea texture procedurally. `soundtrack.py` is retained only as an optional source from the earlier version; it is not used for the current silent release. These scripts require no API keys.
