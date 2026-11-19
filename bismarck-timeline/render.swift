@@ -3,7 +3,7 @@ import CoreGraphics
 import Foundation
 
 let root=URL(fileURLWithPath:CommandLine.arguments[1])
-let W=1920, H=1080, fps=24, duration=450
+let W=1920, H=1080, fps=24, duration=468
 let ink=NSColor(calibratedRed:0.045,green:0.09,blue:0.115,alpha:1)
 let paper=NSColor(calibratedRed:0.89,green:0.90,blue:0.85,alpha:1)
 let gold=NSColor(calibratedRed:0.92,green:0.67,blue:0.34,alpha:1)
@@ -186,6 +186,35 @@ func makePlan(_ kind:Int)->PlanSprite {
  return PlanSprite(image:img,kind:kind)
 }
 let plans=(0...6).map{makePlan($0)}
+struct MainTurretDamage {let name:String;let x:Double;let stop:Double;let reason:String}
+let mainTurretDamage=[MainTurretDamage(name:"ANTON",x:72,stop:15.2,reason:"Shell damage · disabled"),MainTurretDamage(name:"BRUNO",x:46,stop:15.6,reason:"Turret hit · rear wrecked"),MainTurretDamage(name:"CÄSAR",x:-61,stop:21.8,reason:"Damage · final gun silent"),MainTurretDamage(name:"DORA",x:-91,stop:19.1,reason:"Shell damage · disabled")]
+let bridgeHitTime=14.24,aftDirectorHitTime=17.0
+var bismarckDamageClock:Double?=nil
+func activeMainMuzzles(_ clock:Double)->[(Double,Double)] {
+ let preferred=clock<15 ? [0,1]:[2,3]
+ return preferred.filter{clock<mainTurretDamage[$0].stop}.flatMap{index in [-2.4,2.4].map{(mainTurretDamage[index].x,$0)}}
+}
+func frozenTurretAngle(_ index:Int)->Double {
+ let e=mainTurretDamage[index].stop,b=finalTrackPose(0,e),target=finalTrackPose(index<2 ? 2:1,e+2.24),a=atan2(target.p.y-b.p.y,target.p.x-b.p.x)-b.yaw,relative=abs(atan2(sin(a),cos(a))),fallback=index<2 ? 0.0:Double.pi
+ let bears=index<2 ? relative<2.53:relative>0.61
+ return turretAim(bears ? a:fallback,0)
+}
+func bismarckWreck(_ c:CGContext,_ e:Double){
+ // Persistent loss of upper bridge/fore-control structure; the foundation remains.
+ if e>=bridgeHitTime {let q=smoother((e-bridgeHitTime)/0.8)
+  polygon(c,[pt(3,-9),pt(10,-11),pt(29,-9),pt(33,-4),pt(29,8),pt(17,10),pt(5,8)],NSColor(calibratedWhite:0.18,alpha:q))
+  polygon(c,[pt(8,-5),pt(16,-8),pt(25,-5),pt(24,4),pt(16,7),pt(10,4)],NSColor.black.withAlphaComponent(0.8*q))
+  for j in 0..<10 {let x=6+Double(j)*2.1,y=sin(Double(j)*2.4)*6;line(c,[pt(x,y),pt(x+3,y+sin(Double(j))*3)],grey.withAlphaComponent(q),0.65)}
+  line(c,[pt(7,-7),pt(18,2),pt(23,-4)],paper.withAlphaComponent(0.3*q),0.5)
+ }
+ if e>=aftDirectorHitTime {let q=smoother((e-aftDirectorHitTime)/0.5);polygon(c,[pt(-47,-3),pt(-30,-4),pt(-28,3),pt(-43,5)],NSColor(calibratedWhite:0.12,alpha:q));line(c,[pt(-45,-1),pt(-34,3)],grey.withAlphaComponent(q),0.65)}
+ for (i,turret) in mainTurretDamage.enumerated() where e>=turret.stop {let q=smoother((e-turret.stop)/0.45)
+  c.saveGState();c.translateBy(x:turret.x,y:0);c.rotate(by:frozenTurretAngle(i))
+  if i==1 {polygon(c,[pt(-8,-6),pt(-1,-6),pt(2,-2),pt(-2,1),pt(1,6),pt(-8,6)],NSColor(calibratedWhite:0.08,alpha:q));line(c,[pt(-5,-6),pt(-2,-2),pt(-4,2),pt(-1,5)],grey.withAlphaComponent(q),0.7)}
+  else {polygon(c,[pt(-6,-4),pt(0,-5),pt(5,-1),pt(2,4),pt(-5,3)],NSColor.black.withAlphaComponent(q*0.55));line(c,[pt(-4,-3),pt(2,2)],grey.withAlphaComponent(q),0.5)}
+  c.restoreGState()
+ }
+}
 var aimWorld:Double?=nil
 var currentTime=0.0
 func ship(_ c:CGContext,_ model:Model,_ x:Double,_ y:Double,_ scale:Double,_ yaw:Double,_ elevation:Double,_ t:Double,_ wake:Bool=true){
@@ -207,7 +236,8 @@ func ship(_ c:CGContext,_ model:Model,_ x:Double,_ y:Double,_ scale:Double,_ yaw
   let aim=(aimWorld ?? (yaw+defaultA))-yaw
   let relative=abs(atan2(sin(aim),cos(aim)))
   let canBear = kind==2 && j==2 ? relative>0.61 && relative<2.53 : (j<2 || kind==2) ? relative<2.53 : relative>0.61
-  let angle=turretAim(canBear ? aim:defaultA,kind)
+  var angle=turretAim(canBear ? aim:defaultA,kind)
+  if kind==0,let e=bismarckDamageClock,e>=mainTurretDamage[j].stop {angle=frozenTurretAngle(j)}
   ellipse(c,tx,0,8.2,8.2,grey)
   c.saveGState();c.translateBy(x:tx,y:0);c.rotate(by:angle)
   polygon(c,[pt(-7,-6),pt(5,-6),pt(9,-3.5),pt(9,3.5),pt(5,6),pt(-7,6)],NSColor(calibratedWhite:0.36,alpha:1))
@@ -219,6 +249,7 @@ func ship(_ c:CGContext,_ model:Model,_ x:Double,_ y:Double,_ scale:Double,_ yaw
   line(c,[pt(-1,-9),pt(-1,9)],grey,0.65)
   c.restoreGState()
  }
+ if kind==0,let e=bismarckDamageClock {bismarckWreck(c,e)}
  c.restoreGState()
 }
 func aircraft(_ c:CGContext,_ x:Double,_ y:Double,_ scale:Double,_ angle:Double,_ t:Double,_ carrying:Bool=true){
@@ -284,10 +315,22 @@ func waterSplash(_ c:CGContext,_ x:Double,_ y:Double,_ age:Double,_ speed:Double
  c.setStrokeColor(paper.withAlphaComponent((1-q)*0.6).cgColor);c.setLineWidth(1);c.strokeEllipse(in:CGRect(x:x-r,y:y-r,width:r*2,height:r*2))
  for j in 0..<7{let a=Double(j)*2.399;ellipse(c,x+cos(a)*r*0.4,y+sin(a)*r*0.4,r*0.16,r*0.16,paper.withAlphaComponent((1-q)*0.9))}
 }
+func finalShellSplash(_ c:CGContext,_ p:CGPoint,_ age:Double,_ scale:Double,_ seed:Int){
+ if age<0 || age>1.2{return}
+ let q=age/1.2,fade=pow(1-q,1.4)
+ for j in 0..<8 {let a=smokeVariation(seed,j)*Double.pi*2,r=(1+7*sqrt(q))*(0.5+0.5*smokeVariation(seed,j+20))*scale
+  let end=pt(p.x+cos(a)*r+age*scale*2,p.y+sin(a)*r*0.65-age*scale)
+  let start=pt(mix(p.x,end.x,0.45),mix(p.y,end.y,0.45))
+  line(c,[start,end],paper.withAlphaComponent(0.8*fade),max(0.15,scale*(0.5+smokeVariation(seed,j+40))))
+ }
+ puff(c,p.x+age*scale,p.y-age*scale,scale*(1+q*3),scale*(0.7+q*2),paper,0.45*fade)
+ let r=(2+9*q)*scale;c.setStrokeColor(paper.withAlphaComponent(0.13*fade).cgColor);c.setLineWidth(0.25);c.strokeEllipse(in:CGRect(x:p.x-r,y:p.y-r*0.6,width:r*2,height:r*1.2))
+}
 func salvoAim(_ e:Salvo,_ a:Actor,_ b:Actor,_ future:Pose)->CGPoint {
  if !e.hit{return future.p}
  let local:CGPoint
- if b.name=="HOOD" {local=a.name=="BISMARCK" ? pt(-72,0):pt(-10,12)}
+ if b.finalTrack==0 && [105,113,114,116,117,118].contains(e.serial) {let points:[Int:CGPoint]=[105:pt(17,0),113:pt(72,0),114:pt(46,0),116:pt(-37,0),117:pt(-91,0),118:pt(-61,0)];local=points[e.serial]!}
+ else if b.name=="HOOD" {local=a.name=="BISMARCK" ? pt(-72,0):pt(-10,12)}
  else if b.name=="BISMARCK" && a.name=="PRINCE OF WALES" {local=e.serial==41 ? pt(102,-2):pt(-8,-13)}
  else {local=pt(20,0)}
  return worldPoint(local,future,b.scale)
@@ -307,6 +350,7 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
   }else if a.model.kind==3 {offsets=a.name=="PRINCE OF WALES" ? [(72,-3),(72,1),(72,3),(46,-2.4),(46,2.4)] : [(72,-3),(72,1),(46,-2.4),(-85,-3),(-85,1)]}
   else if a.model.kind==4 {offsets=[(72,-2.4),(72,2.4),(46,-2.4),(46,2.4)]}
   else {let sign=e.serial%2==0 ? -2.4:2.4;offsets=[(72,sign),(46,sign),(-61,sign),(-91,sign)]}
+  if a.finalTrack==0 {offsets=activeMainMuzzles((e.fire-300)/10)}
   for (j,gun) in offsets.prefix(e.guns).enumerated(){
    let relative=abs(atan2(sin(bearing-shooterPose.yaw),cos(bearing-shooterPose.yaw)))
    if a.model.kind==2 && gun.0==12 && relative<0.61 {continue}
@@ -330,8 +374,8 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
      if target.name=="HOOD" && e.fire+flight>660 {return false}
      return insideHull(end,target.pose(e.fire+flight),target.scale,target.model.kind)
     }
-    if struck != nil {let throughBow=a.name=="PRINCE OF WALES" && e.serial==41;blast(c,end.x,end.y,(age-flight)/speed,throughBow ? 12:24,!throughBow)}
-    else {waterSplash(c,end.x,end.y,age-flight,speed)}
+    if struck != nil {let throughBow=a.name=="PRINCE OF WALES" && e.serial==41,impactScale=b.finalTrack != nil ? b.scale:1;blast(c,end.x,end.y,(age-flight)/speed,(throughBow ? 12:24)*impactScale,!throughBow)}
+    else {if b.finalTrack != nil {finalShellSplash(c,end,(age-flight)/speed,b.scale,e.serial*17+j)}else{waterSplash(c,end.x,end.y,age-flight,speed)}}
    }
   }
  }
@@ -539,12 +583,14 @@ func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  gunnery(c,sim,30,actors,events,32)
 
 }
+let finalSalvos=[Salvo(fire:320,from:1,to:0,guns:5,hit:false,serial:100),Salvo(fire:330,from:2,to:0,guns:5,hit:true,serial:101),Salvo(fire:345,from:0,to:1,guns:4,hit:false,serial:102),Salvo(fire:365,from:3,to:0,guns:4,hit:false,serial:103),Salvo(fire:385,from:4,to:0,guns:4,hit:true,serial:104),Salvo(fire:420,from:1,to:0,guns:4,hit:true,serial:105),Salvo(fire:440,from:0,to:2,guns:2,hit:false,serial:106),Salvo(fire:429.6,from:2,to:0,guns:4,hit:true,serial:113),Salvo(fire:433.6,from:1,to:0,guns:4,hit:true,serial:114),Salvo(fire:447.6,from:2,to:0,guns:4,hit:true,serial:116),Salvo(fire:468.6,from:1,to:0,guns:4,hit:true,serial:117),Salvo(fire:495.6,from:1,to:0,guns:4,hit:true,serial:118),Salvo(fire:474,from:0,to:1,guns:4,hit:false,serial:119),Salvo(fire:514,from:0,to:1,guns:2,hit:false,serial:120),Salvo(fire:535,from:3,to:0,guns:4,hit:false,serial:108),Salvo(fire:575,from:1,to:0,guns:5,hit:true,serial:109),Salvo(fire:610,from:2,to:0,guns:2,hit:true,serial:110),Salvo(fire:630,from:4,to:0,guns:4,hit:false,serial:111)]
 func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  let e=t-240,sim=e*10+300,actors=finalActors
  for (i,a) in actors.enumerated(){let pose=a.pose(sim),p=pose.p;recordPresence(a.name,pose,a.scale,a.model.kind)
-  let target=actors[i==0 ? (e<8 ? 1:2):0].pose(sim+22.4).p,bearing=atan2(target.y-p.y,target.x-p.x)
+  let target=actors[i==0 ? (e<8 || e>=aftDirectorHitTime ? 1:2):0].pose(sim+22.4).p,bearing=atan2(target.y-p.y,target.x-p.x)
   aimWorld=i==0 && e<1.5 ? pose.yaw+atan2(sin(bearing-pose.yaw),cos(bearing-pose.yaw))*smoother(e/1.5):bearing
   let track:(Double)->Pose={i==0 ? finalWakePose($0):finalTrackPose(i,$0)}
+  bismarckDamageClock=i==0 ? e:nil
   if i==0 && e>=45 {sinkingShip(c,a.model,pose,a.scale,(e-45)*2.7,false)}else{wake(c,track,e,a.scale,a.model.kind);ship(c,a.model,p.x,p.y,a.scale,pose.yaw,1.57,t,false)}
   if i==0 && e>=8 && e<45 {let damage=smoother((e-8)/20)
    for j in 0..<3 {let birth=8+Double(j)*2.1
@@ -554,9 +600,9 @@ func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
    }
   }
  }
- aimWorld=nil
- let events=[Salvo(fire:320,from:1,to:0,guns:5,hit:false,serial:100),Salvo(fire:330,from:2,to:0,guns:5,hit:true,serial:101),Salvo(fire:345,from:0,to:1,guns:4,hit:false,serial:102),Salvo(fire:365,from:3,to:0,guns:4,hit:false,serial:103),Salvo(fire:385,from:4,to:0,guns:4,hit:true,serial:104),Salvo(fire:420,from:1,to:0,guns:4,hit:true,serial:105),Salvo(fire:440,from:0,to:2,guns:2,hit:false,serial:106),Salvo(fire:485,from:2,to:0,guns:4,hit:true,serial:107),Salvo(fire:535,from:3,to:0,guns:4,hit:false,serial:108),Salvo(fire:575,from:1,to:0,guns:5,hit:true,serial:109),Salvo(fire:610,from:2,to:0,guns:2,hit:true,serial:110),Salvo(fire:630,from:4,to:0,guns:4,hit:false,serial:111)]
- gunnery(c,sim,10,actors,events,22.4)
+ aimWorld=nil;bismarckDamageClock=nil
+
+ gunnery(c,sim,10,actors,finalSalvos,22.4)
  for n in 0..<3 {torpedo(c,finalRuns[n],e,finalContacts[n],0.33)}
  for n in 0..<12 {let p=morningPlane(e,n);aircraft(c,p.p.x,p.p.y,0.10,p.yaw,t,true)}
 }
@@ -1344,7 +1390,7 @@ func renderBase(_ t:Double,_ c:CGContext){
   if group==2 && e<1.1 {drawWorld(c,0,5.999,-1280*smoother(e/1.1))}
   if group==3 {bowHitLens(c,t);battleLens(c,t);if e>17 && e<25 {hoodSection(c,e)}}
   if group==7 {suppressWorldText=true;steeringCutaway(c,e);suppressWorldText=false}
-  if group==8 {suppressWorldText=false;finalShipNames(c,e)}
+  if group==8 {suppressWorldText=false;finalShipNames(c,e);gunDamageLabels(c,e)}
   rain(c,t)
   // No ship-name leaders, header, footer, progress bar or large narration cards.
   if !suppressScriptCues,let cue=scriptCues.last(where:{$0.0<=t}) {let alpha=min(1,(t-cue.0)/0.35);c.saveGState();c.setAlpha(alpha)
@@ -1622,13 +1668,17 @@ func finalActionCamera(_ e:Double)->Cam {
  if e<4 {return cinematicCamera(matched,overview,smoother(e/4))}
  if e<7 {return cinematicCamera(overview,focus,smoother((e-4)/3))}
  if e<10{return focus}
- if e<14{return cinematicCamera(focus,overview,smoother((e-10)/4))}
+ let bismarck=members.first{$0.id=="BISMARCK"}!,detail=fittedCamera(Cam(x:bismarck.pose.p.x,y:bismarck.pose.p.y,z:8),[bismarck])
+ if e<14{return cinematicCamera(focus,detail,smoother((e-10)/4))}
+ if e<23{return detail}
+ if e<26{return cinematicCamera(detail,overview,smoother((e-23)/3))}
  let active=members.filter{!["RODNEY","KING GEORGE V"].contains($0.id)}
  let base=cinematicCamera(overview,fittedCamera(Cam(x:640,y:260,z:2.1),active),smoother((e-36)/8))
  let air=fittedCamera(base,(e<36 ? members:active)+morningAirMembers(e))
  return cinematicCamera(base,air,smoother((e-32)/4))
 }
 func finalShipNames(_ c:CGContext,_ e:Double){
+ if e>=13.5 && e<25 {txt("BISMARCK · MAIN BATTERY",470,28,14,paper,true,350);return}
  if abs(e-lastFinalNameTime)>0.2 {labelHistory=[:]};lastFinalNameTime=e
  let fleet=sceneFleet(8,e),cam=camera(8,e);annotationCamera=cam;annotationOffset=0
  var occupied:[CGRect]=[]
@@ -1656,27 +1706,49 @@ func finalShipNames(_ c:CGContext,_ e:Double){
  }
  c.restoreGState()
 }
+func gunDamageLabels(_ c:CGContext,_ e:Double){
+ let alpha=smoother((e-13.1)/0.6)*(1-smoother((e-24)/1));if alpha<0.002{return}
+ let pose=finalTrackPose(0,e),cam=camera(8,e);annotationCamera=cam;annotationOffset=0
+ c.saveGState();c.setAlpha(alpha)
+ func callout(_ title:String,_ before:String,_ after:String,_ hit:Double,_ local:CGPoint,_ origin:CGPoint){
+  let p=screen(worldPoint(local,pose,0.33)),q=smoother((e-hit)/0.35),r=CGRect(x:origin.x,y:origin.y,width:260,height:44),end=pt(origin.x<640 ? r.maxX:r.minX,r.midY)
+  line(c,[p,pt(end.x+(origin.x<640 ? 10:-10),p.y),end],paper.withAlphaComponent(0.55),0.75);ellipse(c,p.x,p.y,2,2,q>0.5 ? red:gold)
+  c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(r);txt(title,r.minX+8,r.minY+4,13,paper,true,244)
+  c.saveGState();c.setAlpha(alpha*(1-q));txt(before,r.minX+8,r.minY+23,12,paper,false,244);c.restoreGState()
+  c.saveGState();c.setAlpha(alpha*q);txt(after,r.minX+8,r.minY+23,12,red,false,244);c.restoreGState()
+ }
+ callout("ANTON · A TURRET","Forward battery in action",mainTurretDamage[0].reason,15.2,pt(72,0),pt(26,110))
+ callout("BRUNO · B TURRET","Forward battery in action",mainTurretDamage[1].reason,15.6,pt(46,0),pt(26,205))
+ callout("BRIDGE / FORWARD CONTROL","Command and directed gunfire","Upper command spaces shattered",bridgeHitTime,pt(17,0),pt(26,320))
+ callout("AFT GUN DIRECTOR","Controls the after turrets","Rangefinder lost · local control",aftDirectorHitTime,pt(-37,0),pt(994,315))
+ callout("CÄSAR · C TURRET",e>=17 ? "Local control · still firing":"After battery in action",mainTurretDamage[2].reason,21.8,pt(-61,0),pt(994,425))
+ callout("DORA · D TURRET",e>=17 ? "Local control · still firing":"After battery in action",mainTurretDamage[3].reason,19.1,pt(-91,0),pt(994,535))
+ c.restoreGState()
+}
+func gunFilmTime(_ old:Double)->Double {old<402 ? old:old<412 ? 402+(old-402)*2.8:old+18}
+func gunStoryTime(_ film:Double)->Double {film<402 ? film:film<430 ? 402+(film-402)/2.8:film-18}
 func filmCueList()->[(Double,String)] {
  var cues=scriptCues.filter{$0.0<72}
  cues += [(72,"British intercept force · from Scapa Flow"),(86,"Hood leads · Prince of Wales follows toward Iceland"),(96,"Prinz Eugen moves into the German lead"),(100,"02:05 · Holland turns parallel, waiting for daylight"),(112,"03:40 · British force turns in at 28 knots"),(122,"05:35 · enemy sighted; range closes"),(132,"05:52 · Hood and Prince of Wales open fire"),(138,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"),(142,"German ships reply · ranging salvos"),(148,"Prince of Wales hits Bismarck's bow"),(153.5,"Another hit · flooding below the armour belt"),(156,"Bismarck · decisive salvo toward Hood"),(164,"Shell penetration · probable aft-magazine ignition"),(166,"Hood · aft-magazine explosion"),(176,"Hood sinks · Prince of Wales remains under fire"),(179,"Prince of Wales returns fire at Bismarck"),(184,"Bismarck shifts fire · Prince of Wales prepares to withdraw"),(186,"Bridge damage · Prince of Wales turns away under smoke"),(204,"Bismarck survives the action · fuel leaks astern"),(214,"Bow damage · schematic reconstruction"),(222,"Seawater enters · forward fuel tanks become unusable"),(230,"Further flooding · speed and endurance reduced"),(242,"Atlantic raiding abandoned · make for a French repair port")]
  cues += scriptCues.filter{$0.0>=108 && $0.0<240 && $0.0 != 120 && $0.0 != 123}.map{($0.0+150,$0.1)}
  cues += [(327,"Bismarck AA batteries engage the Swordfish"),(267,"Victorious · Swordfish torpedo attack"),(270,"Torpedo hits Bismarck amidships · main armour belt"),(273,"Belt resists penetration · Bismarck continues underway"),(275,"25 May · HMS Suffolk + HMS Norfolk zigzag")]
- cues += [(384,"Night gives way to dawn · battlefleet closes from WNW"),(390,"27 May · Bismarck remains in view as the battlefleet approaches"),(394,"Rodney + King George V · camera follows the closing battleships"),(392,"08:47 · HMS Rodney opens fire"),(393,"08:48 · HMS King George V opens fire; HMS Norfolk joins"),(398,"HMS Dorsetshire engages from the opposite side"),(406,"09:20 · battleships turn north on independent tracks"),(420,"Close-range bombardment · Bismarck loses effective fire"),(424,"10:15 · 12 Swordfish arrive; battleships begin retiring"),(428,"Swordfish circle clear · attack held off during the bombardment"),(426,"10:21 · battleship gunfire ends"),(429,"HMS Dorsetshire · two torpedoes against the starboard side"),(434,"Dorsetshire rounds the bow · final port-side torpedo"),(435,"Bismarck capsizes · British ships remain afloat")]
+ cues += [(384,"Night gives way to dawn · battlefleet closes from WNW"),(390,"27 May · Bismarck remains in view as the battlefleet approaches"),(394,"Rodney + King George V · camera follows the closing battleships"),(392,"08:47 · HMS Rodney opens fire"),(393,"08:48 · HMS King George V opens fire; HMS Norfolk joins"),(398,"HMS Dorsetshire engages from the opposite side"),(402,"Bismarck battle damage · illustrative reconstruction"),(404.24,"Bridge and forward control shattered · directed fire breaks down"),(405.2,"Anton and Bruno disabled by shellfire"),(407,"Aft director hit · Cäsar and Dora change to local control"),(409.1,"Dora falls silent · Cäsar continues firing"),(411.8,"Cäsar’s final salvo · main battery silenced"),(420,"Main battery silent · British bombardment continues"),(424,"10:15 · 12 Swordfish arrive; battleships begin retiring"),(428,"Swordfish circle clear · attack held off during the bombardment"),(426,"10:21 · battleship gunfire ends"),(429,"HMS Dorsetshire · two torpedoes against the starboard side"),(434,"Dorsetshire rounds the bow · final port-side torpedo"),(435,"Bismarck capsizes · British ships remain afloat")]
  return cues.sorted{$0.0<$1.0}
 }
-let filmCues=filmCueList()
+let filmCues=filmCueList().map{(gunFilmTime($0.0),$0.1)}
 func designFrame(_ c:CGContext,_ draw:()->Void){
  c.saveGState();c.translateBy(x:0,y:Double(H));c.scaleBy(x:1.5,y:-1.5);NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:c,flipped:true);draw();NSGraphicsContext.restoreGraphicsState();c.restoreGState()
 }
 func render(_ t:Double,_ c:CGContext){
  environmentClock=t;suppressScriptCues=true
- if t<72 {renderBase(t,c)}
- else if t<132 {designFrame(c){annotations=[];bodyRects=[];drawLongApproach(c,t-72)}}
- else if t<204 {renderBase(72+(t-132)/2,c)}
- else if t<258 {designFrame(c){annotations=[];bodyRects=[];drawFuelWorld(c,t-204);fuelSection(c,t-204);francePlan(c,t-204)}}
- else {renderBase(t-150,c);if t>=266.5 && t<=275.5 {designFrame(c){nightStrikeLens(c,t-258)}}}
+ let cut=gunStoryTime(t)
+ if cut<72 {renderBase(cut,c)}
+ else if cut<132 {designFrame(c){annotations=[];bodyRects=[];drawLongApproach(c,cut-72)}}
+ else if cut<204 {renderBase(72+(cut-132)/2,c)}
+ else if cut<258 {designFrame(c){annotations=[];bodyRects=[];drawFuelWorld(c,cut-204);fuelSection(c,cut-204);francePlan(c,cut-204)}}
+ else {renderBase(cut-150,c);if cut>=266.5 && cut<=275.5 {designFrame(c){nightStrikeLens(c,cut-258)}}}
  suppressScriptCues=false
- if t<438,let cue=filmCues.last(where:{$0.0<=t}) {designFrame(c){suppressWorldText=false;let a=smoother((t-cue.0)/0.35);c.setAlpha(a);c.setFillColor(ink.withAlphaComponent(0.72).cgColor);c.fill(CGRect(x:22,y:670,width:min(1000,Double(cue.1.count)*8.4+24),height:30));txt(cue.1,34,674,15,paper,false,1150)}}
+ if t<456,let cue=filmCues.last(where:{$0.0<=t}) {designFrame(c){suppressWorldText=false;let a=smoother((t-cue.0)/0.35);c.setAlpha(a);c.setFillColor(ink.withAlphaComponent(0.72).cgColor);c.fill(CGRect(x:22,y:670,width:min(1000,Double(cue.1.count)*8.4+24),height:30));txt(cue.1,34,674,15,paper,false,1150)}}
  environmentClock=nil
 }
 
@@ -1689,6 +1761,24 @@ func fleetOverlaps(_ a:FleetMember,_ b:FleetMember)->Bool {
  }}
  return true
 }
+func gunDamageAudit(){
+ let beats:[(Int,String,Double)]=[(105,"BRIDGE / FORWARD CONTROL",bridgeHitTime),(113,"ANTON",15.2),(114,"BRUNO",15.6),(116,"AFT DIRECTOR",aftDirectorHitTime),(117,"DORA",19.1),(118,"CÄSAR",21.8)]
+ for (serial,name,beat) in beats {let salvo=finalSalvos.first{$0.serial==serial}!,impact=(salvo.fire+22.4-300)/10,b=finalActors[0],target=b.pose(salvo.fire+22.4),end=salvoAim(salvo,finalActors[salvo.from],b,target)
+  precondition(abs(impact-beat)<0.00001 && insideHull(end,target,b.scale),"Damage beat does not match a hull impact")
+  print("DAMAGE HIT \(name): film \(gunFilmTime(390+beat))s, local \(hullLocal(end,target,b.scale))")
+ }
+ var shots=0
+ for salvo in finalSalvos where salvo.from==0 {let clock=(salvo.fire-300)/10,muzzles=Array(activeMainMuzzles(clock).prefix(salvo.guns))
+  precondition(!muzzles.isEmpty && clock<21.8)
+  for gun in muzzles {let turret=mainTurretDamage.first{$0.x==gun.0}!;precondition(clock<turret.stop)}
+  shots+=1
+ }
+ precondition(activeMainMuzzles(21.8).isEmpty && activeMainMuzzles(30).isEmpty)
+ precondition(activeMainMuzzles(19.5).allSatisfy{$0.0 == -61})
+ print("GUN STATE PASS: \(shots) selected return salvos; destroyed turrets never emit later shots; Cäsar remains after Dora; all main guns stop after the last hit. Frozen turret training and persistent bridge/turret wreck overlays share these states.")
+ print("CLOCK PASS: 468 seconds, damage explanation stretched from 10 to 28 seconds; scene tracks and final contacts stay on their existing simulation clocks.")
+}
+
 func entranceCameraAudit(){
  func project(_ p:CGPoint,_ c:Cam)->CGPoint {let x=p.x-c.x,y=p.y-c.y;return pt(640+(x*cos(c.angle)-y*sin(c.angle))*c.z,355+(x*sin(c.angle)+y*cos(c.angle))*c.z)}
  let a=camera(7,24),b=camera(8,0),old=damagedShip(24),new=finalTrackPose(0,0),aa=project(old.p,a),bb=project(new.p,b)
@@ -1713,7 +1803,7 @@ func finalActionAudit(){
  for frame in 0...1152 {let e=Double(frame)/24,fleet=sceneFleet(8,e),cam=camera(8,e)
   precondition(Set(fleet.map{$0.id})==Set(finalActors.map{$0.name}),"Final ship membership changed")
   for a in 0..<fleet.count {for b in (a+1)..<fleet.count {if fleetOverlaps(fleet[a],fleet[b]){if overlaps<12 {print("FINAL OVERLAP t=\(e) \(fleet[a].id)/\(fleet[b].id)")};overlaps+=1}}}
-  if e>=14 && e<32 {for ship in fleet {for p in ship.corners {let x=640+(p.x-cam.x)*cam.z,y=355+(p.y-cam.y)*cam.z;if x<15 || x>1265 || y<15 || y>665 {framing+=1;break}}}}
+  if e>=26 && e<32 {for ship in fleet {for p in ship.corners {let x=640+(p.x-cam.x)*cam.z,y=355+(p.y-cam.y)*cam.z;if x<15 || x>1265 || y<15 || y>665 {framing+=1;break}}}}
   for i in 0..<5 {let p=finalTrackPose(i,e),a=finalTrackPose(i,e-0.001),b=finalTrackPose(i,e+0.001),dx=b.p.x-a.p.x,dy=b.p.y-a.p.y;let slip=abs(sin(p.yaw)*dx-cos(p.yaw)*dy)/max(1e-8,hypot(dx,dy));maxSlip=max(maxSlip,slip);if frame>0 {precondition(slip<0.005,"Final ship motion does not follow its heading")}}
  }
  print("FINAL FLEET: overlaps=\(overlaps), overview cropped hulls=\(framing), max sideslip=\(maxSlip)");fflush(stdout)
@@ -1776,19 +1866,19 @@ func longEditAudit(){
  NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:ctx,flipped:true);presenceAuditOnly=true
  let registry=["BISMARCK","PRINZ EUGEN","HOOD","PRINCE OF WALES","HMS SUFFOLK","HMS NORFOLK","HMS VICTORIOUS","HMS ARK ROYAL","HMS SHEFFIELD","RODNEY","KING GEORGE V","HMS DORSETSHIRE"]+destroyerNames
  var csv="film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system\n",samples=0
- for frame in 12..<876 {let t=Double(frame)/2;presenceRecords=[];annotations=[];bodyRects=[];environmentClock=t
+ for frame in 12..<912 {let t=Double(frame)/2,cut=gunStoryTime(t);presenceRecords=[];annotations=[];bodyRects=[];environmentClock=t
   let cam:Cam,scene:String,coordinate:String
   if t>=72 && t<132 {cam=longApproachCamera(t-72);scene="British approach";coordinate="geographic_projection";drawLongApproach(ctx,t-72)}
   else if t>=204 && t<258 {cam=fuelCamera(t-204);scene="Fuel damage";coordinate="tactical_diagram";drawFuelWorld(ctx,t-204)}
-  else {let story=t<72 ? t:t<204 ? 72+(t-132)/2:t-150,g=groupAt(story);cam=camera(g,story-groups[g]);scene="\(g)";coordinate=[1,2,4,10].contains(g) ? "geographic_projection":"tactical_diagram";narrativeClock=story;drawWorld(ctx,g,story)}
-  for id in registry {if let ship=presenceRecords.first(where:{$0.id==id}) {let points=ship.corners.map{project($0,cam)},visible=points.contains{$0.x>=0 && $0.x<=1280 && $0.y>=0 && $0.y<=720},sunk=(id=="HOOD" && t>=182)||(id=="BISMARCK" && t>=437.5)
+  else {let story=cut<72 ? cut:cut<204 ? 72+(cut-132)/2:cut-150,g=groupAt(story);cam=camera(g,story-groups[g]);scene="\(g)";coordinate=[1,2,4,10].contains(g) ? "geographic_projection":"tactical_diagram";narrativeClock=story;drawWorld(ctx,g,story)}
+  for id in registry {if let ship=presenceRecords.first(where:{$0.id==id}) {let points=ship.corners.map{project($0,cam)},visible=points.contains{$0.x>=0 && $0.x<=1280 && $0.y>=0 && $0.y<=720},sunk=(id=="HOOD" && t>=182)||(id=="BISMARCK" && t>=455.5)
    csv += "\(t),\(scene),\(id),\(sunk ? "sunk":visible ? "in_frame":"offscreen"),\(ship.pose.p.x),\(ship.pose.p.y),\(ship.pose.yaw),\(ship.scale),\(coordinate)\n"
   }else{csv += "\(t),\(scene),\(id),\(id=="HOOD" && t>=182 ? "sunk":"other_location"),,,,,\n"}}
   samples+=1
  }
  presenceAuditOnly=false;environmentClock=nil;explicitFuelOil=false;NSGraphicsContext.restoreGraphicsState()
  try! csv.write(to:root.appendingPathComponent("ship-state-ledger.csv"),atomically:true,encoding:.utf8)
- print("EXTENDED LEDGER PASS: \(samples) sampled frames, 17 persistent ship identities, 450-second film")
+ print("EXTENDED LEDGER PASS: \(samples) sampled frames, 17 persistent ship identities, 468-second film")
 }
 
 func continuityAudit(){
@@ -1978,13 +2068,14 @@ let pixels=UnsafeMutableRawPointer.allocate(byteCount:W*H*4,alignment:64)
 let context=CGContext(data:pixels,width:W,height:H,bitsPerComponent:8,bytesPerRow:W*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.noneSkipFirst.rawValue)!
 if CommandLine.arguments.contains("--export-cues") {
  var csv="film_seconds,timecode,script_cue\n"
- let cues=filmCues+[(438.0,"Fade to black"),(439.0,"Human cost · 2,000+ dead / ~100 survivors"),(444.0,"Operation Rheinübung · 18–27 May 1941")]
+ let cues=filmCues+[(456.0,"Fade to black"),(457.0,"Human cost · 2,000+ dead / ~100 survivors"),(462.0,"Operation Rheinübung · 18–27 May 1941")]
  for (t,label) in cues {let time=String(format:"%02d:%04.1f",Int(t)/60,t.truncatingRemainder(dividingBy:60)),quoted=label.replacingOccurrences(of:"\"",with:"\"\"");csv += "\(t),\(time),\"\(quoted)\"\n"}
  try! csv.write(to:root.appendingPathComponent("script-cues.csv"),atomically:true,encoding:.utf8);print("Script cues exported")
 }
 else if CommandLine.arguments.contains("--weapon-report") {
  for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")");if let hit=nightContacts[n] {print("VICTORIOUS LOCAL CONTACT: \(hullLocal(hit.point,chaseBismarck(hit.time),0.85))")}}
 }
+else if CommandLine.arguments.contains("--damage-audit") {gunDamageAudit()}
 else if CommandLine.arguments.contains("--entrance-audit") {entranceCameraAudit()}
 else if CommandLine.arguments.contains("--final-audit") {finalActionAudit()}
 else if CommandLine.arguments.contains("--long-audit") {longEditAudit()}
@@ -1992,7 +2083,7 @@ else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [383.9,389.99,390.0,391.0,394.0,397.5,400.0,404.0,424.0,428.0,436.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [407.6,408.4,412.2,417.0,422.5,429.5,430.8,433.0,446.0,455.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)

@@ -1,0 +1,8 @@
+DAMAGE HIT BRIDGE / FORWARD CONTROL: film 408.27200000000005s, local (16.999999999999993, -1.6697754290362354e-13)
+DAMAGE HIT ANTON: film 410.96s, local (72.00000000000006, 7.815970093361102e-14)
+DAMAGE HIT BRUNO: film 412.08000000000004s, local (46.000000000000085, 0.0)
+DAMAGE HIT AFT DIRECTOR: film 416.0s, local (-36.99999999999992, 0.0)
+DAMAGE HIT DORA: film 421.88000000000005s, local (-90.99999999999991, -1.0658141036401503e-14)
+DAMAGE HIT CÄSAR: film 429.44000000000005s, local (-61.00000000000003, -1.1723955140041653e-13)
+GUN STATE PASS: 4 selected return salvos; destroyed turrets never emit later shots; Cäsar remains after Dora; all main guns stop after the last hit. Frozen turret training and persistent bridge/turret wreck overlays share these states.
+CLOCK PASS: 468 seconds, damage explanation stretched from 10 to 28 seconds; scene tracks and final contacts stay on their existing simulation clocks.

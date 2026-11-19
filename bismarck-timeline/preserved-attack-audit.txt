@@ -1,1 +1,1 @@
-PRESERVED ATTACK PASS: all 1,152 decoded frames from 05:18 through 06:06 match v13 exactly (24 fps). Earlier torpedo runs, impacts, aircraft and sourced AA retained.
+PRESERVED ATTACK PASS: all 1,152 decoded frames from 05:18 through 06:06 match the retained v13 reference exactly (24 fps). Earlier torpedo runs, impacts, aircraft and sourced AA retained.

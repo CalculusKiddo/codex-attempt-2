@@ -1,5 +1,5 @@
 {
-  "duration_seconds": 450.0,
+  "duration_seconds": 468.0,
   "fps": 24,
   "tracks": [
     {
@@ -7,11 +7,11 @@
       "codec": "avc1",
       "width": 1920,
       "height": 1080,
-      "frames": 10800
+      "frames": 11232
     }
   ],
   "audio_tracks": 0,
-  "bytes": 234139167,
-  "sha256": "36c0cf2834a6c132f215f2db390fdf89fe847cbb6653cd6f181268f558ee1b5d",
+  "bytes": 252735713,
+  "sha256": "c2d686c13779adf0b104829b79c2bfa707ca247e923ba7f9900c352013e41c5d",
   "decode": "Full ffmpeg decode with -xerror completed without errors"
 }

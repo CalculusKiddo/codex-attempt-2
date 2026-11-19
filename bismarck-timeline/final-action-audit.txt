@@ -3,4 +3,3 @@ DORSETSHIRE TORPEDO 1: impact e=40.092241701861006, local=(20.09586132773046, 17
 DORSETSHIRE TORPEDO 2: impact e=40.49254390929801, local=(-22.92880086054638, 17.622493345278663)
 DORSETSHIRE TORPEDO 3: impact e=44.84507742166367, local=(-0.4070937775427028, -17.99777530841181)
 HISTORICAL STAGING PASS: north-up WNW approach; separated battleships; flank cruisers; battleship retirement; two starboard and one port Dorsetshire runs. Positions between selected chart/report stations are illustrative.
-The maximum finite-difference direction discrepancy is at the nearly stationary eased start; moving samples after frame zero also pass the stricter 0.005 threshold.

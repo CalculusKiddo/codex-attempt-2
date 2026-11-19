@@ -5,4 +5,4 @@ BATTLE HANDOFF PRINZ EUGEN: centre error 0.22470256447628303 px
 BATTLE HANDOFF HOOD: centre error 3.595093471822542e-13 px
 BATTLE HANDOFF PRINCE OF WALES: centre error 0.06739502121541122 px
 FUEL CHECK PASS: bow and below-belt hits, inherited oil trail, continuous surviving ships
-EXTENDED LEDGER PASS: 864 sampled frames, 17 persistent ship identities, 450-second film
+EXTENDED LEDGER PASS: 900 sampled frames, 17 persistent ship identities, 468-second film
