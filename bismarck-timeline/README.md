@@ -2,7 +2,7 @@
 
 A seven-and-a-half-minute original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v10-denmark-strait/bismarck-timeline.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v11-victorious-hit/bismarck-timeline.mp4).
 
 The action fills the frame. The old header, footer, progress bar, ship-name leaders and large explanatory captions are removed. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
@@ -28,7 +28,7 @@ The battle lasts 72 seconds. Prince of Wales scores a bow hit and a below-belt h
 
 The geographic Ark Royal and its close-up share projected position, scale and heading at the start of the zoom. Three representative Swordfish roll out in order, fly toward Sheffield, drop their carried torpedoes, circle back on separated landing approaches, brake on deck, rearm and launch again. The second launch continues directly into the final approach. Aircraft are not replaced by newly appearing airframes mid-flight. The representative aircraft count is not the historical strength of every strike.
 
-Torpedoes start at the same leading-tip position as their underslung carried bodies, drop slightly into the sea, decelerate through water entry and run unguided. The Sheffield sequence shows a premature water detonation and running torpedoes evaded during the turn, without Sheffield firing at the friendly aircraft. The final attack has an amidships hit, a miss and a stern hit. Tip contacts use the actual rendered hull polygon and swept intersections; foam persists after the body reaches contact. The separate Victorious night attack likewise has one representative hit and two misses.
+Torpedoes start at the same leading-tip position as their underslung carried bodies, drop slightly into the sea, decelerate through water entry and run unguided. The Sheffield sequence shows a premature water detonation and running torpedoes evaded during the turn, without Sheffield firing at the friendly aircraft. The final attack has an amidships hit, a miss and a stern hit. Tip contacts use the actual rendered hull polygon and swept intersections; foam persists after the body reaches contact. The separate Victorious night attack likewise has one representative hit and two misses. At 04:27–04:35 a live enlargement follows the actual carried torpedo and its hull contact at approximately 04:30. A waterline flash, spray, persistent foam and a small surface scar make the impact visible while the hull keeps moving. The main belt resists penetration; the brief captions explain why the hit did not stop the ship. The carrier, other aircraft and shadowers remain on their existing map tracks. The older five-minute cut placed this episode around 02:09.
 
 Selected salvos replace the earlier continuous volume of fire. Battle formations move, gun mounts train, and shell launch points agree with the rendered muzzle positions. A live close-up follows the decisive shell toward Hood. The probable penetration and aft-magazine explosion are explained with a small unlabelled section diagram and a short script cue. Hood's hull breaks and submerges; it is not restored later.
 
@@ -53,6 +53,8 @@ The survivor figure is deliberately approximate, as requested.
 ## Validation
 
 `continuity-audit.txt` checks aircraft spacing, carried-to-released torpedo continuity, Sheffield's evasion, hull separation during manoeuvres, paired opening framing, matched carrier zoom and unchanged ship membership within each scene. Its ledger is generated from actual renderer draw calls.
+
+`weapon-contact-audit.txt` records the corrected Victorious impact at local hull x ≈ 20.03, y ≈ +17.70 (starboard amidships), with the other two representative torpedoes missing. The launch heading and carrier station are adjusted together, preserving the carried-to-released weapon position.
 
 `long-edit-audit.txt` checks the added approach for coastline intersections, hull overlaps, framing, sideslip and a matched battle handoff, and exports the extended ledger.
 

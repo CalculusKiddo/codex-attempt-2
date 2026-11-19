@@ -825,7 +825,14 @@ func searchMap(_ c:CGContext,_ t:Double){
  if t<3.5 {wake(c,{mapCatalinaPose($0)},t,0.015)}
  if t>=8 {radar(c,plane.p,bm(t).p,t,true,35)}
 }
-func victoriousPose(_ t:Double)->Pose {forward(pt(1315.535,-175.665),2.45,4,t)}
+let nightApproachHeading=2.45-Double.pi/2
+let nightCarrierOrigin:CGPoint={
+ let impact=worldPoint(pt(20,17.5),chaseBismarck(12),0.85)
+ let waterDistance=(38.0+70)*0.65/2+70*0.35
+ let launchDistance=4*7.6+123+220.0*3.4+3.42
+ return pt(impact.x-cos(nightApproachHeading)*(waterDistance+launchDistance),impact.y-2-sin(nightApproachHeading)*(waterDistance+launchDistance))
+}()
+func victoriousPose(_ t:Double)->Pose {forward(nightCarrierOrigin,nightApproachHeading,4,t)}
 func nightPlanePose(_ t:Double,_ n:Int)->Pose {
  let launch=6.2+Double(n)*0.7
  return movingPose({r in
@@ -834,7 +841,7 @@ func nightPlanePose(_ t:Double,_ n:Int)->Pose {
   let age=r-launch,ship=victoriousPose(r)
   if age<1.4 {return worldPoint(pt(mix(50-Double(n)*22,123,pow(age/1.4,2)),0),ship,1)}
   let start=worldPoint(pt(123,0),victoriousPose(launch+1.4),1)
-  return forward(start,ship.yaw,134.11764705882354,age-1.4).p
+  return forward(start,ship.yaw,220.0,age-1.4).p
  },t)
 }
 let nightRuns:[TorpedoRun]=(0..<3).map{n in
@@ -1448,10 +1455,44 @@ func bowHitLens(_ c:CGContext,_ t:Double){
  let saved=annotationCamera;annotationCamera=Cam(x:p.x,y:p.y,z:3);ocean(c,t);denmark(c,t,min(17,Int(t/6)),e/36);annotationCamera=saved
  if q<1 {c.saveGState();c.translateBy(x:p.x,y:p.y);c.rotate(by:bearing);polygon(c,[pt(-3,-0.5),pt(1,-0.5),pt(2,0),pt(1,0.5),pt(-3,0.5)],grey);c.restoreGState()};c.restoreGState()
 }
+// The Victorious hit remains on the same simulation clock as the fleet map.
+// This live enlargement makes the carried weapon, hull contact and continued way visible.
+func nightStrikeLens(_ c:CGContext,_ e:Double){
+ if e<8.5 || e>17.5 || presenceAuditOnly{return}
+ let alpha=smoother((e-8.5)/0.65)*(1-smoother((e-16.7)/0.8))
+ let run=nightRuns[0],hit=nightContacts[0]!,b=chaseBismarck(e),plane=nightPlanePose(e,0)
+ let local=hullLocal(hit.point,chaseBismarck(hit.time),0.85)
+ let scar=worldPoint(local,b,0.85),tip=run.position(min(e,hit.time))
+ let follow=smoother((e-hit.time)/1.3)
+ let subject=e<run.release ? plane.p:pt(mix(tip.x,scar.x,follow),mix(tip.y,scar.y,follow))
+ let centre=pt(mix(subject.x,b.p.x,0.63),mix(subject.y,b.p.y,0.63))
+ let range=hypot(subject.x-b.p.x,subject.y-b.p.y)
+ let r=CGRect(x:26,y:28,width:620,height:365)
+ let hull=shipOutlines[0].map{worldPoint($0,b,0.85)}
+ let extentX=hull.map{abs($0.x-centre.x)}.max()!,extentY=hull.map{abs($0.y-centre.y)}.max()!
+ let base=min(2.05,480/max(245,range+150)),zx=292/max(1,extentX),zy=164.5/max(1,extentY)
+ let zoom=pow(pow(base,-8)+pow(zx,-8)+pow(zy,-8),-1.0/8)
+ c.saveGState();c.setAlpha(alpha);c.clip(to:r);c.setFillColor(ink.cgColor);c.fill(r)
+ c.translateBy(x:r.midX,y:r.midY);c.scaleBy(x:zoom,y:zoom);c.translateBy(x:-centre.x,y:-centre.y)
+ let saved=annotationCamera;annotationCamera=Cam(x:centre.x,y:centre.y,z:zoom)
+ ocean(c,108+e,true)
+ vessel(c,shipModel,chaseBismarck,e,0.85,"BISMARCK",red)
+ // Reuse the actual aircraft and swept torpedo contact; there is no second staged hit.
+ victoriousScene(c,e)
+ if e>=hit.time {let age=e-hit.time
+  c.saveGState();c.translateBy(x:scar.x,y:scar.y);c.rotate(by:b.yaw)
+  puff(c,0,0,6,2.5,NSColor.black,0.5*smoother(age/0.35));c.restoreGState()
+  // Brief shock flash at the waterline, followed by the existing persistent spray and foam.
+  if age<0.22 {puff(c,hit.point.x,hit.point.y,10,6,gold,0.8*(1-age/0.22))}
+ }
+ annotationCamera=saved;c.restoreGState()
+ c.saveGState();c.setAlpha(alpha);c.setStrokeColor(paper.withAlphaComponent(0.3).cgColor);c.setLineWidth(1);c.stroke(r);c.restoreGState()
+}
 func filmCueList()->[(Double,String)] {
  var cues=scriptCues.filter{$0.0<72}
  cues += [(72,"British intercept force · from Scapa Flow"),(86,"Hood leads · Prince of Wales follows toward Iceland"),(96,"Prinz Eugen moves into the German lead"),(100,"02:05 · Holland turns parallel, waiting for daylight"),(112,"03:40 · British force turns in at 28 knots"),(122,"05:35 · enemy sighted; range closes"),(132,"05:52 · Hood and Prince of Wales open fire"),(138,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"),(142,"German ships reply · ranging salvos"),(148,"Prince of Wales hits Bismarck's bow"),(153.5,"Another hit · flooding below the armour belt"),(156,"Bismarck · decisive salvo toward Hood"),(164,"Shell penetration · probable aft-magazine ignition"),(166,"Hood · aft-magazine explosion"),(176,"Hood sinks · Prince of Wales remains under fire"),(186,"Bridge damage · Prince of Wales turns away under smoke"),(204,"Bismarck survives the action · fuel leaks astern"),(214,"Bow damage · schematic reconstruction"),(222,"Seawater enters · forward fuel tanks become unusable"),(230,"Further flooding · speed and endurance reduced"),(242,"Atlantic raiding abandoned · make for a French repair port")]
- cues += scriptCues.filter{$0.0>=108}.map{($0.0+150,$0.1)}
+ cues += scriptCues.filter{$0.0>=108 && $0.0 != 120 && $0.0 != 123}.map{($0.0+150,$0.1)}
+ cues += [(267,"Victorious · Swordfish torpedo attack"),(270,"Torpedo hits Bismarck amidships · main armour belt"),(273,"Belt resists penetration · Bismarck continues underway"),(275,"25 May · HMS Suffolk + HMS Norfolk zigzag")]
  return cues.sorted{$0.0<$1.0}
 }
 let filmCues=filmCueList()
@@ -1464,7 +1505,7 @@ func render(_ t:Double,_ c:CGContext){
  else if t<132 {designFrame(c){annotations=[];bodyRects=[];drawLongApproach(c,t-72)}}
  else if t<204 {renderBase(72+(t-132)/2,c)}
  else if t<258 {designFrame(c){annotations=[];bodyRects=[];drawFuelWorld(c,t-204);fuelSection(c,t-204);francePlan(c,t-204)}}
- else {renderBase(t-150,c)}
+ else {renderBase(t-150,c);if t>=266.5 && t<=275.5 {designFrame(c){nightStrikeLens(c,t-258)}}}
  suppressScriptCues=false
  if t<438,let cue=filmCues.last(where:{$0.0<=t}) {designFrame(c){suppressWorldText=false;let a=smoother((t-cue.0)/0.35);c.setAlpha(a);c.setFillColor(ink.withAlphaComponent(0.72).cgColor);c.fill(CGRect(x:22,y:670,width:min(1000,Double(cue.1.count)*8.4+24),height:30));txt(cue.1,34,674,15,paper,false,1150)}}
  environmentClock=nil
@@ -1734,14 +1775,14 @@ if CommandLine.arguments.contains("--export-cues") {
  try! csv.write(to:root.appendingPathComponent("script-cues.csv"),atomically:true,encoding:.utf8);print("Script cues exported")
 }
 else if CommandLine.arguments.contains("--weapon-report") {
- for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")")}
+ for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")");if let hit=nightContacts[n] {print("VICTORIOUS LOCAL CONTACT: \(hullLocal(hit.point,chaseBismarck(hit.time),0.85))")}}
 }
 else if CommandLine.arguments.contains("--long-audit") {longEditAudit()}
 else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [65.0,72,76,86,100,112,122,130,132,140,148.5,154,164,168,184,203,205,216,224,235,249,257,270,294,345,405,435,441,446] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [267.5,269.5,270.1,271.5,274.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
