@@ -3061,8 +3061,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 95.5,10,ORP PIORUN,other_location,,,,,
 96.0,British approach,BISMARCK,in_frame,406.0,201.60000000000005,2.4500000422988997,0.07,geographic_projection
 96.0,British approach,PRINZ EUGEN,in_frame,421.4046250809462,192.84470595730997,2.4500000000698097,0.07,geographic_projection
-96.0,British approach,HOOD,offscreen,847.0,298.8,-2.9005798286315234,0.0126,geographic_projection
-96.0,British approach,PRINCE OF WALES,offscreen,871.9311802404826,304.92784597236357,-2.9005798286315234,0.011479999999999999,geographic_projection
+96.0,British approach,HOOD,offscreen,847.0,298.8,-2.9005798286315234,0.06300000000000001,geographic_projection
+96.0,British approach,PRINCE OF WALES,offscreen,871.9311802404826,304.92784597236357,-2.9005798286315234,0.0574,geographic_projection
 96.0,British approach,HMS SUFFOLK,in_frame,415.598925764359,174.07073149954175,2.450000000155716,0.07,geographic_projection
 96.0,British approach,HMS NORFOLK,in_frame,448.50620755835627,186.99786594343365,2.4499999999732887,0.07,geographic_projection
 96.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3078,8 +3078,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 96.0,British approach,ORP PIORUN,other_location,,,,,
 96.5,British approach,BISMARCK,in_frame,405.8951438223852,201.68669828255713,2.4514075895780554,0.07,geographic_projection
 96.5,British approach,PRINZ EUGEN,in_frame,421.2998298001825,192.93147824896928,2.4500000004140956,0.07,geographic_projection
-96.5,British approach,HOOD,offscreen,841.0995250950815,297.37552577300784,-2.9091704218848844,0.012603965419283087,geographic_projection
-96.5,British approach,PRINCE OF WALES,offscreen,866.0366176319471,303.47901878523714,-2.9005798286315234,0.011483612937569034,geographic_projection
+96.5,British approach,HOOD,offscreen,841.0995250950815,297.37552577300784,-2.9091704218848844,0.06300048358771745,geographic_projection
+96.5,British approach,PRINCE OF WALES,offscreen,866.0366176319471,303.47901878523714,-2.9005798286315234,0.05740044060214256,geographic_projection
 96.5,British approach,HMS SUFFOLK,in_frame,415.3717827078984,174.25806995723576,2.4539342966835536,0.07,geographic_projection
 96.5,British approach,HMS NORFOLK,in_frame,448.27546964194573,187.19219441995625,2.4334220351378892,0.07,geographic_projection
 96.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3095,8 +3095,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 96.5,British approach,ORP PIORUN,other_location,,,,,
 97.0,British approach,BISMARCK,in_frame,405.77015876300345,201.7897167248705,2.453073389810542,0.07,geographic_projection
 97.0,British approach,PRINZ EUGEN,in_frame,421.17507592603044,193.03477659861514,2.4500000004718907,0.07,geographic_projection
-97.0,British approach,HOOD,offscreen,835.0555514041034,295.9705733140653,-2.9171894632215656,0.01263080303156806,geographic_projection
-97.0,British approach,PRINCE OF WALES,offscreen,860.0108292610896,301.997937559138,-2.9005798286315234,0.011508064984317565,geographic_projection
+97.0,British approach,HOOD,offscreen,835.0555514041034,295.9705733140653,-2.9171894632215656,0.0630037564672644,geographic_projection
+97.0,British approach,PRINCE OF WALES,offscreen,860.0108292610896,301.997937559138,-2.9005798286315234,0.05740342255906312,geographic_projection
 97.0,British approach,HMS SUFFOLK,in_frame,415.1524045519557,174.43751569234314,2.4581088817528514,0.07,geographic_projection
 97.0,British approach,HMS NORFOLK,in_frame,448.0453872382195,187.39245401001125,2.417479730284039,0.07,geographic_projection
 97.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3112,8 +3112,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 97.0,British approach,ORP PIORUN,other_location,,,,,
 97.5,British approach,BISMARCK,in_frame,405.6252927841273,201.90868697998104,2.4549879563568715,0.07,geographic_projection
 97.5,British approach,PRINZ EUGEN,in_frame,421.0306908402229,193.15432992855185,2.4499999997434,0.07,geographic_projection
-97.5,British approach,HOOD,offscreen,828.8759144666556,294.58560682133924,-2.9246968207920254,0.012700903057230071,geographic_projection
-97.5,British approach,PRINCE OF WALES,offscreen,853.8609232504164,300.4863494026846,-2.9005798286315234,0.011571933896587398,geographic_projection
+97.5,British approach,HOOD,offscreen,828.8759144666556,294.58560682133924,-2.9246968207920254,0.06301230525088172,geographic_projection
+97.5,British approach,PRINCE OF WALES,offscreen,853.8609232504164,300.4863494026846,-2.9005798286315234,0.05741121145080334,geographic_projection
 97.5,British approach,HMS SUFFOLK,in_frame,414.94065968804796,174.60920247982298,2.462544302242942,0.07,geographic_projection
 97.5,British approach,HMS NORFOLK,in_frame,447.8159492367931,187.59854418625065,2.402151462678713,0.07,geographic_projection
 97.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3129,8 +3129,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 97.5,British approach,ORP PIORUN,other_location,,,,,
 98.0,British approach,BISMARCK,in_frame,405.46078462369303,202.04322883358452,2.457141204169157,0.07,geographic_projection
 98.0,British approach,PRINZ EUGEN,in_frame,420.8670019244932,193.28986716108366,2.450000000185163,0.07,geographic_projection
-98.0,British approach,HOOD,offscreen,822.5683905233816,293.2211055380569,-2.9322692088052467,0.012832046927897914,geographic_projection
-98.0,British approach,PRINCE OF WALES,offscreen,847.5940077224336,298.94600142449565,-2.9005798286315234,0.011691420534306987,geographic_projection
+98.0,British approach,HOOD,offscreen,822.5683905233816,293.2211055380569,-2.9322692088052467,0.06302829840584122,geographic_projection
+98.0,British approach,PRINCE OF WALES,offscreen,847.5940077224336,298.94600142449565,-2.9005798286315234,0.05742578299198866,geographic_projection
 98.0,British approach,HMS SUFFOLK,in_frame,414.7364165076917,174.77326409463444,2.4672633846802703,0.07,geographic_projection
 98.0,British approach,HMS NORFOLK,in_frame,447.5871445272821,187.81036442132648,2.387415784243605,0.07,geographic_projection
 98.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3146,8 +3146,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 98.0,British approach,ORP PIORUN,other_location,,,,,
 98.5,British approach,BISMARCK,in_frame,405.2768652317781,202.19295129889923,2.459522458942132,0.07,geographic_projection
 98.5,British approach,PRINZ EUGEN,in_frame,420.68433656057437,193.4411172185149,2.449999999995554,0.07,geographic_projection
-98.5,British approach,HOOD,in_frame,816.1407234067827,291.87747482849903,-2.938873414119168,0.013039515985985125,geographic_projection
-98.5,British approach,PRINCE OF WALES,offscreen,841.2115103425133,297.4020326635211,-2.9091704218848844,0.011880447898342002,geographic_projection
+98.5,British approach,HOOD,in_frame,816.1407234067827,291.87747482849903,-2.938873414119168,0.063053599510486,geographic_projection
+98.5,British approach,PRINCE OF WALES,offscreen,841.2115103425133,297.4020326635211,-2.9091704218848844,0.057448835109553904,geographic_projection
 98.5,British approach,HMS SUFFOLK,in_frame,414.53954340240347,174.92983431173656,2.47229156844244,0.07,geographic_projection
 98.5,British approach,HMS NORFOLK,in_frame,447.35896199930204,188.02781418789075,2.3732515558063634,0.07,geographic_projection
 98.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3163,8 +3163,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 98.5,British approach,ORP PIORUN,other_location,,,,,
 99.0,British approach,BISMARCK,in_frame,405.0737585391028,202.35745428121373,2.462120511835259,0.07,geographic_projection
 99.0,British approach,PRINZ EUGEN,in_frame,420.48302213019963,193.60780902314977,2.4499999998058786,0.07,geographic_projection
-99.0,British approach,HOOD,in_frame,809.6006219322221,290.555080292666,-2.945107240480483,0.013336200184221087,geographic_projection
-99.0,British approach,PRINCE OF WALES,in_frame,834.7121139182563,295.89227611819825,-2.9177844093168983,0.01215076016784588,geographic_projection
+99.0,British approach,HOOD,in_frame,809.6006219322221,290.555080292666,-2.945107240480483,0.06308978051027087,geographic_projection
+99.0,British approach,PRINCE OF WALES,in_frame,834.7121139182563,295.89227611819825,-2.9177844093168983,0.05748180002046901,geographic_projection
 99.0,British approach,HMS SUFFOLK,in_frame,414.3499087636997,175.07904690608837,2.4776572676728605,0.07,geographic_projection
 99.0,British approach,HMS NORFOLK,in_frame,447.13139054246824,188.2507929585954,2.359638036293092,0.07,geographic_projection
 99.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3180,8 +3180,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 99.0,British approach,ORP PIORUN,other_location,,,,,
 99.5,British approach,BISMARCK,in_frame,404.8516830515317,202.53632957652474,2.46492368781656,0.07,geographic_projection
 99.5,British approach,PRINZ EUGEN,in_frame,420.26338601510207,193.78967149729263,2.4499999999205913,0.07,geographic_projection
-99.5,British approach,HOOD,in_frame,802.9557486389974,289.25432957196244,-2.9514468646471856,0.01373270678518212,geographic_projection
-99.5,British approach,PRINCE OF WALES,in_frame,828.1040149435362,294.4160628333881,-2.9258098044339484,0.012512021737610375,geographic_projection
+99.5,British approach,HOOD,in_frame,802.9557486389974,289.25432957196244,-2.9514468646471856,0.0631381349738027,geographic_projection
+99.5,British approach,PRINCE OF WALES,in_frame,828.1040149435362,294.4160628333881,-2.9258098044339484,0.05752585630946468,geographic_projection
 99.5,British approach,HMS SUFFOLK,in_frame,414.1673809830974,175.2210356526491,2.4833923050093887,0.07,geographic_projection
 99.5,British approach,HMS NORFOLK,in_frame,446.90441904639647,188.4792002060925,2.3465549634774026,0.07,geographic_projection
 99.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3197,8 +3197,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 99.5,British approach,ORP PIORUN,other_location,,,,,
 100.0,British approach,BISMARCK,in_frame,404.61085309172887,202.7291621561072,2.467919882771685,0.07,geographic_projection
 100.0,British approach,PRINZ EUGEN,in_frame,420.02575559701484,193.9864335632477,2.450000000160708,0.07,geographic_projection
-100.0,British approach,HOOD,in_frame,796.2137344696354,287.9756268790004,-2.9570199726414064,0.014237469060822587,geographic_projection
-100.0,British approach,PRINCE OF WALES,in_frame,821.395374600888,292.97249672422794,-2.9333108907251204,0.012971916255416134,geographic_projection
+100.0,British approach,HOOD,in_frame,796.2137344696354,287.9756268790004,-2.9570199726414064,0.0631996913488808,geographic_projection
+100.0,British approach,PRINCE OF WALES,in_frame,821.395374600888,292.97249672422794,-2.9333108907251204,0.057581941006758064,geographic_projection
 100.0,British approach,HMS SUFFOLK,in_frame,413.9918284521132,175.35593432637782,2.489532421241057,0.07,geographic_projection
 100.0,British approach,HMS NORFOLK,in_frame,446.67803640070207,188.71293540303398,2.3339826179000824,0.07,geographic_projection
 100.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3214,8 +3214,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 100.0,British approach,ORP PIORUN,other_location,,,,,
 100.5,British approach,BISMARCK,in_frame,404.3514799157256,202.93553153232094,2.471096629089288,0.07,geographic_projection
 100.5,British approach,PRINZ EUGEN,in_frame,419.77045825767107,194.19782414331922,2.4499999999729147,0.07,geographic_projection
-100.5,British approach,HOOD,in_frame,789.3821976616632,286.71929062038504,-2.962319623628922,0.014856854992005978,geographic_projection
-100.5,British approach,PRINCE OF WALES,in_frame,814.5942421184677,291.5608341101872,-2.940343506487824,0.013536245659383224,geographic_projection
+100.5,British approach,HOOD,in_frame,789.3821976616632,286.71929062038504,-2.962319623628922,0.06327522621853733,geographic_projection
+100.5,British approach,PRINCE OF WALES,in_frame,814.5942421184677,291.5608341101872,-2.940343506487824,0.05765076166577845,geographic_projection
 100.5,British approach,HMS SUFFOLK,in_frame,413.82311956226346,175.48387670223352,2.496117872137677,0.07,geographic_projection
 100.5,British approach,HMS NORFOLK,in_frame,446.4522314950008,188.9518980220718,2.3219018670483553,0.07,geographic_projection
 100.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3231,8 +3231,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 100.5,British approach,ORP PIORUN,other_location,,,,,
 101.0,British approach,BISMARCK,in_frame,404.0737735255471,203.15501254168322,2.4744411508238513,0.07,geographic_projection
 101.0,British approach,PRINZ EUGEN,in_frame,419.4978213788039,194.42357215981156,2.45000000012965,0.07,geographic_projection
-101.0,British approach,HOOD,in_frame,782.4687201698224,285.4856940427565,-2.9677496990890946,0.015595275968036027,geographic_projection
-101.0,British approach,PRINCE OF WALES,in_frame,807.7085736365555,290.180460505045,-2.946956411525955,0.014209029215321713,geographic_projection
+101.0,British approach,HOOD,in_frame,782.4687201698224,285.4856940427565,-2.9677496990890946,0.06336527755707758,geographic_projection
+101.0,British approach,PRINCE OF WALES,in_frame,807.7085736365555,290.180460505045,-2.946956411525955,0.057732808440892895,geographic_projection
 101.0,British approach,HMS SUFFOLK,in_frame,413.661122705065,175.60499655517535,2.503194138289621,0.07,geographic_projection
 101.0,British approach,HMS NORFOLK,in_frame,446.2269932189077,189.19598753585797,2.310294197453456,0.07,geographic_projection
 101.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3248,8 +3248,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 101.0,British approach,ORP PIORUN,other_location,,,,,
 101.5,British approach,BISMARCK,in_frame,403.7779420788118,203.38717798430028,2.4779404244492556,0.07,geographic_projection
 101.5,British approach,PRINZ EUGEN,in_frame,419.20817234214655,194.66340653502894,2.450000000010648,0.07,geographic_projection
-101.5,British approach,HOOD,in_frame,775.4808568901484,284.2752377714135,-2.972558332607052,0.0164552954861878,geographic_projection
-101.5,British approach,PRINCE OF WALES,in_frame,800.7462473464219,288.8308713876942,-2.953192404043324,0.014992602554082215,geographic_projection
+101.5,British approach,HOOD,in_frame,775.4808568901484,284.2752377714135,-2.972558332607052,0.06347015798612048,geographic_projection
+101.5,British approach,PRINCE OF WALES,in_frame,800.7462473464219,288.8308713876942,-2.953192404043324,0.057828366165131984,geographic_projection
 101.5,British approach,HMS SUFFOLK,in_frame,413.5057062720345,175.71942766016247,2.5108127647180467,0.07,geographic_projection
 101.5,British approach,HMS NORFOLK,in_frame,446.0023104620388,189.44510341704455,2.2991417431682435,0.07,geographic_projection
 101.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3265,8 +3265,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 101.5,British approach,ORP PIORUN,other_location,,,,,
 102.0,British approach,BISMARCK,in_frame,403.4641952451099,203.63159808540175,2.481581221799541,0.07,geographic_projection
 102.0,British approach,PRINZ EUGEN,in_frame,418.90183852943204,194.91705619127566,2.449999999927853,0.07,geographic_projection
-102.0,British approach,HOOD,in_frame,768.4261603491478,283.0882206011859,-2.977162786660068,0.01743773785123878,geographic_projection
-102.0,British approach,PRINCE OF WALES,in_frame,793.7150757361125,287.51165618916525,-2.9590892393239305,0.015887716708906444,geographic_projection
+102.0,British approach,HOOD,in_frame,768.4261603491478,283.0882206011859,-2.977162786660068,0.06358996803063888,geographic_projection
+102.0,British approach,PRINCE OF WALES,in_frame,793.7150757361125,287.51165618916525,-2.9590892393239305,0.05793752642791542,geographic_projection
 102.0,British approach,HMS SUFFOLK,in_frame,413.3567386546886,175.82730379215388,2.5190323570402398,0.07,geographic_projection
 102.0,British approach,HMS NORFOLK,in_frame,445.77817211400946,189.6991451382835,2.2884272890603863,0.07,geographic_projection
 102.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3282,8 +3282,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 102.0,British approach,ORP PIORUN,other_location,,,,,
 102.5,British approach,BISMARCK,in_frame,403.13274325784533,203.88784328385066,2.4853501790792754,0.07,geographic_projection
 102.5,British approach,PRINZ EUGEN,in_frame,418.5791473223936,195.18425005085598,2.4500000000428077,0.07,geographic_projection
-102.5,British approach,HOOD,in_frame,761.3121541213197,281.9250031729547,-2.9819141026276634,0.018541796875,geographic_projection
-102.5,British approach,PRINCE OF WALES,in_frame,786.6228155719724,286.2224848889442,-2.964680390197872,0.016893637152777776,geographic_projection
+102.5,British approach,HOOD,in_frame,761.3121541213197,281.9250031729547,-2.9819141026276634,0.063724609375,geographic_projection
+102.5,British approach,PRINCE OF WALES,in_frame,786.6228155719724,286.2224848889442,-2.964680390197872,0.058060199652777776,geographic_projection
 102.5,British approach,HMS SUFFOLK,in_frame,413.2140882445437,175.92875872610873,2.5279197857230606,0.07,geographic_projection
 102.5,British approach,HMS NORFOLK,in_frame,445.55456706443505,189.95801217222674,2.2781342906455166,0.07,geographic_projection
 102.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3299,8 +3299,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 102.5,British approach,ORP PIORUN,other_location,,,,,
 103.0,British approach,BISMARCK,in_frame,402.783799336711,204.15548429847854,2.4892338379540626,0.07,geographic_projection
 103.0,British approach,PRINZ EUGEN,in_frame,418.2404261027644,195.46471703607415,2.4499999999253412,0.07,geographic_projection
-103.0,British approach,HOOD,in_frame,754.146341146386,280.7859768853915,-2.986151313693757,0.019765144575847108,geographic_projection
-103.0,British approach,PRINCE OF WALES,in_frame,779.4771684185683,284.9631409771897,-2.9696245797871,0.018008242835771807,geographic_projection
+103.0,British approach,HOOD,in_frame,754.146341146386,280.7859768853915,-2.986151313693757,0.06387379811900576,geographic_projection
+103.0,British approach,PRINCE OF WALES,in_frame,779.4771684185683,284.9631409771897,-2.9696245797871,0.05819612717509413,geographic_projection
 103.0,British approach,HMS SUFFOLK,in_frame,413.0776234331168,176.0239262369861,2.53755162472027,0.07,geographic_projection
 103.0,British approach,HMS NORFOLK,in_frame,445.33148420293116,190.22160399152637,2.2682468680670973,0.07,geographic_projection
 103.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3316,8 +3316,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 103.0,British approach,ORP PIORUN,other_location,,,,,
 103.5,British approach,BISMARCK,in_frame,402.417579867253,204.43409386092554,2.49321870395278,0.07,geographic_projection
 103.5,British approach,PRINZ EUGEN,in_frame,417.88600225227754,195.7581860692345,2.4499999999148248,0.07,geographic_projection
-103.5,British approach,HOOD,in_frame,746.9362253652725,279.6714375499219,-2.9902359695074945,0.021104039878251477,geographic_projection
-103.5,British approach,PRINCE OF WALES,in_frame,772.2858078640517,283.73339725041126,-2.974707685784443,0.019228125222406897,geographic_projection
+103.5,British approach,HOOD,in_frame,746.9362253652725,279.6714375499219,-2.9902359695074945,0.0640370780339331,geographic_projection
+103.5,British approach,PRINCE OF WALES,in_frame,772.2858078640517,283.73339725041126,-2.974707685784443,0.05834489331980572,geographic_projection
 103.5,British approach,HMS SUFFOLK,in_frame,412.94721261192433,176.1129400997451,2.5480158712863163,0.07,geographic_projection
 103.5,British approach,HMS NORFOLK,in_frame,445.1089124191136,190.48982006883435,2.2587497975340125,0.07,geographic_projection
 103.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3333,8 +3333,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 103.5,British approach,ORP PIORUN,other_location,,,,,
 104.0,British approach,BISMARCK,in_frame,402.0343051557647,204.72324789562512,2.4972912986839506,0.07,geographic_projection
 104.0,British approach,PRINZ EUGEN,in_frame,417.5162031526661,196.06438607264127,2.4500000000712983,0.07,geographic_projection
-104.0,British approach,HOOD,in_frame,739.6892870794901,278.5817479359782,-2.9944803667792916,0.022553437312311304,geographic_projection
-104.0,British approach,PRINCE OF WALES,in_frame,765.0563697501442,282.53309066978323,-2.979564036286776,0.02054868732899474,geographic_projection
+104.0,British approach,HOOD,in_frame,739.6892870794901,278.5817479359782,-2.9944803667792916,0.06421383381857455,geographic_projection
+104.0,British approach,PRINCE OF WALES,in_frame,765.0563697501442,282.53309066978323,-2.979564036286776,0.0585059374791457,geographic_projection
 104.0,British approach,HMS SUFFOLK,in_frame,412.8227241724831,176.19593408934483,2.5594140579602738,0.07,geographic_projection
 104.0,British approach,HMS NORFOLK,in_frame,444.88684060259754,190.76255987680267,2.2496285108086456,0.07,geographic_projection
 104.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3350,8 +3350,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 104.0,British approach,ORP PIORUN,other_location,,,,,
 104.5,British approach,BISMARCK,in_frame,401.63420085491805,205.02252609591724,2.501438202075122,0.07,geographic_projection
 104.5,British approach,PRINZ EUGEN,in_frame,417.13135618566326,196.38304596859876,2.4500000000198043,0.07,geographic_projection
-104.5,British approach,HOOD,in_frame,732.4129936313835,277.5172827241387,-2.998292050686341,0.024107095713282706,geographic_projection
-104.5,British approach,PRINCE OF WALES,in_frame,757.7964462378866,281.3621848170971,-2.98388963919915,0.021964242760990908,geographic_projection
+104.5,British approach,HOOD,in_frame,732.4129936313835,277.5172827241387,-2.998292050686341,0.06440330435527838,geographic_projection
+104.5,British approach,PRINCE OF WALES,in_frame,757.7964462378866,281.3621848170971,-2.98388963919915,0.058678566190364746,geographic_projection
 104.5,British approach,HMS SUFFOLK,in_frame,412.7040265063095,176.27304198074435,2.571863771996856,0.07,geographic_projection
 104.5,British approach,HMS NORFOLK,in_frame,444.66525764299854,191.0397228880833,2.240869074448182,0.07,geographic_projection
 104.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3367,8 +3367,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 104.5,British approach,ORP PIORUN,other_location,,,,,
 105.0,British approach,BISMARCK,in_frame,401.217497828324,205.33151357139997,2.505646110041049,0.07,geographic_projection
 105.0,British approach,PRINZ EUGEN,in_frame,416.7317887330022,196.71389467941123,2.4499999998866624,0.07,geographic_projection
-105.0,British approach,HOOD,in_frame,725.1148123303371,276.4783464456183,-3.0019914501929335,0.02575768692111082,geographic_projection
-105.0,British approach,PRINCE OF WALES,in_frame,750.5136240969235,280.2205538697897,-2.988368776452754,0.023468114750345413,geographic_projection
+105.0,British approach,HOOD,in_frame,725.1148123303371,276.4783464456183,-3.0019914501929335,0.06460459596598914,geographic_projection
+105.0,British approach,PRINCE OF WALES,in_frame,750.5136240969235,280.2205538697897,-2.988368776452754,0.05886196521345676,geographic_projection
 105.0,British approach,HMS SUFFOLK,in_frame,412.5909880049202,176.34439754890272,2.5855017859599716,0.07,geographic_projection
 105.0,British approach,HMS NORFOLK,in_frame,444.4441524299321,191.32120857532823,2.2324581872264337,0.07,geographic_projection
 105.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3384,8 +3384,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 105.0,British approach,ORP PIORUN,other_location,,,,,
 105.5,British approach,BISMARCK,in_frame,400.78443356895644,205.64980121427539,2.509901866460561,0.07,geographic_projection
 105.5,British approach,PRINZ EUGEN,in_frame,416.31782817641607,197.05666112738294,2.4500000000116184,0.07,geographic_projection
-105.5,British approach,HOOD,in_frame,717.8021906844158,275.4653158889487,-3.0058628961653513,0.027496904479960903,geographic_projection
-105.5,British approach,PRINCE OF WALES,in_frame,743.2154483720994,279.10822261483054,-2.992377194788236,0.025052735192853268,geographic_projection
+105.5,British approach,HOOD,in_frame,717.8021906844158,275.4653158889487,-3.0058628961653513,0.06481669566828793,geographic_projection
+105.5,British approach,PRINCE OF WALES,in_frame,743.2154483720994,279.10822261483054,-2.992377194788236,0.05905521160888455,geographic_projection
 105.5,British approach,HMS SUFFOLK,in_frame,412.48347705983207,176.41013456877917,2.6004877893399048,0.07,geographic_projection
 105.5,British approach,HMS NORFOLK,in_frame,444.22351385301386,191.60691641118947,2.2243831472747213,0.07,geographic_projection
 105.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3401,8 +3401,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 105.5,British approach,ORP PIORUN,other_location,,,,,
 106.0,British approach,BISMARCK,in_frame,400.3352518579077,205.976987257441,2.5141925192545624,0.07,geographic_projection
 106.0,British approach,PRINZ EUGEN,in_frame,415.88980189763794,197.41107423481822,2.450000000015298,0.07,geographic_projection
-106.0,British approach,HOOD,in_frame,710.4825720170501,274.47853996335937,-3.009364764943168,0.029315572337749434,geographic_projection
-106.0,British approach,PRINCE OF WALES,in_frame,735.9094597034886,278.02514361758693,-2.9965474802228056,0.02670974368550504,geographic_projection
+106.0,British approach,HOOD,in_frame,710.4825720170501,274.47853996335937,-3.009364764943168,0.06503848443143287,geographic_projection
+106.0,British approach,PRINCE OF WALES,in_frame,735.9094597034886,278.02514361758693,-2.9965474802228056,0.05925728581530549,geographic_projection
 106.0,British approach,HMS SUFFOLK,in_frame,412.3813620625616,176.47038681533272,2.617009035583276,0.07,geographic_projection
 106.0,British approach,HMS NORFOLK,in_frame,444.0033308018595,191.89674586831904,2.2166318475998392,0.07,geographic_projection
 106.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3418,8 +3418,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 106.0,British approach,ORP PIORUN,other_location,,,,,
 106.5,British approach,BISMARCK,in_frame,399.8702045829745,206.31267712735476,2.5185053433403373,0.07,geographic_projection
 106.5,British approach,PRINZ EUGEN,in_frame,415.44803727840105,197.77686292402126,2.449999999941313,0.07,geographic_projection
-106.5,British approach,HOOD,in_frame,703.1633955168137,273.51834186366096,-3.012787510116097,0.031203753545675183,geographic_projection
-106.5,British approach,PRINCE OF WALES,in_frame,728.6031645256143,276.9714053640969,-3.000297245877041,0.028430086563837387,geographic_projection
+106.5,British approach,HOOD,in_frame,703.1633955168137,273.51834186366096,-3.012787510116097,0.06526875043239942,geographic_projection
+106.5,British approach,PRINCE OF WALES,in_frame,728.6031645256143,276.9714053640969,-3.000297245877041,0.05946708372729725,geographic_projection
 106.5,British approach,HMS SUFFOLK,in_frame,412.2845114046254,176.52528806352237,2.6352859961167745,0.07,geographic_projection
 106.5,British approach,HMS NORFOLK,in_frame,443.783592166084,192.19059641936883,2.2091927563477434,0.07,geographic_projection
 106.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3435,8 +3435,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 106.5,British approach,ORP PIORUN,other_location,,,,,
 107.0,British approach,BISMARCK,in_frame,399.3895502102539,206.65648561293492,2.522827899443249,0.07,geographic_projection
 107.0,British approach,PRINZ EUGEN,in_frame,414.9928617004384,198.15375611729644,2.4500000000074142,0.07,geographic_projection
-107.0,British approach,HOOD,in_frame,695.8520833283299,272.58512398862325,-3.0163962753950613,0.03315085895775035,geographic_projection
-107.0,British approach,PRINCE OF WALES,in_frame,721.3040708947417,275.9470011834028,-3.0039409446681953,0.030204115939283648,geographic_projection
+107.0,British approach,HOOD,in_frame,695.8520833283299,272.58512398862325,-3.0163962753950613,0.06550620231192078,geographic_projection
+107.0,British approach,PRINCE OF WALES,in_frame,721.3040708947417,275.9470011834028,-3.0039409446681953,0.05968342877308337,geographic_projection
 107.0,British approach,HMS SUFFOLK,in_frame,412.19279347754014,176.5749720883074,2.655579218540845,0.07,geographic_projection
 107.0,British approach,HMS NORFOLK,in_frame,443.56428683530345,192.48836753699098,2.2020548868189,0.07,geographic_projection
 107.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3452,8 +3452,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 107.0,British approach,ORP PIORUN,other_location,,,,,
 107.5,British approach,BISMARCK,in_frame,398.8935562154626,207.00803604428984,2.5271480446799983,0.07,geographic_projection
 107.5,British approach,PRINZ EUGEN,in_frame,414.5246025454833,198.54148273694796,2.449999999996696,0.07,geographic_projection
-107.5,British approach,HOOD,in_frame,688.5560633706696,271.67919852722736,-3.0196855923442643,0.03514575593033164,geographic_projection
-107.5,British approach,PRINCE OF WALES,in_frame,714.0196617432703,274.9520217386147,-3.0077589566903487,0.03202168873652438,geographic_projection
+107.5,British approach,HOOD,in_frame,688.5560633706696,271.67919852722736,-3.0196855923442643,0.06574948243052826,geographic_projection
+107.5,British approach,PRINCE OF WALES,in_frame,714.0196617432703,274.9520217386147,-3.0077589566903487,0.05990508399225907,geographic_projection
 107.5,British approach,HMS SUFFOLK,in_frame,412.10607667282267,176.61957266464677,2.678197749417355,0.07,geographic_projection
 107.5,British approach,HMS NORFOLK,in_frame,443.3454036991332,192.78995869383738,2.1952077860552666,0.07,geographic_projection
 107.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3469,8 +3469,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 107.5,British approach,ORP PIORUN,other_location,,,,,
 108.0,British approach,BISMARCK,in_frame,398.3824973298819,207.36696235881794,2.531453984703727,0.07,geographic_projection
 108.0,British approach,PRINZ EUGEN,in_frame,414.0435871952688,198.9397717052801,2.4500000000585045,0.07,geographic_projection
-108.0,British approach,HOOD,in_frame,681.2827501101234,270.80094123198415,-3.0231723449006096,0.03717687702165137,geographic_projection
-108.0,British approach,PRINCE OF WALES,in_frame,706.7574090902347,273.98656735852614,-3.011216981208133,0.03387226573083791,geographic_projection
+108.0,British approach,HOOD,in_frame,681.2827501101234,270.80094123198415,-3.0231723449006096,0.06599718012459163,geographic_projection
+108.0,British approach,PRINCE OF WALES,in_frame,706.7574090902347,273.98656735852614,-3.011216981208133,0.06013076411351682,geographic_projection
 108.0,British approach,HMS SUFFOLK,in_frame,412.02422938198947,176.65922356749965,2.7035092459571404,0.07,geographic_projection
 108.0,British approach,HMS NORFOLK,in_frame,443.12693164718866,193.09526936256012,2.1886415163107844,0.07,geographic_projection
 108.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3486,8 +3486,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 108.0,British approach,ORP PIORUN,other_location,,,,,
 108.5,British approach,BISMARCK,in_frame,397.85665726286464,207.73290856150916,2.535734286642388,0.07,geographic_projection
 108.5,British approach,PRINZ EUGEN,in_frame,413.550143031528,199.34835194459717,2.4499999998789703,0.07,geographic_projection
-108.5,British approach,HOOD,in_frame,674.0395541879323,269.9507224986592,-3.0263680874489705,0.03923232869134855,geographic_projection
-108.5,British approach,PRINCE OF WALES,in_frame,699.524780020405,273.05070878945696,-3.0146011982491916,0.0357450105854509,geographic_projection
+108.5,British approach,HOOD,in_frame,674.0395541879323,269.9507224986592,-3.0263680874489705,0.0662478449623596,geographic_projection
+108.5,British approach,PRINCE OF WALES,in_frame,699.524780020405,273.05070878945696,-3.0146011982491916,0.060359147632372066,geographic_projection
 108.5,British approach,HMS SUFFOLK,in_frame,411.9471199965568,176.69405857182497,2.731951992959242,0.07,geographic_projection
 108.5,British approach,HMS NORFOLK,in_frame,442.90885956908534,193.404199015811,2.182346629106586,0.07,geographic_projection
 108.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3503,8 +3503,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 108.5,British approach,ORP PIORUN,other_location,,,,,
 109.0,British approach,BISMARCK,in_frame,397.31632822677403,208.10552963488624,2.539977908349262,0.07,geographic_projection
 109.0,British approach,PRINZ EUGEN,in_frame,413.04459743599415,199.76695237720344,2.449999999912896,0.07,geographic_projection
-109.0,British approach,HOOD,in_frame,666.8338858023702,269.12888135028686,-3.029775080085624,0.0413,geographic_projection
-109.0,British approach,PRINCE OF WALES,in_frame,692.3292278975057,272.14455960418667,-3.0179212100906367,0.037628888888888885,geographic_projection
+109.0,British approach,HOOD,in_frame,666.8338858023702,269.12888135028686,-3.029775080085624,0.0665,geographic_projection
+109.0,British approach,PRINCE OF WALES,in_frame,692.3292278975057,272.14455960418667,-3.0179212100906367,0.06058888888888889,geographic_projection
 109.0,British approach,HMS SUFFOLK,in_frame,411.87461690804196,176.7242114525821,2.7640488425253165,0.07,geographic_projection
 109.0,British approach,HMS NORFOLK,in_frame,442.6911763544388,193.71664712624218,2.176314152355517,0.07,geographic_projection
 109.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3520,8 +3520,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 109.0,British approach,ORP PIORUN,other_location,,,,,
 109.5,British approach,BISMARCK,in_frame,396.7618105993688,208.4844922173495,2.544174222515575,0.07,geographic_projection
 109.5,British approach,PRINZ EUGEN,in_frame,412.5272777904003,200.19530192540316,2.4500000000122806,0.07,geographic_projection
-109.5,British approach,HOOD,in_frame,659.6731429379639,268.33583309785206,-3.0329162693468144,0.04336767130865147,geographic_projection
-109.5,British approach,PRINCE OF WALES,in_frame,685.1781979289467,271.26824175226585,-3.0211863434982154,0.039512767192326895,geographic_projection
+109.5,British approach,HOOD,in_frame,659.6731429379639,268.33583309785206,-3.0329162693468144,0.06675215503764044,geographic_projection
+109.5,British approach,PRINCE OF WALES,in_frame,685.1781979289467,271.26824175226585,-3.0211863434982154,0.06081863014540572,geographic_projection
 109.5,British approach,HMS SUFFOLK,in_frame,411.8065885079613,176.74981598472993,2.800422555695495,0.07,geographic_projection
 109.5,British approach,HMS NORFOLK,in_frame,442.4738708928647,194.03251316650568,2.1705355636367396,0.07,geographic_projection
 109.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3537,8 +3537,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 109.5,British approach,ORP PIORUN,other_location,,,,,
 110.0,British approach,BISMARCK,in_frame,396.19341390091813,208.86947426861417,2.5483130291397273,0.07,geographic_projection
 110.0,British approach,PRINZ EUGEN,in_frame,411.9985114764797,200.6331295115006,2.4499999999635254,0.07,geographic_projection
-110.0,British approach,HOOD,in_frame,652.5647309309707,267.57190092804206,-3.036045294560223,0.045423122978348635,geographic_projection
-110.0,British approach,PRINCE OF WALES,in_frame,678.0791264419532,270.42189802049467,-3.024651748418669,0.04138551204693986,geographic_projection
+110.0,British approach,HOOD,in_frame,652.5647309309707,267.57190092804206,-3.036045294560223,0.06700281987540838,geographic_projection
+110.0,British approach,PRINCE OF WALES,in_frame,678.0791264419532,270.42189802049467,-3.024651748418669,0.061047013664260956,geographic_projection
 110.0,British approach,HMS SUFFOLK,in_frame,411.74290318783125,176.7710059432276,2.841811337617488,0.07,geographic_projection
 110.0,British approach,HMS NORFOLK,in_frame,442.2569320739782,194.3516966092533,2.1650027743003735,0.07,geographic_projection
 110.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3554,8 +3554,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 110.0,British approach,ORP PIORUN,other_location,,,,,
 110.5,British approach,BISMARCK,in_frame,395.611455463211,209.26016620520195,2.5523845787093116,0.07,geographic_projection
 110.5,British approach,PRINZ EUGEN,in_frame,411.4539621655759,201.07938661708658,2.464787076455298,0.07,geographic_projection
-110.5,British approach,HOOD,in_frame,645.516040121488,266.83752354253795,-3.039412274964461,0.04745424406966837,geographic_projection
-110.5,British approach,PRINCE OF WALES,in_frame,671.0394472646452,269.6056440684628,-3.027831992891848,0.0432360890412534,geographic_projection
+110.5,British approach,HOOD,in_frame,645.516040121488,266.83752354253795,-3.039412274964461,0.06725051756947176,geographic_projection
+110.5,British approach,PRINCE OF WALES,in_frame,671.0394472646452,269.6056440684628,-3.027831992891848,0.0612726937855187,geographic_projection
 110.5,British approach,HMS SUFFOLK,in_frame,411.6834293391688,176.78791510303427,2.8890815474731366,0.07,geographic_projection
 110.5,British approach,HMS NORFOLK,in_frame,442.04034878739526,194.6740969271373,2.159708119807269,0.07,geographic_projection
 110.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3571,8 +3571,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 110.5,British approach,ORP PIORUN,other_location,,,,,
 111.0,British approach,BISMARCK,in_frame,395.0162617208023,209.6562701493447,2.5563795733198105,0.07,geographic_projection
 111.0,British approach,PRINZ EUGEN,in_frame,410.87181183399724,201.5301105371406,2.503629982631454,0.07,geographic_projection
-111.0,British approach,HOOD,in_frame,638.5344701569054,266.1330339455932,-3.042546694592328,0.04944914104224964,geographic_projection
-111.0,British approach,PRINCE OF WALES,in_frame,664.0665867231213,268.81961418776666,-3.030985260995933,0.045053661838494116,geographic_projection
+111.0,British approach,HOOD,in_frame,638.5344701569054,266.1330339455932,-3.042546694592328,0.06749379768807923,geographic_projection
+111.0,British approach,PRINCE OF WALES,in_frame,664.0665867231213,268.81961418776666,-3.030985260995933,0.06149434900469441,geographic_projection
 111.0,British approach,HMS SUFFOLK,in_frame,411.6280353534905,176.80067723910895,2.943231541247821,0.07,geographic_projection
 111.0,British approach,HMS NORFOLK,in_frame,441.82410992273117,194.99961359280945,2.15464432546632,0.07,geographic_projection
 111.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3588,8 +3588,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 111.0,British approach,ORP PIORUN,other_location,,,,,
 111.5,British approach,BISMARCK,in_frame,394.40816662477033,210.05750101825785,2.560289188619461,0.07,geographic_projection
 111.5,British approach,PRINZ EUGEN,in_frame,410.2287375686344,201.98108809952308,2.557476794708711,0.07,geographic_projection
-111.5,British approach,HOOD,in_frame,631.6274069734184,265.4588858813779,-3.0459429392843616,0.05139624645432482,geographic_projection
-111.5,British approach,PRINCE OF WALES,in_frame,657.1679660745958,268.0639461274769,-3.034120669681388,0.046827691213940384,geographic_projection
+111.5,British approach,HOOD,in_frame,631.6274069734184,265.4588858813779,-3.0459429392843616,0.06773124956760058,geographic_projection
+111.5,British approach,PRINCE OF WALES,in_frame,657.1679660745958,268.0639461274769,-3.034120669681388,0.061710694050480526,geographic_projection
 111.5,British approach,HMS SUFFOLK,in_frame,411.57658962231295,176.80942612641084,3.0053761262247534,0.07,geographic_projection
 111.5,British approach,HMS NORFOLK,in_frame,441.60820436960165,195.32814607892186,2.1498045066442586,0.07,geographic_projection
 111.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3605,8 +3605,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 111.5,British approach,ORP PIORUN,other_location,,,,,
 112.0,British approach,BISMARCK,in_frame,393.78751305029135,210.46358552060858,2.5641050640123497,0.07,geographic_projection
 112.0,British approach,PRINZ EUGEN,in_frame,409.5047288528363,202.42866201050828,2.617964765334624,0.07,geographic_projection
-112.0,British approach,HOOD,in_frame,624.802245685679,264.81543311039337,-3.049374106908045,0.053284427662250576,geographic_projection
-112.0,British approach,PRINCE OF WALES,in_frame,650.3510024689128,267.33877694850435,-3.0372475198148243,0.04854803409227274,geographic_projection
+112.0,British approach,HOOD,in_frame,624.802245685679,264.81543311039337,-3.049374106908045,0.06796151556856715,geographic_projection
+112.0,British approach,PRINCE OF WALES,in_frame,650.3510024689128,267.33877694850435,-3.0372475198148243,0.061920491962472284,geographic_projection
 112.0,British approach,HMS SUFFOLK,in_frame,411.5289605371527,176.81429553989892,3.0766933786191992,0.07,geographic_projection
 112.0,British approach,HMS NORFOLK,in_frame,441.3926210176218,195.65959385812644,2.145182136713738,0.07,geographic_projection
 112.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3622,8 +3622,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 112.0,British approach,ORP PIORUN,other_location,,,,,
 112.5,British approach,BISMARCK,in_frame,393.15465096892797,210.87426320848743,2.567819323664239,0.07,geographic_projection
 112.5,British approach,PRINZ EUGEN,in_frame,408.68295041730346,202.86972178817658,2.6787199726856676,0.07,geographic_projection
-112.5,British approach,HOOD,in_frame,618.0663701365226,264.2031450926426,-3.0526044114379656,0.05510309552003909,geographic_projection
-112.5,British approach,PRINCE OF WALES,in_frame,643.6231095964016,266.644241046412,-3.040375400911972,0.0502050425849245,geographic_projection
+112.5,British approach,HOOD,in_frame,618.0663701365226,264.2031450926426,-3.0526044114379656,0.06818330433171209,geographic_projection
+112.5,British approach,PRINCE OF WALES,in_frame,643.6231095964016,266.644241046412,-3.040375400911972,0.06212256616889322,geographic_projection
 112.5,British approach,HMS SUFFOLK,in_frame,411.4850164895264,176.8154192545323,-3.1248772477020257,0.07,geographic_projection
 112.5,British approach,HMS NORFOLK,in_frame,441.1773487564074,195.9938564030752,2.140771047845327,0.07,geographic_projection
 112.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3639,8 +3639,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 112.5,British approach,ORP PIORUN,other_location,,,,,
 113.0,British approach,BISMARCK,in_frame,392.5099384091418,211.2892856081793,2.5714245632790487,0.07,geographic_projection
 113.0,British approach,PRINZ EUGEN,in_frame,407.749627723175,203.3017220288064,2.7356554743436874,0.07,geographic_projection
-113.0,British approach,HOOD,in_frame,611.4271717912036,263.62241530977724,-3.056146023226612,0.0568423130788892,geographic_projection
-113.0,British approach,PRINCE OF WALES,in_frame,636.9916980509101,265.9804706120073,-3.043272224875418,0.051789663027432375,geographic_projection
+113.0,British approach,HOOD,in_frame,611.4271717912036,263.62241530977724,-3.056146023226612,0.06839540403401088,geographic_projection
+113.0,British approach,PRINCE OF WALES,in_frame,636.9916980509101,265.9804706120073,-3.043272224875418,0.06231581256432102,geographic_projection
 113.0,British approach,HMS SUFFOLK,in_frame,411.44462587095086,176.81293104527015,-3.0321040650654774,0.07,geographic_projection
 113.0,British approach,HMS NORFOLK,in_frame,440.962376475574,196.3308331864202,2.136565403798357,0.07,geographic_projection
 113.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3656,8 +3656,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 113.0,British approach,ORP PIORUN,other_location,,,,,
 113.5,British approach,BISMARCK,in_frame,391.85374031158847,211.70841665216946,2.5749138586776534,0.07,geographic_projection
 113.5,British approach,PRINZ EUGEN,in_frame,406.6939702875846,203.72274637578408,2.786588201973061,0.07,geographic_projection
-113.5,British approach,HOOD,in_frame,604.8920369327254,263.07370736025837,-3.059508147882936,0.058492904286717294,geographic_projection
-113.5,British approach,PRINCE OF WALES,in_frame,630.4641748078039,265.3476054662176,-3.0464306348173693,0.05329353501678687,geographic_projection
+113.5,British approach,HOOD,in_frame,604.8920369327254,263.07370736025837,-3.059508147882936,0.06859669564472162,geographic_projection
+113.5,British approach,PRINCE OF WALES,in_frame,630.4641748078039,265.3476054662176,-3.0464306348173693,0.06249921158741303,geographic_projection
 113.5,British approach,HMS SUFFOLK,in_frame,411.40765707294264,176.8069646870715,-2.927895915102949,0.07,geographic_projection
 113.5,British approach,HMS NORFOLK,in_frame,440.7476930647372,196.67042368081334,2.1325596879176705,0.07,geographic_projection
 113.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3673,8 +3673,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 113.5,British approach,ORP PIORUN,other_location,,,,,
 114.0,British approach,BISMARCK,in_frame,391.1864296826245,212.13143156374235,2.578280751507134,0.07,geographic_projection
 114.0,British approach,PRINZ EUGEN,in_frame,405.5081465376759,204.13163371966183,2.830608284743626,0.07,geographic_projection
-114.0,British approach,HOOD,in_frame,598.4683527704988,262.5575004166437,-3.063226633898153,0.060046562687688695,geographic_projection
-114.0,British approach,PRINCE OF WALES,in_frame,624.0479482666814,264.7457446271715,-3.04962091104509,0.054709090448783027,geographic_projection
+114.0,British approach,HOOD,in_frame,598.4683527704988,262.5575004166437,-3.063226633898153,0.06878616618142545,geographic_projection
+114.0,British approach,PRINCE OF WALES,in_frame,624.0479482666814,264.7457446271715,-3.04962091104509,0.06267184029863207,geographic_projection
 114.0,British approach,HMS SUFFOLK,in_frame,411.3739784870183,176.79765395489542,-2.812959398017821,0.07,geographic_projection
 114.0,British approach,HMS NORFOLK,in_frame,440.53328741351214,197.01252735890668,2.1287486998352554,0.07,geographic_projection
 114.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3690,8 +3690,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 114.0,British approach,ORP PIORUN,other_location,,,,,
 114.5,British approach,BISMARCK,in_frame,390.5083848824065,212.55811814190713,2.5815192596876835,0.07,geographic_projection
 114.5,British approach,PRINZ EUGEN,in_frame,404.19712249439027,204.51547839309615,2.883234772775901,0.07,geographic_projection
-114.5,British approach,HOOD,in_frame,592.1635105049378,262.0742607435157,-3.0670681987305275,0.061495960121748544,geographic_projection
-114.5,British approach,PRINCE OF WALES,in_frame,617.7504243265154,264.1749884088934,-3.0528550361177196,0.056029652555370894,geographic_projection
+114.5,British approach,HOOD,in_frame,592.1635105049378,262.0742607435157,-3.0670681987305275,0.0689629219660669,geographic_projection
+114.5,British approach,PRINCE OF WALES,in_frame,617.7504243265154,264.1749884088934,-3.0528550361177196,0.06283288445797205,geographic_projection
 114.5,British approach,HMS SUFFOLK,in_frame,411.34345850469475,176.7851326237012,-2.6893319059728777,0.07,geographic_projection
 114.5,British approach,HMS NORFOLK,in_frame,440.3191484115149,197.35704369335227,2.1251275253023567,0.07,geographic_projection
 114.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3707,8 +3707,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 114.5,British approach,ORP PIORUN,other_location,,,,,
 115.0,British approach,BISMARCK,in_frame,389.819991430713,212.98827510960703,2.5846238569639626,0.07,geographic_projection
 115.0,British approach,PRINZ EUGEN,in_frame,402.75550811872546,204.8598601195033,2.9292266657505746,0.07,geographic_projection
-115.0,British approach,HOOD,in_frame,585.9849008434919,261.6245119942924,-3.070767656154887,0.06283485542415289,geographic_projection
-115.0,British approach,PRINCE OF WALES,in_frame,611.5790074899389,263.63543148228484,-3.055890535378933,0.05724953494200596,geographic_projection
+115.0,British approach,HOOD,in_frame,585.9849008434919,261.6245119942924,-3.070767656154887,0.06912620188099426,geographic_projection
+115.0,British approach,PRINCE OF WALES,in_frame,611.5790074899389,263.63543148228484,-3.055890535378933,0.06298165060268365,geographic_projection
 115.0,British approach,HMS SUFFOLK,in_frame,411.3159655174882,176.76953446844766,-2.5604564413835136,0.07,geographic_projection
 115.0,British approach,HMS NORFOLK,in_frame,440.1052649483605,197.70387215680194,2.121691538444982,0.07,geographic_projection
 115.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3724,8 +3724,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 115.0,British approach,ORP PIORUN,other_location,,,,,
 115.5,British approach,BISMARCK,in_frame,389.12164146404194,213.4217119193615,2.5875894678731406,0.07,geographic_projection
 115.5,British approach,PRINZ EUGEN,in_frame,401.1802447796049,205.16599804526942,2.9684396437886367,0.07,geographic_projection
-115.5,British approach,HOOD,in_frame,579.939916083113,261.20883379932,-3.074921501457813,0.064058203125,geographic_projection
-115.5,British approach,PRINCE OF WALES,in_frame,605.5411008350682,263.1271684935654,-3.0592466479423224,0.058364140625,geographic_projection
+115.5,British approach,HOOD,in_frame,579.939916083113,261.20883379932,-3.074921501457813,0.069275390625,geographic_projection
+115.5,British approach,PRINCE OF WALES,in_frame,605.5411008350682,263.1271684935654,-3.0592466479423224,0.063117578125,geographic_projection
 115.5,British approach,HMS SUFFOLK,in_frame,411.2913679169159,176.75099326409412,-2.43078928915874,0.07,geographic_projection
 115.5,British approach,HMS NORFOLK,in_frame,439.8916259136649,198.05291222190792,2.118436387295686,0.07,geographic_projection
 115.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3741,8 +3741,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 115.5,British approach,ORP PIORUN,other_location,,,,,
 116.0,British approach,BISMARCK,in_frame,388.41373172606376,213.85824940659515,2.590411463168097,0.07,geographic_projection
 116.0,British approach,PRINZ EUGEN,in_frame,399.47709115760205,205.4343402446939,3.0006327163535738,0.07,geographic_projection
-116.0,British approach,HOOD,in_frame,574.0359566124065,260.8277930600033,-3.0792844081129864,0.06516226214876124,geographic_projection
-116.0,British approach,PRINCE OF WALES,in_frame,599.6441135316321,262.6502062301986,-3.0626884348456453,0.05937006106887135,geographic_projection
+116.0,British approach,HOOD,in_frame,574.0359566124065,260.8277930600033,-3.0792844081129864,0.06941003196936113,geographic_projection
+116.0,British approach,PRINCE OF WALES,in_frame,599.6441135316321,262.6502062301986,-3.0626884348456453,0.06324025134986236,geographic_projection
 116.0,British approach,HMS SUFFOLK,in_frame,411.2695340944938,176.7296427855995,-2.3049801246140063,0.07,geographic_projection
 116.0,British approach,HMS NORFOLK,in_frame,439.6782201970431,198.40406336132187,2.115357977767973,0.07,geographic_projection
 116.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3758,8 +3758,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 116.0,British approach,ORP PIORUN,other_location,,,,,
 116.5,British approach,BISMARCK,in_frame,387.69666517366863,214.29771815376665,2.593085643210759,0.07,geographic_projection
 116.5,British approach,PRINZ EUGEN,in_frame,397.65474125577526,205.66854099365153,3.0253863041194498,0.07,geographic_projection
-116.5,British approach,HOOD,in_frame,568.2804264334765,260.48203852117797,-3.083896029838792,0.06614470451381219,geographic_projection
-116.5,British approach,PRINCE OF WALES,in_frame,593.8954478094159,262.2046242911433,-3.065956638248102,0.06026517522369554,geographic_projection
+116.5,British approach,HOOD,in_frame,568.2804264334765,260.48203852117797,-3.083896029838792,0.06952984201387953,geographic_projection
+116.5,British approach,PRINCE OF WALES,in_frame,593.8954478094159,262.2046242911433,-3.065956638248102,0.06334941161264579,geographic_projection
 116.5,British approach,HMS SUFFOLK,in_frame,411.2503324417388,176.70561680792298,-2.186963059601701,0.07,geographic_projection
 116.5,British approach,HMS NORFOLK,in_frame,439.465036688111,198.75722504769607,2.1124524735090993,0.07,geographic_projection
 116.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3775,8 +3775,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 116.5,British approach,ORP PIORUN,other_location,,,,,
 117.0,British approach,BISMARCK,in_frame,386.97084940823044,214.73995879151522,2.5956082321396075,0.07,geographic_projection
 117.0,British approach,PRINZ EUGEN,in_frame,395.7246147445205,205.8760082184352,3.042098911264595,0.07,geographic_projection
-117.0,British approach,HOOD,in_frame,562.6807374824652,260.17228373612323,-3.0888035854424842,0.06700472403196399,geographic_projection
-117.0,British approach,PRINCE OF WALES,in_frame,588.3025161844268,261.79036341759434,-3.069328237210041,0.061048748562456075,geographic_projection
+117.0,British approach,HOOD,in_frame,562.6807374824652,260.17228373612323,-3.0888035854424842,0.06963472244292244,geographic_projection
+117.0,British approach,PRINCE OF WALES,in_frame,588.3025161844268,261.79036341759434,-3.069328237210041,0.06344496933688488,geographic_projection
 117.0,British approach,HMS SUFFOLK,in_frame,411.23363135016774,176.6790491060237,-2.079366842651624,0.07,geographic_projection
 117.0,British approach,HMS NORFOLK,in_frame,439.252064276484,199.1122967536824,2.1097162733718093,0.07,geographic_projection
 117.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3792,8 +3792,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 117.0,British approach,ORP PIORUN,other_location,,,,,
 117.5,British approach,BISMARCK,in_frame,386.2366975789129,215.18482074813096,2.5979758570683757,0.07,geographic_projection
 117.5,British approach,PRINZ EUGEN,in_frame,393.7005662777666,206.06822499195093,3.050151937921904,0.07,geographic_projection
-117.5,British approach,HOOD,in_frame,557.2443123758104,259.8993244567153,-3.0940639509417753,0.06774314500799407,geographic_projection
-117.5,British approach,PRINCE OF WALES,in_frame,582.8727282790338,261.4073931053883,-3.0731177681014494,0.06172153211839459,geographic_projection
+117.5,British approach,HOOD,in_frame,557.2443123758104,259.8993244567153,-3.0940639509417753,0.0697247737814627,geographic_projection
+117.5,British approach,PRINCE OF WALES,in_frame,582.8727282790338,261.4073931053883,-3.0731177681014494,0.06352701611199935,geographic_projection
 117.5,British approach,HMS SUFFOLK,in_frame,411.219299211297,176.65007345486063,-1.983414382332741,0.07,geographic_projection
 117.5,British approach,HMS NORFOLK,in_frame,439.0392918517776,199.46917795193278,2.1071460167282106,0.07,geographic_projection
 117.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3809,8 +3809,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 117.5,British approach,ORP PIORUN,other_location,,,,,
 118.0,British approach,BISMARCK,in_frame,385.4946259870993,215.63216298007387,2.60018554795604,0.07,geographic_projection
 118.0,British approach,PRINZ EUGEN,in_frame,391.5985093580162,206.26076044419887,3.04873260922295,0.07,geographic_projection
-118.0,British approach,HOOD,in_frame,551.978588157667,259.66406192472346,-3.0997464629425333,0.0683625309391774,geographic_projection
-118.0,British approach,PRINCE OF WALES,in_frame,577.6134970994125,261.05563578671064,-3.0767635596799074,0.062285861522361624,geographic_projection
+118.0,British approach,HOOD,in_frame,551.978588157667,259.66406192472346,-3.0997464629425333,0.06980030865111919,geographic_projection
+118.0,British approach,PRINCE OF WALES,in_frame,577.6134970994125,261.05563578671064,-3.0767635596799074,0.06359583677101971,geographic_projection
 118.0,British approach,HMS SUFFOLK,in_frame,411.2072044166435,176.61882362939298,-1.8991888545724107,0.07,geographic_projection
 118.0,British approach,HMS NORFOLK,in_frame,438.82670830360746,199.82776811509936,2.1047385630124764,0.07,geographic_projection
 118.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3826,8 +3826,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 118.0,British approach,ORP PIORUN,other_location,,,,,
 118.5,British approach,BISMARCK,in_frame,384.7450558189844,216.08185217205659,2.602234713765641,0.07,geographic_projection
 118.5,British approach,PRINZ EUGEN,in_frame,389.43596354962744,206.47290377922155,3.0371705309125323,0.07,geographic_projection
-118.5,British approach,HOOD,in_frame,546.8910207522705,259.46755683601907,-3.106401000369487,0.0688672932148179,geographic_projection
-118.5,British approach,PRINCE OF WALES,in_frame,572.5322421544627,260.7349179470946,-3.0805747277057574,0.06274575604016741,geographic_projection
+118.5,British approach,HOOD,in_frame,546.8910207522705,259.46755683601907,-3.106401000369487,0.06986186502619732,geographic_projection
+118.5,British approach,PRINCE OF WALES,in_frame,572.5322421544627,260.7349179470946,-3.0805747277057574,0.0636519214683131,geographic_projection
 118.5,British approach,HMS SUFFOLK,in_frame,411.19721535772373,176.58543340457985,-1.8260335923955202,0.07,geographic_projection
 118.5,British approach,HMS NORFOLK,in_frame,438.614302521589,200.18796671583408,2.1024909908607556,0.07,geographic_projection
 118.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3843,8 +3843,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 118.5,British approach,ORP PIORUN,other_location,,,,,
 119.0,British approach,BISMARCK,in_frame,383.98841172269226,216.53376283538995,2.604121134452571,0.07,geographic_projection
 119.0,British approach,PRINZ EUGEN,in_frame,387.23153679776516,206.7268935386683,3.0148090059803656,0.07,geographic_projection
-119.0,British approach,HOOD,in_frame,541.9890935936297,259.31106126818884,-3.113254935814778,0.06926379981577885,geographic_projection
-119.0,British approach,PRINCE OF WALES,in_frame,567.6363858883191,260.4450197744022,-3.084577780028064,0.06310701760993184,geographic_projection
+119.0,British approach,HOOD,in_frame,541.9890935936297,259.31106126818884,-3.113254935814778,0.06991021948972913,geographic_projection
+119.0,British approach,PRINCE OF WALES,in_frame,567.6363858883191,260.4450197744022,-3.084577780028064,0.06369597775730876,geographic_projection
 119.0,British approach,HMS SUFFOLK,in_frame,411.18920042605436,176.55003655538027,-1.7629132297179628,0.07,geographic_projection
 119.0,British approach,HMS NORFOLK,in_frame,438.40206339533785,200.54967322678888,2.100400592691947,0.07,geographic_projection
 119.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3860,8 +3860,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 119.0,British approach,ORP PIORUN,other_location,,,,,
 119.5,British approach,BISMARCK,in_frame,383.2251215459682,216.98777668456287,2.605842948319497,0.07,geographic_projection
 119.5,British approach,PRINZ EUGEN,in_frame,385.00436273669703,207.04675821835306,2.9812680138974437,0.07,geographic_projection
-119.5,British approach,HOOD,in_frame,537.280329751069,259.1960602663122,-3.1214486869686118,0.06956048401401489,geographic_projection
-119.5,British approach,PRINCE OF WALES,in_frame,562.9333557635641,260.18564252438046,-3.088442082607507,0.06337732987943578,geographic_projection
+119.5,British approach,HOOD,in_frame,537.280329751069,259.1960602663122,-3.1214486869686118,0.06994640048951402,geographic_projection
+119.5,British approach,PRINCE OF WALES,in_frame,562.9333557635641,260.18564252438046,-3.088442082607507,0.06372894266822388,geographic_projection
 119.5,British approach,HMS SUFFOLK,in_frame,411.1830280131519,176.51276685675333,-1.7086689316416974,0.07,geographic_projection
 119.5,British approach,HMS NORFOLK,in_frame,438.18997981446927,200.9127871206158,2.098464860089611,0.07,geographic_projection
 119.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3877,8 +3877,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 119.5,British approach,ORP PIORUN,other_location,,,,,
 120.0,British approach,BISMARCK,in_frame,382.4556168784066,217.44378152829552,2.6073986356579852,0.07,geographic_projection
 120.0,British approach,PRINZ EUGEN,in_frame,382.77351581629955,207.45683576142352,2.9365363143898735,0.07,geographic_projection
-120.0,British approach,HOOD,in_frame,532.7723075759334,259.1244600110079,-3.13074099230432,0.06976795307210205,geographic_projection
-120.0,British approach,PRINCE OF WALES,in_frame,558.4305844607308,259.95640174954906,-3.092903772599729,0.06356635724347075,geographic_projection
+120.0,British approach,HOOD,in_frame,532.7723075759334,259.1244600110079,-3.13074099230432,0.06997170159415879,geographic_projection
+120.0,British approach,PRINCE OF WALES,in_frame,558.4305844607308,259.95640174954906,-3.092903772599729,0.06375199478578912,geographic_projection
 120.0,British approach,HMS SUFFOLK,in_frame,411.1785665105331,176.47375808365817,-1.6621700008269944,0.07,geographic_projection
 120.0,British approach,HMS NORFOLK,in_frame,437.9780406685989,201.27720786996676,2.0966814867490955,0.07,geographic_projection
 120.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3894,8 +3894,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 120.0,British approach,ORP PIORUN,other_location,,,,,
 120.5,British approach,BISMARCK,in_frame,381.68033078616855,217.90167181834474,2.6087870097700496,0.07,geographic_projection
 120.5,British approach,PRINZ EUGEN,in_frame,380.5574303885045,207.98008730799785,2.881265561951458,0.07,geographic_projection
-120.5,British approach,HOOD,in_frame,528.4726922966449,259.09873713203564,-3.141432115149309,0.06989909694276988,geographic_projection
-120.5,British approach,PRINCE OF WALES,in_frame,554.1355140816054,259.75672990855026,-3.09725434474515,0.06368584388119033,geographic_projection
+120.5,British approach,HOOD,in_frame,528.4726922966449,259.09873713203564,-3.141432115149309,0.06998769474911828,geographic_projection
+120.5,British approach,PRINCE OF WALES,in_frame,554.1355140816054,259.75672990855026,-3.09725434474515,0.06376656632697443,geographic_projection
 120.5,British approach,HMS SUFFOLK,in_frame,411.1756843097146,176.43314401105383,-1.6223895917135678,0.07,geographic_projection
 120.5,British approach,HMS NORFOLK,in_frame,437.7662348473423,201.64283494749387,2.0950483574619994,0.07,geographic_projection
 120.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3911,8 +3911,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 120.5,British approach,ORP PIORUN,other_location,,,,,
 121.0,British approach,BISMARCK,in_frame,380.8997002154803,218.36134642596005,2.610007201248161,0.07,geographic_projection
 121.0,British approach,PRINZ EUGEN,in_frame,378.37334994730526,208.636359368557,2.8167836156134696,0.07,geographic_projection
-121.0,British approach,HOOD,in_frame,524.389288391476,259.12217579512026,3.1292488848031983,0.06996919696843194,geographic_projection
-121.0,British approach,PRINCE OF WALES,in_frame,550.055588707148,259.5860109522284,-3.1023315770011703,0.0637497127934602,geographic_projection
+121.0,British approach,HOOD,in_frame,524.389288391476,259.12217579512026,3.1292488848031983,0.0699962435327356,geographic_projection
+121.0,British approach,PRINCE OF WALES,in_frame,550.055588707148,259.5860109522284,-3.1023315770011703,0.06377435521871466,geographic_projection
 121.0,British approach,HMS SUFFOLK,in_frame,411.174249802213,176.3910584138995,-1.5884332784959794,0.07,geographic_projection
 121.0,British approach,HMS NORFOLK,in_frame,437.55455124031494,202.009567825849,2.093563543558585,0.07,geographic_projection
 121.0,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -3928,8 +3928,8 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 121.0,British approach,ORP PIORUN,other_location,,,,,
 121.5,British approach,BISMARCK,in_frame,380.11416298886485,218.82270961507555,2.6110586490178216,0.07,geographic_projection
 121.5,British approach,PRINZ EUGEN,in_frame,376.23683267601353,209.44076894038767,2.745309532489533,0.07,geographic_projection
-121.5,British approach,HOOD,in_frame,520.5301359366644,259.1994175370317,3.1132447813629596,0.06999603458071685,geographic_projection
-121.5,British approach,PRINCE OF WALES,in_frame,546.1982627217941,259.4433740535734,-3.10733908538337,0.06377416484020869,geographic_projection
+121.5,British approach,HOOD,in_frame,520.5301359366644,259.1994175370317,3.1132447813629596,0.06999951641228254,geographic_projection
+121.5,British approach,PRINCE OF WALES,in_frame,546.1982627217941,259.4433740535734,-3.10733908538337,0.0637773371756352,geographic_projection
 121.5,British approach,HMS SUFFOLK,in_frame,411.1741313795451,176.34763506715416,-1.5595419350471815,0.07,geographic_projection
 121.5,British approach,HMS NORFOLK,in_frame,437.34297873713246,202.37730597768422,2.0922253024680146,0.07,geographic_projection
 121.5,British approach,HMS VICTORIOUS,other_location,,,,,
@@ -4610,7 +4610,7 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 141.5,British approach,PRINZ EUGEN,in_frame,335.4644826028931,248.36824506862362,2.450000000005366,0.05590681287977431,geographic_projection
 141.5,British approach,HOOD,in_frame,402.5625231567743,299.7099547815872,-2.711285151370472,0.07,geographic_projection
 141.5,British approach,PRINCE OF WALES,in_frame,426.56416830645117,294.11735115949836,2.7420771595903854,0.06377777777777778,geographic_projection
-141.5,British approach,HMS SUFFOLK,in_frame,410.7377186474124,175.0494830631742,2.8890815456767536,0.07,geographic_projection
+141.5,British approach,HMS SUFFOLK,offscreen,410.7377186474124,175.0494830631742,2.8890815456767536,0.07,geographic_projection
 141.5,British approach,HMS NORFOLK,in_frame,428.8436365487387,216.75710234962975,2.159708119604667,0.07,geographic_projection
 141.5,British approach,HMS VICTORIOUS,other_location,,,,,
 141.5,British approach,HMS ARK ROYAL,other_location,,,,,
@@ -4627,7 +4627,7 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 142.0,British approach,PRINZ EUGEN,in_frame,334.88408352099196,248.8488254730707,2.4499999999852973,0.054636488340192045,geographic_projection
 142.0,British approach,HOOD,in_frame,400.75305770789157,298.7574485424338,-2.608427565695995,0.07,geographic_projection
 142.0,British approach,PRINCE OF WALES,in_frame,424.6795432435659,294.91308174160554,2.7420771595903854,0.06377777777777778,geographic_projection
-142.0,British approach,HMS SUFFOLK,in_frame,410.6782447987499,175.06639222298082,2.841811342732319,0.07,geographic_projection
+142.0,British approach,HMS SUFFOLK,offscreen,410.6782447987499,175.06639222298082,2.841811342732319,0.07,geographic_projection
 142.0,British approach,HMS NORFOLK,in_frame,428.62705326215575,217.07950266751368,2.1650027752168635,0.07,geographic_projection
 142.0,British approach,HMS VICTORIOUS,other_location,,,,,
 142.0,British approach,HMS ARK ROYAL,other_location,,,,,
@@ -4985,7 +4985,7 @@ film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system
 152.5,British approach,HOOD,in_frame,363.8873892745754,262.84219267535707,-2.3500000000000645,0.07,geographic_projection
 152.5,British approach,PRINCE OF WALES,in_frame,381.928296955267,281.1080048527901,-2.3500000000000645,0.06377777777777778,geographic_projection
 152.5,British approach,HMS SUFFOLK,offscreen,408.2537670034838,176.61636251355932,2.4833923041284547,0.07,geographic_projection
-152.5,British approach,HMS NORFOLK,in_frame,423.97956628973753,222.95199907067456,2.346554962702868,0.07,geographic_projection
+152.5,British approach,HMS NORFOLK,offscreen,423.97956628973753,222.95199907067456,2.346554962702868,0.07,geographic_projection
 152.5,British approach,HMS VICTORIOUS,other_location,,,,,
 152.5,British approach,HMS ARK ROYAL,other_location,,,,,
 152.5,British approach,HMS SHEFFIELD,other_location,,,,,

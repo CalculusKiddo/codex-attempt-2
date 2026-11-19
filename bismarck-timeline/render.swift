@@ -1535,12 +1535,12 @@ func approachingCruiser(_ e:Double,_ norfolk:Bool=false)->Pose {
  return movingPose({r in bezier(start,c1,c2,end,r/60)},e)
 }
 func approachFleet(_ e:Double)->[FleetMember] {
- let size=mix(0.014,mapBattleRatio,smoother(e/26)),eugenScale=mix(0.07,0.65*mapBattleRatio,smoother((e-38)/12))
+ let size=mix(0.07,mapBattleRatio,smoother(e/26)),eugenScale=mix(0.07,0.65*mapBattleRatio,smoother((e-38)/12))
  return [FleetMember(id:"BISMARCK",pose:approachingGerman(e),scale:0.07,kind:0),FleetMember(id:"PRINZ EUGEN",pose:approachingGerman(e,true),scale:eugenScale,kind:1),FleetMember(id:"HOOD",pose:approachingHood(e),scale:0.90*size,kind:4),FleetMember(id:"PRINCE OF WALES",pose:approachingHood(e,true),scale:0.82*size,kind:3),FleetMember(id:"HMS SUFFOLK",pose:approachingCruiser(e),scale:0.07,kind:1),FleetMember(id:"HMS NORFOLK",pose:approachingCruiser(e,true),scale:0.07,kind:1)]
 }
 func longApproachCamera(_ e:Double)->Cam {
  let begin=camera(10,12),target=mapBattleCamera(),fleet=Array(approachFleet(e).prefix(4))
- let wide=fittedCamera(Cam(x:620,y:290,z:1.45),fleet)
+ let wide=fittedCamera(Cam(x:620,y:290,z:2.1),fleet)
  let desired=blendCamera(blendCamera(begin,wide,smoother(e/10)),target,smoother((e-40)/20))
  let fitted=fittedCamera(desired,fleet)
  return blendCamera(blendCamera(begin,fitted,smoother(e/6)),desired,smoother((e-58)/2))
@@ -1549,6 +1549,43 @@ func beginWorld(_ c:CGContext,_ cam:Cam,_ offset:Double){
  c.saveGState();c.clip(to:CGRect(x:offset,y:0,width:1280,height:720));c.translateBy(x:offset,y:0)
  annotationCamera=cam;annotationOffset=offset
  c.translateBy(x:640,y:355);c.scaleBy(x:cam.z,y:cam.z);c.rotate(by:cam.angle);c.translateBy(x:-cam.x,y:-cam.y)
+}
+func interceptDetail(_ c:CGContext,_ e:Double){
+ if presenceAuditOnly{return}
+ let a=smoother((e-1.5)/0.8)*(1-smoother((e-36)/2));if a<0.002{return}
+ let r=CGRect(x:700+(1-a)*24,y:28,width:550,height:230),ships=Array(approachFleet(e)[2...3]),corners=ships.flatMap{$0.corners}
+ let xs=corners.map{$0.x},ys=corners.map{$0.y},x=(xs.min()!+xs.max()!)/2,y=(ys.min()!+ys.max()!)/2
+ let zoom=min(12,(r.width-44)/max(1,xs.max()!-xs.min()!),(r.height-76)/max(1,ys.max()!-ys.min()!)),saved=annotationCamera,was=suppressWorldText
+ c.saveGState();c.setAlpha(a);c.setShadow(offset:CGSize(width:0,height:3),blur:12,color:NSColor.black.withAlphaComponent(0.45).cgColor);c.setFillColor(ink.cgColor);c.fill(r);c.setShadow(offset:.zero,blur:0,color:nil)
+ c.saveGState();c.clip(to:r);c.translateBy(x:r.midX,y:r.midY+9);c.scaleBy(x:zoom,y:zoom);c.translateBy(x:-x,y:-y);annotationCamera=Cam(x:x,y:y,z:zoom)
+ ocean(c,72+e,false,1/0.07)
+ vessel(c,hoodModel,{approachingHood($0)},e,ships[0].scale)
+ vessel(c,kgvModel,{approachingHood($0,true)},e,ships[1].scale)
+ c.restoreGState();annotationCamera=saved;suppressWorldText=false
+ c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:r.minX,y:r.minY,width:r.width,height:31));txt("BRITISH INTERCEPT FORCE · LIVE DETAIL",r.minX+12,r.minY+7,14,paper,true,525)
+ for i in 0..<2 {let p=ships[i].pose.p,point=pt(r.midX+(p.x-x)*zoom,r.midY+9+(p.y-y)*zoom),labelX=i==0 ? r.minX+10:r.maxX-208
+  let rect=CGRect(x:labelX,y:r.maxY-27,width:i==0 ? 105:198,height:25)
+  line(c,[point,pt(rect.midX,rect.minY)],blue.withAlphaComponent(0.6),0.7);c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(rect);txt("HMS "+ships[i].id,rect.minX+7,rect.minY+4,12,paper,true,rect.width-12)
+ }
+ c.setStrokeColor(blue.withAlphaComponent(0.45).cgColor);c.setLineWidth(0.8);c.stroke(r);suppressWorldText=was;c.restoreGState()
+}
+func interceptShipNames(_ c:CGContext,_ e:Double){
+ if presenceAuditOnly{return}
+ let old=suppressWorldText;suppressWorldText=false;defer{suppressWorldText=old}
+ let fleet=approachFleet(e),alpha=smoother((e-1)/0.6)*(1-smoother((e-58.5)/1.5))
+ let bodies=fleet.map{ship -> CGRect in let p=ship.corners.map{screen($0)},xs=p.map{$0.x},ys=p.map{$0.y};return CGRect(x:xs.min()!,y:ys.min()!,width:xs.max()!-xs.min()!,height:ys.max()!-ys.min()!).insetBy(dx:-5,dy:-5)}
+ var used:[CGRect]=[]
+ for (n,i) in [2,3].enumerated(){let item=fleet[i],p=screen(item.pose.p),width=n==0 ? 105.0:205.0
+  let edge=smoother((p.x-18)/24)*smoother((1262-p.x)/24)*smoother((p.y-28)/24)*smoother((642-p.y)/24)
+  if alpha*edge<0.002{continue}
+  let candidates=n==0 ? [pt(p.x-width-18,p.y-39),pt(p.x+18,p.y-39),pt(p.x-width/2,p.y-65)]:[pt(p.x+18,p.y+24),pt(p.x-width-18,p.y+24),pt(p.x-width/2,p.y+48)]
+  var chosen: CGRect?=nil
+  for q in candidates {let rect=CGRect(x:max(22,min(1258-width,q.x)),y:max(28,min(636,q.y)),width:width,height:27)
+   if !bodies.contains(where:{$0.intersects(rect)}) && !used.contains(where:{$0.intersects(rect)}) {chosen=rect;break}
+  }
+  guard let r=chosen else{continue};used.append(r)
+  c.saveGState();c.setAlpha(alpha*edge);line(c,[p,pt(r.midX,r.midY<p.y ? r.maxY:r.minY)],blue.withAlphaComponent(0.75),0.9);c.setFillColor(ink.withAlphaComponent(0.90).cgColor);c.fill(r);txt("HMS "+item.id,r.minX+7,r.minY+4,14,paper,true,width-12);c.restoreGState()
+ }
 }
 func drawLongApproach(_ c:CGContext,_ e:Double,_ offset:Double=0){
  let cam=longApproachCamera(e);beginWorld(c,cam,offset);ocean(c,72+e,false,1/0.012);chart(c)
@@ -1563,6 +1600,8 @@ func drawLongApproach(_ c:CGContext,_ e:Double,_ offset:Double=0){
  for i in fleet.indices {let item=fleet[i],path:(Double)->Pose={t in approachFleet(t)[i].pose};vessel(c,models[i],path,e,item.scale,item.id,i<2 ? red:blue)}
  let s=approachingCruiser(e),b=approachingGerman(e);radar(c,s.p,b.p,e,true,70)
  c.restoreGState()
+ interceptShipNames(c,e)
+ interceptDetail(c,e)
 }
 func oilSlick(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ elapsed:Double){
  if presenceAuditOnly || elapsed<=0{return}
@@ -2276,7 +2315,7 @@ else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [60.0,62.0,65.0,68.0,70.0,74.0,81.0,84.0,89.0,94.0,96.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [98.0,104.0,110.0,120.0,140.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview"),wavePreview=CommandLine.arguments.contains("--ocean-preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)

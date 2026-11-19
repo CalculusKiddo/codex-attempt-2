@@ -10,8 +10,8 @@ Entity ledger written: ship-state-ledger.csv
 long-edit-audit.txt
 Building coastline query index
 APPROACH: overlaps=0, shore intersections=0, cropped hulls=0, maximum sideslip=0.002962176398317211
-BATTLE HANDOFF BISMARCK: centre error 3.5612299842971617e-13 px
-BATTLE HANDOFF PRINZ EUGEN: centre error 0.04300119667053233 px
+BATTLE HANDOFF BISMARCK: centre error 3.06111178766429e-13 px
+BATTLE HANDOFF PRINZ EUGEN: centre error 0.04300119667058675 px
 BATTLE HANDOFF HOOD: centre error 3.595093471822542e-13 px
 BATTLE HANDOFF PRINCE OF WALES: centre error 0.06739502121541122 px
 FUEL CHECK PASS: bow and below-belt hits, inherited oil trail, continuous surviving ships

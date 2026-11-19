@@ -2,7 +2,7 @@
 
 A eight-minute twelve-second original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. Animation artwork is drawn in native code, with a public-domain 1941 RAF reconnaissance photograph in the Bergen chapter. No AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v20-norwegian-route/bismarck-timeline-v20.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v21-intercept/bismarck-timeline-v21.mp4).
 
 The action fills the frame. The old header, footer, progress bar and large explanatory captions are removed. Compact ship-name leaders are restored specifically for the final action, as requested. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
@@ -33,6 +33,8 @@ Suffolk shadows on the starboard quarter, while Norfolk and Prince of Wales cove
 The Catalina is a distinct flying-boat drawing. Its water takeoff is from Lough Erne, not an aircraft carrier. The widening search view retains Ark Royal; the later visual sighting uses a contact pulse and is captioned as visual contact.
 
 ## Denmark Strait approach and fuel damage
+
+Hood and Prince of Wales now begin the intercept map at five times their previous symbol scale, comparable to the German ships. The fleet camera is tighter and both British ships carry readable moving name labels. A large synchronized close-up shows their decks, turrets, movement and wakes during the early overview while the main map retains the other ships. The inset is another view of the same evaluated poses and tracks, not a separate staged movement. The enlarged overview symbols still pass the six-ship coastline, overlap, framing and battle-handoff checks. In the current 08:12 cut, the intercept chapter begins at 01:36; older cuts placed it earlier.
 
 The 01:36 passage now opens into a full minute of British approach: a Scapa Flow route marker, Hood leading Prince of Wales, the parallel course, the turn in at 28 knots and sighting before opening fire. The camera ends at the exact projected hull positions and scales used by the battle. These tracks illustrate the documented sequence, not precise reported fixes throughout the approach. Prinz Eugen moves into the German lead with lateral passing clearance.
 
@@ -148,4 +150,4 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . "$FFMPEG"
 ```
 
-The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v20.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
+The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v21.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
