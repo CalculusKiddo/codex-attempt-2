@@ -1,6 +1,6 @@
-TORPEDO 1: contact 36.00155430605089, hull-local (2.0351037190298933, 17.988697260217897)
-TORPEDO 2: miss
-TORPEDO 3: contact 41.48762092742369, hull-local (-112.10449781734421, -7.1416061779208935)
-OPENING AUDIT PASS: offshore hulls, equal formation speed, horizontal specification view
-MOTION AUDIT PASS: 4509 sampled poses, maximum sideslip ratio 0.0002379041489228407; forward torpedo release
-CAMERA AUDIT PASS: continuous position, speed and acceleration; no per-caption reset
+FLIGHT CHECK: closest pair 1,2 at 2.0208333333333335; minimum aircraft centre separation 21.999999999999968, maximum 2ms displacement 0.4944733727807641, 10371 samples
+TORPEDO CHECK PASS: carried-release continuity and Sheffield evasion
+FLEET OVERLAP COUNT: 0
+FRAMING CHECK PASS: paired opening, carrier match zoom, continuous second-strike camera
+PRESENCE CHECK PASS: 564 scene samples; constant ship membership per scene, including all British ships at Bismarck sinking
+Entity ledger written: ship-state-ledger.csv

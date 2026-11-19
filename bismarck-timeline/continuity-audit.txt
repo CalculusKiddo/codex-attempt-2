@@ -1,0 +1,6 @@
+FLIGHT CHECK: closest pair 1,2 at 2.0208333333333335; minimum aircraft centre separation 21.999999999999968, maximum 2ms displacement 0.4944733727807641, 10371 samples
+TORPEDO CHECK PASS: carried-release continuity and Sheffield evasion
+FLEET OVERLAP COUNT: 0
+FRAMING CHECK PASS: paired opening, carrier match zoom, continuous second-strike camera
+PRESENCE CHECK PASS: 564 scene samples; constant ship membership per scene, including all British ships at Bismarck sinking
+Entity ledger written: ship-state-ledger.csv

@@ -1,74 +1,72 @@
-# Operation Rheinübung — Hunt for Bismarck
+# Operation Rheinübung — silent script-cue edition
 
-A five-minute **2D** documentary animation with detailed overhead ships, continuous camera choreography, path-following vessel motion, brief captions, ship specifications and no audio track.
+A five-minute original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
 
-[Download the full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v6-hull-fit/bismarck-timeline.mp4). The video is distributed as a GitHub Release asset so it can retain full quality beyond the repository file-size limit.
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v7-continuity/bismarck-timeline.mp4).
 
-- 1920 × 1080, 24 fps, H.264 MP4, no audio track.
-- Eleven sequences with fifty brief caption cues. Ship plans are rendered from original native drawing code at 4096-pixel source width.
-- Camera paths preserve position, velocity and acceleration across internal keyframes. Caption changes do not reset the camera.
-- The film opens with Operation Rheinübung, then follows the pair out of the Skagerrak. The camera pulls back, then zooms into the same moving Bismarck and rotates until its hull is horizontal for the specifications. The torpedo strike continues into the steering-damage sequence. Chapter changes use animated scene-to-scene pans rather than opacity fades.
-- Moving ships and aircraft face the tangent of their travel paths. The opening pair follows one arc-length route at equal speed with fixed spacing; both hull outlines are checked against the detailed land polygons. Stern wakes follow sampled past positions through turns. The water and ships share the same world-space camera.
-- Labels enter with a short slide and eased opacity, leave at chapter boundaries, and avoid ship silhouettes and each other. Timestamps stay fixed in the header. The opening dotted journey line disappears before the close-up.
-- Planked decks, anchor chains, hatches, ventilation grilles, boats, cranes, rangefinders, secondary batteries and independently trained main turrets.
-- 250.5 m overall length, 36 m beam, eight 380 mm guns, 320 mm main belt are shown in the specifications sequence. The length line grows from one end and places its value beside the line.
-- Deck planking, fittings, sprite shadows and dynamic guns share the same class-specific hull coordinates and are bounded by the actual hull outline. Railings follow the tapered hull; Rodney's aft structure is inset. Gun barrel endpoints remain inside the hull for this requested presentation, and shell launches use those same displayed muzzles.
-- No AI-generated imagery is used in this revision.
+The action fills the frame. The old header, footer, progress bar, ship-name leaders and large explanatory captions are removed. Small bottom-left cues identify shots for a separate script. `script-cues.csv` lists those cues and timecodes.
 
-The current release has **no audio stream**: no music, effects, narration or other sounds.
+## Continuity and staging
 
-## Hull-fit validation
+Bismarck and Prinz Eugen remain in view together during departure and the horizontal inspection. The camera accommodates both hulls; the companion is not hidden for a close-up. Ships continue on evaluated tracks when offscreen. Departure, geographic passage, tactical battles and later dates use different drawing coordinate systems; explicit changes of place or date are not a claim that the whole operation occurs in one local ocean square.
 
-`./render . --hull-audit` checks all five illustrated ship classes. It tests 15,480 muzzle positions across 360 degrees, samples every turret mount perimeter, and inspects 4,743,912 visible raster pixels across 120 ship/bearing combinations. The only coverage outside the mathematical boundary is the subpixel antialias fringe (maximum 0.14 drawing units). Ark Royal’s island and all six parked aircraft footprints are also checked against its deck outline. `hull-fit-review.png` shows the five classes at fore-and-aft, oblique and broadside gun bearings; `hull-audit.txt` contains the results. These bounds are a display choice for this film and do not imply that real gun barrels could never overhang a ship's side.
+`tracked-ships.json` registers 17 ships, including Suffolk, Norfolk, Victorious, Ark Royal, Sheffield, Rodney, King George V, Dorsetshire and the five named night destroyers. `ship-state-ledger.csv` records their on-screen, offscreen, sunk or other-location state every half-second during the active chapters. Empty coordinates mean that the ship is at another location, not that its position is known to be zero or that it has ceased to exist.
 
-## Opening order
+Reported historical positions are separated from animation coordinates. `reported-position-anchors.csv` transcribes a selection of King George V positions from the official despatch appendix, retaining the source's time basis. The film uses enlarged geographic symbols, compressed tactical ranges, interpolated tracks and accelerated time. It is **not an exact continuous navigation log** for every vessel; surviving sources do not establish every intermediate position. The tracked identities and documented relative stations are preserved without inventing that precision.
 
-- 00:00–00:06: Operation Rheinübung title.
-- 00:06–00:36: Bismarck and Prinz Eugen leave the narrow European waters together; the camera slowly pulls back over detailed coastlines.
-- 00:36–00:42: the camera zooms into Bismarck and rotates it into a horizontal view.
-- 00:42–01:00: animated overall-length measurement, main armament, beam and main belt. The camera pulls out at the end.
-- 01:00–01:12: dated map progression toward the Denmark Strait.
+Suffolk shadows on the starboard quarter, while Norfolk and Prince of Wales cover the port quarter. The escape shows cruiser zigzags near radar range and Bismarck's starboard turn astern. Returns become intermittent, then disappear, while the ship itself remains visible to the viewer. Radar-style acquisition and search pulses are explanatory graphics, not a reproduction of a 1941 display.
 
-## Torpedoes, wakes and steering
+The Catalina is a distinct flying-boat drawing. Its water takeoff is from Lough Erne, not an aircraft carrier. The widening search view retains Ark Royal; the later visual sighting uses a contact pulse and is captioned as visual contact.
 
-Every aircraft shown in the final attack has its own carried torpedo, release time and straight unguided run. Three representative runs show an amidships hit, a miss and the decisive stern hit; they are not a complete recreation of all fifteen attacking aircraft or all recorded drops. The underwater bodies are drawn at approximately 6.9 m by 0.45 m in the tactical drawing scale. Air entry decelerates into the underwater run. Persistent foam trails decay after an impact instead of vanishing with the projectile.
+## Aircraft and weapons
 
-Torpedo tips intersect the same polygon used to draw Bismarck's hull. Swept intersections account for ship movement, stop the torpedo at its first contact and place the splash there. Shell fall-of-shot effects likewise distinguish hull impacts from water using the rendered hull outlines, rather than the sprite or label rectangles.
+The geographic Ark Royal and its close-up share projected position, scale and heading at the start of the zoom. Three representative Swordfish roll out in order, fly toward Sheffield, drop their carried torpedoes, circle back on separated landing approaches, brake on deck, rearm and launch again. The second launch continues directly into the final approach. Aircraft are not replaced by newly appearing airframes mid-flight. The representative aircraft count is not the historical strength of every strike.
 
-Ship wakes are continuous sampled stern tracks with expanding propeller wash and feathered shoulders. They have no randomly re-seeded turn textures. The attack and damaged-ship shots share one global path and wake history. Close-up water texture is rendered at screen density.
+Torpedoes start at the same leading-tip position as their underslung carried bodies, drop slightly into the sea, decelerate through water entry and run unguided. The Sheffield sequence shows a premature water detonation and running torpedoes evaded during the turn, without Sheffield firing at the friendly aircraft. The final attack has an amidships hit, a miss and a stern hit. Tip contacts use the actual rendered hull polygon and swept intersections; foam persists after the body reaches contact. The separate Victorious night attack likewise has one representative hit and two misses.
 
-The camera tracks the decisive run into the stern and then presents a side section and a twin-rudder plan. Flooding, distorted stern structure and blocked steering illustrate the failure. The panel is explicitly marked **schematic reconstruction**: surviving accounts and later forensic interpretations differ about the precise impact side and detailed mechanism. The drawn plate shape, flooding pattern, blade angle and linkage are explanatory, not measurements from the wreck. The old “rudders jammed” overlay has been removed.
+Selected salvos replace the earlier continuous volume of fire. Battle formations move, gun mounts train, and shell launch points agree with the rendered muzzle positions. A live close-up follows the decisive shell toward Hood. The probable penetration and aft-magazine explosion are explained with a small unlabelled section diagram and a short script cue. Hood's hull breaks and submerges; it is not restored later.
 
-## Gunnery treatment
+Bismarck progressively scorches, rolls and submerges in the final sequence. **Only Bismarck sinks there**. Rodney, King George V, Norfolk and Dorsetshire remain afloat and continue moving. The stern steering section is an explanatory reconstruction; precise impact side, plate deformation and failure geometry remain uncertain.
 
-Shells fire in discrete groups with brief muzzle flashes, lingering smoke, travel time, target lead and clustered fall of shot. They are small projectiles rather than continuous glowing beams. Main turrets train toward target bearings; masked aft batteries are excluded from firing.
+## Art and water
 
-The Denmark Strait sequence advances at **30×** speed and uses approximately **32 seconds of real shell-flight time at 20 km**. The final engagement presents selected moments at **10×** speed, with shorter flights as ranges close. Rodney's alternating five- and four-gun groups are reduced when the third turret cannot bear. The Prince of Wales illustration uses a reduced forward battery.
+Detailed original overhead plans are rendered at 4096-pixel source width. Class transforms, decks, fittings, turret mounts, railings and gun endpoints share a hull boundary. Destroyers have a separate narrow, twin-funnel plan. The hull constraint on barrel endpoints is a presentation choice for this film, not a statement that real guns could never overhang the side.
 
-This is an illustrative reconstruction, not a complete shot-by-shot simulation. Exact individual firing times, every malfunction, projectile dispersion and all maneuver tracks are not known or reproduced. Ship symbols and splash offsets are enlarged for legibility; weapon distances are compressed on the tactical diagram. Key event times, firing-group logic and ballistic delays are distinguished from those display choices. The route on the geographic map is schematic between known waypoints.
+Ark Royal has planked deck detail, lifts, arresting wires, runway markings, island glazing, funnel and edge fittings. Swordfish have ribs, bracing, roundels, propellers and visible underslung torpedoes; the Catalina has a boat hull, parasol wing, twin engines and floats.
 
-## Visual reference and research
+Animated wave crests overlay the procedural sea. Wakes follow past stern positions through turns, use a consistent foam lifetime and respect each hull's dimensions. Restrained rain streaks are a separate wind-driven screen layer. Explosions combine expanding shock rings, water columns, fire, sparks and drifting smoke instead of stacks of identical white circles.
 
-[BazBattles — Operation Rheinübung: Hunt for the Bismarck 1941](https://www.youtube.com/watch?v=zuG4qFXPMmk) informed the use of overhead ship symbols, wakes, leader labels and map-based transitions. All visible artwork is original except the public-domain geographic data. The current video is silent.
+## Ending
 
-Historical and technical references:
+- **04:48:** fade to black begins while the surviving British ships remain afloat.
+- **04:49–04:54:** human cost, `2,000+ DEAD` and `~100 SURVIVORS`.
+- **04:54–05:00:** only `OPERATION RHEINÜBUNG` and `18–27 MAY 1941`.
 
-- [KBismarck: technical characteristics](https://www.kbismarck.com/genedata.html).
-- [KBismarck: armament](https://www.kbismarck.com/armament.html), including turret locations and firing arcs.
-- [38 cm range table](https://kbismarck.com/38cm.html), extrapolated from original German projectile curves; approximately 32 seconds at 20,000 m.
-- [HMS Rodney preliminary gunnery report, 27 May 1941](https://www.kbismarck.com/rodney-gunnery-report.html), especially the 5/4 salvo method and restrictions on X turret.
-- [KBismarck: operational chronology](https://www.kbismarck.com/histoperi.html).
-- [Royal Navy: Swordfish attack](https://www.royalnavy.mod.uk/news/2021/may/26/20210526-bismarck-hit).
-- [Bismarck appearance and paint schemes](https://kbismarck.com/drawings.html).
-- [Heller Bismarck model assembly/plan reference](https://www.super-hobby.co.no/zdjecia/8/9/2/55841_instruction.pdf). Consulted for general layout; its artwork is not embedded.
-- [Natural Earth 1:10m land](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_land.geojson), public-domain detailed coastline data in `land-detail.geojson`.
-- [Natural Earth 1:50m lakes](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_lakes.geojson) and [rivers](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_rivers_lake_centerlines.geojson), in `lakes.geojson` and `rivers.geojson`.
-- [ADM 267/137 survivor interrogation reports](https://www.kbismarck.com/archives/survivor-reports.pdf), primary evidence for damage and attempted repairs.
-- [Garzke and Dulin: Bismarck forensic analysis](https://www.navweaps.com/index_inro/INRO_Bismarck.php), for later interpretation of the stern and steering damage.
+The survivor figure is deliberately approximate, as requested.
+
+## Validation
+
+`continuity-audit.txt` checks aircraft spacing, carried-to-released torpedo continuity, Sheffield's evasion, hull separation during manoeuvres, paired opening framing, matched carrier zoom and unchanged ship membership within each scene. Its ledger is generated from actual renderer draw calls.
+
+`hull-audit.txt` checks 18,360 muzzle positions across 360 degrees and 4.89 million visible raster pixels across 144 ship/bearing combinations. Only subpixel antialias coverage crosses a mathematical edge. `hull-fit-review.png` shows the six ship plan types. `video-verification.json` records the final duration, frame count, video-only stream layout, file size and SHA-256 digest. The exported MP4 is decoded end to end with ffmpeg's error-stop option before release.
+
+## Historical sources and limits
+
+- [Admiral Tovey's official despatch, ADM 234/509](https://www.hmshood.org.uk/reference/official/adm234/adm234-509tovey.htm): shadowing stations, loss of contact during zigzags, Force H, Sheffield's evasion and withdrawal, the night destroyers, and King George V's reported positions.
+- [Admiralty war diary](https://www.kbismarck.com/admiralty-war-diary.html): contemporary operational reports and Force H chronology.
+- [Leonard B. Smith's Catalina report, NHHC](https://www.history.navy.mil/research/library/online-reading-room/title-list-alphabetically/s/sinking-of-the-bismarck/the-scouting-and-search-for-bismarck.html): the flying-boat search and contact. The contact graphic does not imply Catalina radar detected the ship.
+- [Coastal Command operations report](https://www.kbismarck.com/coastal-command-bismarck.html): search patrols, Lough Erne and subsequent shadowing.
+- [Hood loss enquiry, ADM 116/4351](https://www.hmshood.org.uk/reference/official/adm116/adm116-4351_to59.htm): probable shell penetration and aft-magazine explosion. The exact shell path in the section is illustrative.
+- [Bismarck survivor interrogation reports, ADM 267/137](https://www.kbismarck.com/archives/survivor-reports.pdf), and [Garzke/Dulin forensic discussion](https://www.navweaps.com/index_inro/INRO_Bismarck.php): steering damage and competing interpretations.
+- [Bismarck technical characteristics](https://www.kbismarck.com/genedata.html), [armament](https://www.kbismarck.com/armament.html), [38 cm range table](https://kbismarck.com/38cm.html), and [Rodney's preliminary gunnery report](https://www.kbismarck.com/rodney-gunnery-report.html): plan proportions, gun arrangements and representative salvo/flight treatment.
+- [BazBattles reference video](https://www.youtube.com/watch?v=zuG4qFXPMmk): overhead documentary presentation only; its artwork is not embedded.
+- Public-domain Natural Earth [1:10m land](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_land.geojson), [1:50m lakes](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_lakes.geojson), and [rivers](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_rivers_lake_centerlines.geojson).
+
+Contemporary accounts contain conflicting times, estimates and mistaken identifications. A cinematic path, selected salvo or section illustration should not be read as a proven frame-by-frame forensic reconstruction. Scuttling and torpedo contributions to Bismarck's final loss are not adjudicated by the sinking animation.
 
 ## Edit and render
 
-Requires macOS with Xcode Command Line Tools and Python 3.9+.
+Requires macOS, Xcode Command Line Tools and Python 3.9+.
 
 ```sh
 python3 -m venv .venv
@@ -76,9 +74,10 @@ python3 -m venv .venv
 .venv/bin/python ocean.py
 swiftc -O render.swift -o render
 FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
+./render . --continuity-audit
+./render . --hull-audit
+./render . --stills
 ./render . "$FFMPEG"
 ```
 
-Use `./render . --audit` to check bow/velocity alignment, offshore opening hulls, equal formation speed, horizontal inspection, torpedo contacts and camera continuity. Use `./render . --stills` for review frames, or `./render . "$FFMPEG" --preview` for a 112-second review of the opening and torpedo/steering sequence. Edit `cameraKeys`, `drawWorld`, `routePose`, `attackPlane`, `denmark`, `finalBattle` and `makePlan` to change the sequence. Normal rendering exports the full film.
-
-`ocean.py` creates the sea texture procedurally. `soundtrack.py` is retained only as an optional source from the earlier version; it is not used for the current silent release. These scripts require no API keys.
+The render produces `bismarck-silent.mp4`; the release asset is named `bismarck-timeline.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.

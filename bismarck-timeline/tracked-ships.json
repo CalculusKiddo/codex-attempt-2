@@ -1,0 +1,125 @@
+{
+  "coordinate_policy": "Screen staging uses time-compressed tactical diagrams and enlarged geographic symbols. CSV coordinates are drawing coordinates, not a claimed exact navigation log. Reported geographic anchors are separate. All registered ships retain identity when offscreen or at another location.",
+  "source": "https://www.hmshood.org.uk/reference/official/adm234/adm234-509tovey.htm",
+  "ships": [
+    {
+      "id": "BISMARCK",
+      "role": "German battleship",
+      "continuity": "Separate from Prinz Eugen; evades the shadowers; steering damage; sinks on 27 May",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "sunk"
+    },
+    {
+      "id": "PRINZ EUGEN",
+      "role": "German heavy cruiser",
+      "continuity": "In company through breakout and Denmark Strait, then detaches; remains alive offscreen",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HOOD",
+      "role": "British battlecruiser",
+      "continuity": "Explodes and sinks at Denmark Strait; never reappears alive",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "sunk"
+    },
+    {
+      "id": "PRINCE OF WALES",
+      "role": "British battleship",
+      "continuity": "Fights at Denmark Strait, then shadows with Norfolk on the port quarter",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS SUFFOLK",
+      "role": "British heavy cruiser",
+      "continuity": "Starboard-quarter radar shadower; intermittent returns on outward zigzag legs",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS NORFOLK",
+      "role": "British heavy cruiser",
+      "continuity": "Port-quarter shadower; persists in the final engagement",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS VICTORIOUS",
+      "role": "British aircraft carrier",
+      "continuity": "Detaches to deliver the night Swordfish attack; not Ark Royal",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS ARK ROYAL",
+      "role": "British aircraft carrier",
+      "continuity": "Force H; wrong-target and second strikes; withdraws south",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS SHEFFIELD",
+      "role": "British light cruiser",
+      "continuity": "Evades friendly torpedoes; subsequently shadows astern; turns away under Bismarck fire",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "KING GEORGE V",
+      "role": "British battleship",
+      "continuity": "Closing battlefleet and final engagement; remains afloat",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "RODNEY",
+      "role": "British battleship",
+      "continuity": "Joins King George V, closes and fights; remains afloat",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS DORSETSHIRE",
+      "role": "British heavy cruiser",
+      "continuity": "Approaches the final engagement and delivers torpedoes; remains afloat",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS COSSACK",
+      "role": "British destroyer",
+      "continuity": "Night shadowing and attacks, Fourth Destroyer Flotilla",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS MAORI",
+      "role": "British destroyer",
+      "continuity": "Night shadowing and attacks, Fourth Destroyer Flotilla",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS ZULU",
+      "role": "British destroyer",
+      "continuity": "Night shadowing and attacks, Fourth Destroyer Flotilla",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "HMS SIKH",
+      "role": "British destroyer",
+      "continuity": "Night shadowing and attacks, Fourth Destroyer Flotilla",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    },
+    {
+      "id": "ORP PIORUN",
+      "role": "Polish destroyer",
+      "continuity": "Port wing of approaching destroyer force; engages before retiring to shadow",
+      "initial_state": "alive, possibly outside current view",
+      "terminal_state": "alive outside the closing view"
+    }
+  ]
+}
