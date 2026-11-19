@@ -295,7 +295,7 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
  if presenceAuditOnly{return}
  // Fall of shot is clustered; range errors are shared by a salvo, with individual dispersion.
  for e in events {
-  let age=sim-e.fire;guard age>=0 && age<flight+8 else{continue}
+  let age=sim-e.fire;guard age>=0 && age<max(flight+8,speed*2.4) else{continue}
   let a=actors[e.from],b=actors[e.to],shooterPose=a.pose(e.fire),futurePose=b.pose(e.fire+flight),origin=shooterPose.p,future=futurePose.p
   let intended=salvoAim(e,a,b,futurePose)
   let bearing:Double=atan2(Double(intended.y-origin.y),Double(intended.x-origin.x))
@@ -315,7 +315,7 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
    let start=worldPoint(local,Pose(p:origin,yaw:shooterPose.yaw),a.scale)
    // Recoil flash lasts one frame at the displayed speed; smoke lingers separately.
    if age<max(0.12,speed/24){ellipse(c,start.x,start.y,4,4,gold.withAlphaComponent(0.8));ellipse(c,start.x,start.y,1.8,1.8,paper)}
-   if age<10 {let q=age/10;ellipse(c,start.x+q*12,start.y-q*8,3+q*10,3+q*7,paper.withAlphaComponent((1-q)*0.18))}
+   gunDischarge(c,start,bearing,age/speed,e.serial*17+j)
    let rangeError=Double((e.serial*7)%5-2)*35.0
    let safetySide=e.serial%2==0 ? 34.0:-34.0
    let offHull=pt(-sin(futurePose.yaw)*safetySide,cos(futurePose.yaw)*safetySide)
@@ -323,7 +323,7 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
    var end=pt(future.x+offHull.x+dir.x*(rangeError+spread)+normal.x*sin(Double(j*7+e.serial))*3,future.y+offHull.y+dir.y*(rangeError+spread)+normal.y*sin(Double(j*7+e.serial))*3)
    if e.hit && j==0 {end=intended}
    let q=min(1,age/flight)
-   if age<flight {let pos=pt(mix(start.x,end.x,q),mix(start.y,end.y,q));ellipse(c,pos.x,pos.y,0.8,0.8,paper.withAlphaComponent(0.75))}
+   if age<flight {let pos=pt(mix(start.x,end.x,q),mix(start.y,end.y,q)),last=max(0,q-0.007);line(c,[pt(mix(start.x,end.x,last),mix(start.y,end.y,last)),pos],paper.withAlphaComponent(0.75),0.7)}
    else {
     let struck=actors.enumerated().first {index,target in
      if target.name=="HOOD" && e.fire+flight>660 {return false}
@@ -349,6 +349,55 @@ func puff(_ c:CGContext,_ x:Double,_ y:Double,_ rx:Double,_ ry:Double,_ color:NS
  let cols=[color.withAlphaComponent(alpha).cgColor,color.withAlphaComponent(alpha*0.65).cgColor,color.withAlphaComponent(0).cgColor] as CFArray
  let g=CGGradient(colorsSpace:CGColorSpaceCreateDeviceRGB(),colors:cols,locations:[0,0.55,1])!
  c.drawRadialGradient(g,startCenter:.zero,startRadius:0,endCenter:.zero,endRadius:1,options:[]);c.restoreGState()
+}
+// Stable emission seeds: smoke grows and advects from a recorded source, never loops in place.
+func smokeVariation(_ seed:Int,_ n:Int)->Double {
+ let x=sin(Double(seed*131+n*79+17)*12.9898)*43758.5453
+ return x-floor(x)
+}
+func smokeCloud(_ c:CGContext,_ origin:CGPoint,_ age:Double,_ seed:Int,_ size:Double,_ shade:Double,_ opacity:Double,_ lifetime:Double=3.5){
+ if age<0 || age>lifetime || presenceAuditOnly{return}
+ let q=age/lifetime,wind=pt(5.8,-2.6),growth=0.35+sqrt(max(0,age))*0.8
+ for j in 0..<6 {
+  let a=smokeVariation(seed,j)*Double.pi*2,r=size*(0.1+smokeVariation(seed,j+20)*0.4)*sqrt(max(0,age))
+  let centre=pt(origin.x+wind.x*age+cos(a)*r,origin.y+wind.y*age+sin(a)*r*0.65)
+  let radius=size*growth*(0.35+smokeVariation(seed,j+40)*0.35),path=CGMutablePath()
+  var points:[CGPoint]=[]
+  for k in 0..<14 {let angle=Double(k)*Double.pi/7,edge=0.76+0.24*smokeVariation(seed+j*37,k+70)
+   points.append(pt(centre.x+cos(angle)*radius*edge,centre.y+sin(angle)*radius*edge*(0.6+0.35*smokeVariation(seed,j+100))))
+  }
+  // A rounded, asymmetric contour rather than repeated radial-gradient circles.
+  path.move(to:pt((points[0].x+points[13].x)/2,(points[0].y+points[13].y)/2))
+  for k in 0..<14 {let next=points[(k+1)%14];path.addQuadCurve(to:pt((points[k].x+next.x)/2,(points[k].y+next.y)/2),control:points[k])};path.closeSubpath()
+  c.setFillColor(NSColor(calibratedWhite:max(0.03,min(0.85,shade+(smokeVariation(seed,j+120)-0.5)*0.16)),alpha:opacity*pow(1-q,1.5)*(0.28+smokeVariation(seed,j+140)*0.22)).cgColor);c.addPath(path);c.fillPath()
+ }
+}
+func gunDischarge(_ c:CGContext,_ origin:CGPoint,_ bearing:Double,_ age:Double,_ seed:Int){
+ if age<0 || age>2.4{return}
+ if age<0.11 {let end=pt(origin.x+cos(bearing)*9,origin.y+sin(bearing)*9)
+  line(c,[origin,end],gold.withAlphaComponent(1-age/0.11),2.7);ellipse(c,origin.x,origin.y,2.2,2,paper.withAlphaComponent(1-age/0.11))
+ }
+ let source=pt(origin.x+cos(bearing)*min(age*18,6),origin.y+sin(bearing)*min(age*18,6))
+ smokeCloud(c,source,age,seed,5.5,0.58,0.38,2.4)
+}
+// Sparse selected heavy-AA rounds. Each airburst has a mount, muzzle flash and incoming shell.
+func antiAircraft(_ c:CGContext,_ t:Double,_ shipPath:(Double)->Pose,_ scale:Double,_ planePaths:[(Double)->Pose],_ fires:[Double]){
+ if presenceAuditOnly{return}
+ for (i,fire) in fires.enumerated(){let age=t-fire,flight=0.43+0.16*smokeVariation(i+900,1)
+  if age<0 || age>flight+2.8{continue}
+  let ship=shipPath(fire),side=i%2==0 ? -1.0:1.0,mount=pt([34.0,-26,3][i%3],side*11)
+  let origin=worldPoint(mount,ship,scale),target=planePaths[i%planePaths.count](fire+flight).p
+  let offset=pt(11+smokeVariation(i+1000,0)*16,(i%2==0 ? -1.0:1.0)*(10+smokeVariation(i+1000,1)*14))
+  let end=pt(target.x+offset.x,target.y+offset.y),bearing=atan2(end.y-origin.y,end.x-origin.x)
+  let muzzle=pt(origin.x+cos(bearing)*3.3*scale,origin.y+sin(bearing)*3.3*scale)
+  line(c,[origin,muzzle],paper.withAlphaComponent(0.8),0.45*scale)
+  gunDischarge(c,muzzle,bearing,age,i+900)
+  if age<flight {let q=age/flight,a=max(0,q-0.06);line(c,[pt(mix(muzzle.x,end.x,a),mix(muzzle.y,end.y,a)),pt(mix(muzzle.x,end.x,q),mix(muzzle.y,end.y,q))],paper.withAlphaComponent(0.72),0.6)}
+  else {let life=age-flight
+   if life<0.07 {ellipse(c,end.x,end.y,2,1.4,gold.withAlphaComponent(1-life/0.07))}
+   smokeCloud(c,end,life,i+1700,7+smokeVariation(i+1700,0)*7,0.24+smokeVariation(i+1700,1)*0.14,0.65,2.8)
+  }
+ }
 }
 func explosion(_ c:CGContext,_ p:CGPoint,_ age:Double,_ size:Double,_ fire:Bool){
  if age<0 || age>9{return}
@@ -457,7 +506,7 @@ func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  var events:[Salvo]=[]
  for (n,fire) in [180.0,340,508,690].enumerated(){events.append(Salvo(fire:fire,from:0,to:fire<540 ? 2:3,guns:4,hit:fire==508 || fire==690,serial:n))}
  for (n,fire) in [0.0,240,420].enumerated(){events.append(Salvo(fire:fire,from:2,to:fire<180 ? 1:0,guns:4,hit:false,serial:n+20))}
- for (n,fire) in [30.0,310,430].enumerated(){events.append(Salvo(fire:fire,from:3,to:0,guns:5,hit:n>=1,serial:n+40))}
+ for (n,fire) in [30.0,310,430,700].enumerated(){events.append(Salvo(fire:fire,from:3,to:0,guns:5,hit:n==1 || n==2,serial:n+40))}
  events.append(Salvo(fire:170,from:1,to:2,guns:4,hit:true,serial:70))
  gunnery(c,sim,30,actors,events,32)
 
@@ -1185,6 +1234,7 @@ func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
   forceCatalina(c,e+24);carrierBody(c,e+24);vessel(c,cruiserModel,{sheffieldPose($0+24)},e,0.42,"HMS SHEFFIELD",blue)
   for n in 0..<3 {let p=attackPlane(e,n);aircraft(c,p.p.x,p.p.y,0.18,p.yaw,t,e<runs[n].release)}
   for n in 0..<3 {torpedo(c,runs[n],e,contacts[n])}
+  antiAircraft(c,e,bismarckAttackPath,1.05,(0..<3).map{n in {attackPlane($0,n)}},[9.15,10.3,12.65,15.4,18.2,21.8,24.1,27.4,30.15])
  case 7:
   vessel(c,shipModel,damagedShip,e,1.05,e<15 ? "":"BISMARCK",red)
   for n in 0..<3 {torpedoFoam(c,runs[n],48+e,contacts[n])}
@@ -1377,11 +1427,16 @@ func oilSlick(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ el
  }
  let p=path(t);line(c,[worldPoint(pt(103,-8),p,scale),worldPoint(pt(20,-18),p,scale),worldPoint(pt(-123,-5),p,scale)],NSColor.black.withAlphaComponent(0.25),max(0.2,scale*1.4))
 }
-func smokeScreen(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ elapsed:Double){
+func smokeScreen(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ elapsed:Double,_ emitFor:Double=19){
  if presenceAuditOnly || elapsed<=0{return}
- let duration=min(10,elapsed)
- for j in 0..<25 {let age=duration*Double(j)/25,p=path(t-age),stern=worldPoint(pt(-125,0),p,scale),r=(4+age*2.0)*scale;puff(c,stern.x+age*1.2,stern.y-age*0.2,r*1.7,r,NSColor(calibratedWhite:0.42,alpha:1),0.3*(1-age/14))}
+ let start=t-elapsed,first=max(0,Int(ceil((elapsed-7)/0.31))),last=max(0,Int(floor(min(elapsed,emitFor)/0.31)))
+ if first>last{return}
+ for j in first...last {let birth=start+Double(j)*0.31,age=t-birth
+  let funnel=worldPoint(pt(-11,0),path(birth),scale)
+  smokeCloud(c,funnel,age,j+3200,9*scale,0.25,0.35,7)
+ }
 }
+
 func fuelPose(_ e:Double,_ index:Int)->Pose {
  let actor=denmarkActors[index],start=actor.pose(1080)
  if e<0 && index != 2{return actor.pose(1080+16*e)}
@@ -1403,7 +1458,7 @@ func drawFuelWorld(_ c:CGContext,_ e:Double,_ offset:Double=0){
  for (i,a) in denmarkActors.enumerated() {let path:(Double)->Pose={fuelPose($0,i)},p=path(e)
   if i==2 {recordPresence(a.name,p,a.scale,a.model.kind);sinkingShip(c,a.model,p,a.scale,19+e,true);continue}
   if i==0 {oilSlick(c,{a.pose($0*30)},36+e/2.1,a.scale,24.6+e/2.1)}
-  if i==3 {smokeScreen(c,path,e,a.scale,max(0,18-e))}
+  if i==3 {let clock=36+e*(12/10.5);smokeScreen(c,{a.pose($0*30)},clock,a.scale,clock-700/30)}
   vessel(c,a.model,path,e,a.scale,a.name,a.tint)
  }
  vessel(c,cruiserModel,{fuelCruiser($0,false)},e,0.58,"HMS SUFFOLK",blue)
@@ -1490,9 +1545,9 @@ func nightStrikeLens(_ c:CGContext,_ e:Double){
 }
 func filmCueList()->[(Double,String)] {
  var cues=scriptCues.filter{$0.0<72}
- cues += [(72,"British intercept force · from Scapa Flow"),(86,"Hood leads · Prince of Wales follows toward Iceland"),(96,"Prinz Eugen moves into the German lead"),(100,"02:05 · Holland turns parallel, waiting for daylight"),(112,"03:40 · British force turns in at 28 knots"),(122,"05:35 · enemy sighted; range closes"),(132,"05:52 · Hood and Prince of Wales open fire"),(138,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"),(142,"German ships reply · ranging salvos"),(148,"Prince of Wales hits Bismarck's bow"),(153.5,"Another hit · flooding below the armour belt"),(156,"Bismarck · decisive salvo toward Hood"),(164,"Shell penetration · probable aft-magazine ignition"),(166,"Hood · aft-magazine explosion"),(176,"Hood sinks · Prince of Wales remains under fire"),(186,"Bridge damage · Prince of Wales turns away under smoke"),(204,"Bismarck survives the action · fuel leaks astern"),(214,"Bow damage · schematic reconstruction"),(222,"Seawater enters · forward fuel tanks become unusable"),(230,"Further flooding · speed and endurance reduced"),(242,"Atlantic raiding abandoned · make for a French repair port")]
+ cues += [(72,"British intercept force · from Scapa Flow"),(86,"Hood leads · Prince of Wales follows toward Iceland"),(96,"Prinz Eugen moves into the German lead"),(100,"02:05 · Holland turns parallel, waiting for daylight"),(112,"03:40 · British force turns in at 28 knots"),(122,"05:35 · enemy sighted; range closes"),(132,"05:52 · Hood and Prince of Wales open fire"),(138,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"),(142,"German ships reply · ranging salvos"),(148,"Prince of Wales hits Bismarck's bow"),(153.5,"Another hit · flooding below the armour belt"),(156,"Bismarck · decisive salvo toward Hood"),(164,"Shell penetration · probable aft-magazine ignition"),(166,"Hood · aft-magazine explosion"),(176,"Hood sinks · Prince of Wales remains under fire"),(179,"Prince of Wales returns fire at Bismarck"),(184,"Bismarck shifts fire · Prince of Wales prepares to withdraw"),(186,"Bridge damage · Prince of Wales turns away under smoke"),(204,"Bismarck survives the action · fuel leaks astern"),(214,"Bow damage · schematic reconstruction"),(222,"Seawater enters · forward fuel tanks become unusable"),(230,"Further flooding · speed and endurance reduced"),(242,"Atlantic raiding abandoned · make for a French repair port")]
  cues += scriptCues.filter{$0.0>=108 && $0.0 != 120 && $0.0 != 123}.map{($0.0+150,$0.1)}
- cues += [(267,"Victorious · Swordfish torpedo attack"),(270,"Torpedo hits Bismarck amidships · main armour belt"),(273,"Belt resists penetration · Bismarck continues underway"),(275,"25 May · HMS Suffolk + HMS Norfolk zigzag")]
+ cues += [(327,"Bismarck AA batteries engage the Swordfish"),(267,"Victorious · Swordfish torpedo attack"),(270,"Torpedo hits Bismarck amidships · main armour belt"),(273,"Belt resists penetration · Bismarck continues underway"),(275,"25 May · HMS Suffolk + HMS Norfolk zigzag")]
  return cues.sorted{$0.0<$1.0}
 }
 let filmCues=filmCueList()
@@ -1782,7 +1837,7 @@ else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [267.5,269.5,270.1,271.5,274.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [179.8,180.5,181.0,182.0,187.0,191.0,327.3,329.2,331.6,335.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
