@@ -40,7 +40,7 @@
     {
       "id": "HMS NORFOLK",
       "role": "British heavy cruiser",
-      "continuity": "Port-quarter shadower; persists in the final engagement",
+      "continuity": "Port-quarter shadower earlier; separate northern/flank station during the final gun action; remains afloat",
       "initial_state": "alive, possibly outside current view",
       "terminal_state": "alive outside the closing view"
     },
@@ -68,21 +68,21 @@
     {
       "id": "KING GEORGE V",
       "role": "British battleship",
-      "continuity": "Closing battlefleet and final engagement; remains afloat",
+      "continuity": "Final action: WNW approach, separates from Rodney, independent southerly and northerly passes, ceases fire and retires north-east before sinking; remains afloat",
       "initial_state": "alive, possibly outside current view",
       "terminal_state": "alive outside the closing view"
     },
     {
       "id": "RODNEY",
       "role": "British battleship",
-      "continuity": "Joins King George V, closes and fights; remains afloat",
+      "continuity": "Final action: north of King George V on approach, opens fire first, closes on independent passes, retires north-east before sinking; remains afloat",
       "initial_state": "alive, possibly outside current view",
       "terminal_state": "alive outside the closing view"
     },
     {
       "id": "HMS DORSETSHIRE",
       "role": "British heavy cruiser",
-      "continuity": "Approaches the final engagement and delivers torpedoes; remains afloat",
+      "continuity": "Approaches the final gun action from the opposite quarter, closes after battleships retire, two starboard-side torpedoes then rounds the bow for a port-side torpedo; remains afloat",
       "initial_state": "alive, possibly outside current view",
       "terminal_state": "alive outside the closing view"
     },

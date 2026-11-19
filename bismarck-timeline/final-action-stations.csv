@@ -1,0 +1,8 @@
+film_seconds,historical_phase,ships,relation_used,source,precision
+390,08:43,RODNEY / KING GEORGE V,WNW approach; Rodney north of King George V,https://www.kbismarck.com/patterson-bismarck-report.html,Reported station; enlarged schematic symbols
+390,before action,HMS NORFOLK,Northern flank station; independent from the battleships,https://www.hmshood.org.uk/reference/official/adm234/adm234-509tovey.htm,Broad reported station; intermediate path interpreted
+398,about 09:02–09:04,HMS DORSETSHIRE,Gunfire from the opposite side / starboard stern quarter,https://www.hmshood.org.uk/reference/official/adm234/adm234-509tovey.htm,Reported relation; contemporary opening times differ
+406,09:17–09:20,RODNEY / KING GEORGE V,Independent turns north; separated lines of fire,https://www.kbismarck.com/patterson-bismarck-report.html,Reported maneuver; turn geometry interpolated
+424,about 10:15–10:22,RODNEY / KING GEORGE V,Cease gun action and retire generally north-east,https://www.hmshood.org.uk/reference/official/adm234/adm234-509tovey.htm,Reported retirement and appendix courses
+429,final torpedo phase,HMS DORSETSHIRE,Two representative starboard-side runs before rounding the bow,https://www.navweaps.com/index_inro/INRO_Bismarck.php,Documented broad side sequence; not an exact launch log
+434,final torpedo phase,HMS DORSETSHIRE,One port-side run after bow circuit,https://www.navweaps.com/index_inro/INRO_Bismarck.php,Documented broad side sequence; intermediate circuit illustrative

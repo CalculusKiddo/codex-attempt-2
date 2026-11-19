@@ -266,8 +266,9 @@ let originalCaptions=[
  "THE HUMAN COST","THE HUNT FOR BISMARCK"
 ]
 struct Actor {let model:Model;let name:String;let x:Double;let y:Double;let yaw:Double;let scale:Double;let tint:NSColor;var speed:Double=0.35
- var turnStart:Double?=nil;var turnDuration:Double=380;var turnAngle:Double=Double.pi/2;var turnRadius:Double=260
+ var finalTrack:Int?=nil;var turnStart:Double?=nil;var turnDuration:Double=380;var turnAngle:Double=Double.pi/2;var turnRadius:Double=260
  func pose(_ sim:Double)->Pose {
+  if let index=finalTrack{return finalTrackPose(index,(sim-300)/10)}
   guard let start=turnStart,sim>start else{return forward(pt(x,y),yaw,speed,sim)}
   let origin=forward(pt(x,y),yaw,speed,start),elapsed=min(turnDuration,sim-start),angle=yaw+turnAngle*elapsed/turnDuration,r=turnAngle>=0 ? turnRadius:-turnRadius
   let p=pt(origin.p.x+r*(sin(angle)-sin(yaw)),origin.p.y+r*(-cos(angle)+cos(yaw)))
@@ -336,7 +337,33 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
  }
 }
 let denmarkActors=[Actor(model:shipModel,name:"BISMARCK",x:610,y:285,yaw:2.45,scale:0.90,tint:red),Actor(model:cruiserModel,name:"PRINZ EUGEN",x:432.8,y:431.7,yaw:2.45,scale:0.65,tint:red),Actor(model:hoodModel,name:"HOOD",x:880,y:425,yaw:-2.35,scale:0.90,tint:blue),Actor(model:kgvModel,name:"PRINCE OF WALES",x:1111.9,y:659.9,yaw:-2.35,scale:0.82,tint:blue,turnStart:700)]
-let finalActors=[Actor(model:shipModel,name:"BISMARCK",x:850,y:360,yaw:2.5,scale:0.85,tint:red,speed:0.08),Actor(model:rodneyModel,name:"RODNEY",x:330,y:240,yaw:0.25,scale:0.84,tint:blue),Actor(model:kgvModel,name:"KING GEORGE V",x:430,y:650,yaw:-0.5,scale:0.84,tint:blue)]
+// Selected positions digitized schematically from the published British action chart.
+// Chart north is screen north; intermediate positions are interpolation, not reported fixes.
+struct FinalTrack {
+ let keys:[(Double,Double,Double)]
+ func point(_ t:Double)->CGPoint {
+  func p(_ i:Int)->CGPoint {pt(keys[i].1,keys[i].2)}
+  func velocity(_ i:Int)->CGPoint {let a=max(0,i-1),b=min(keys.count-1,i+1),dt=keys[b].0-keys[a].0;return pt((p(b).x-p(a).x)/dt,(p(b).y-p(a).y)/dt)}
+  let point:CGPoint
+  if t<=keys[0].0 {let v=velocity(0);point=pt(p(0).x+v.x*(t-keys[0].0),p(0).y+v.y*(t-keys[0].0))}
+  else if t>=keys.last!.0 {let i=keys.count-1,v=velocity(i);point=pt(p(i).x+v.x*(t-keys[i].0),p(i).y+v.y*(t-keys[i].0))}
+  else {let i=min(keys.count-2,keys.lastIndex(where:{$0.0<=t})!),dt=keys[i+1].0-keys[i].0,q=(t-keys[i].0)/dt,a=p(i),b=p(i+1),va=velocity(i),vb=velocity(i+1)
+   let h0=2*q*q*q-3*q*q+1,h1=q*q*q-2*q*q+q,h2 = -2*q*q*q+3*q*q,h3=q*q*q-q*q
+   point=pt(h0*a.x+h1*dt*va.x+h2*b.x+h3*dt*vb.x,h0*a.y+h1*dt*va.y+h2*b.y+h3*dt*vb.y)
+  }
+  return pt(640+(point.x-360)*3,350+(point.y-300)*3)
+ }
+}
+let finalTrackData:[FinalTrack]=[
+ FinalTrack(keys:[(0,510,460),(3,491,454),(8,480,430),(12,482,400),(16,451,352),(20,420,336),(24,406,318),(30,374,280),(34,367,268),(36,363,266),(39,362,264),(44,361,262),(48,360,260)]),
+ FinalTrack(keys:[(0,170,260),(2,210,278),(3,228,285),(8,338,291),(12,350,338),(14,372,397),(16,371,375),(20,382,337),(24,367,330),(26,350,302),(28,375,235),(29,425,245),(30,435,295),(34,430,225),(36,420,210),(39,418,190),(44,420,145),(48,447,100)]),
+ FinalTrack(keys:[(0,180,288),(3,238,312),(8,287,343),(12,320,415),(16,334,465),(20,322,431),(24,319,385),(30,331,298),(34,341,245),(36,342,224),(39,358,196),(44,388,143),(48,410,104)]),
+ FinalTrack(keys:[(0,350,175),(8,345,215),(16,360,240),(24,400,230),(30,442,217),(34,485,230),(39,495,224),(44,470,190),(48,450,158)]),
+ FinalTrack(keys:[(0,680,510),(8,636,370),(16,594,342),(24,551,322),(30,515,311),(34,438,289),(36,418,278),(39,403,266),(40,401,242),(41,376,217),(42,345,225),(43,324,250),(44,326,284),(48,299,318)])
+]
+func finalTrackPose(_ index:Int,_ t:Double)->Pose {movingPose({finalTrackData[index].point($0)},t)}
+let finalActors=[Actor(model:shipModel,name:"BISMARCK",x:0,y:0,yaw:0,scale:0.33,tint:red,finalTrack:0),Actor(model:rodneyModel,name:"RODNEY",x:0,y:0,yaw:0,scale:0.32,tint:blue,finalTrack:1),Actor(model:kgvModel,name:"KING GEORGE V",x:0,y:0,yaw:0,scale:0.32,tint:blue,finalTrack:2),Actor(model:cruiserModel,name:"HMS NORFOLK",x:0,y:0,yaw:0,scale:0.24,tint:blue,finalTrack:3),Actor(model:cruiserModel,name:"HMS DORSETSHIRE",x:0,y:0,yaw:0,scale:0.24,tint:blue,finalTrack:4)]
+
 func denmarkTime(_ e:Double)->Double {
  let keys:[(Double,Double)]=[(0,0),(5,180),(9,400),(12,508),(17,540),(21,600),(36,1080)]
  if e<=0{return e*36};if e>=36{return 1080+(e-36)*32}
@@ -512,38 +539,25 @@ func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
 
 }
 func finalBattle(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
- vessel(c,cruiserModel,dorsetshirePose,t-240,0.55,"HMS DORSETSHIRE",blue)
- vessel(c,cruiserModel,norfolkFinalPose,t-240,0.52,"HMS NORFOLK",blue)
- // Selected historical moments, not an asserted shot-for-shot record.
- let sim=(t-240)*10+300
- let actors=finalActors
- for (i,a) in actors.enumerated(){let p=a.position(sim);recordPresence(a.name,Pose(p:p,yaw:a.yaw),a.scale,a.model.kind);let target=actors[i==0 ? 1:0].position(sim);aimWorld=atan2(target.y-p.y,target.x-p.x)
-  let track:(Double)->Pose={r in Pose(p:a.position(r*10),yaw:a.yaw)}
-  wake(c,track,sim/10,a.scale,a.model.kind)
-  if i==0 && t>=282 {sinkingShip(c,a.model,Pose(p:p,yaw:a.yaw),a.scale,(t-282)*1.3,false)}else{ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t,false)}
-  if i==0 && t>=252 && t<282 {let damage=smoother((t-252)/20)
-   c.saveGState();c.translateBy(x:p.x,y:p.y);c.rotate(by:a.yaw);c.scaleBy(x:a.scale,y:a.scale);c.addPath(shipHullPaths[0]);c.clip()
-   for x in [72.0,46,-13,-61] {puff(c,x,0,10+12*damage,8+5*damage,NSColor.black,0.55*damage);ellipse(c,x,2,1.5,0.7,gold.withAlphaComponent(0.35*damage))};c.restoreGState()
-   for j in 0..<4 {let local=worldPoint(pt(60-Double(j)*35,0),Pose(p:p,yaw:a.yaw),a.scale);puff(c,local.x+12,local.y-10,18,12,NSColor.black,0.35*damage)}
+ let e=t-240,sim=e*10+300,actors=finalActors
+ for (i,a) in actors.enumerated(){let pose=a.pose(sim),p=pose.p;recordPresence(a.name,pose,a.scale,a.model.kind)
+  let target=actors[i==0 ? (e<8 ? 1:2):0].pose(sim+22.4).p;aimWorld=atan2(target.y-p.y,target.x-p.x)
+  let track:(Double)->Pose={finalTrackPose(i,$0)}
+  if i==0 && e>=45 {sinkingShip(c,a.model,pose,a.scale,(e-45)*2.7,false)}else{wake(c,track,e,a.scale,a.model.kind);ship(c,a.model,p.x,p.y,a.scale,pose.yaw,1.57,t,false)}
+  if i==0 && e>=8 && e<45 {let damage=smoother((e-8)/20)
+   for j in 0..<3 {let birth=8+Double(j)*2.1
+    if e>=birth {let age=e-birth,first=max(0,Int(ceil((age-5)/0.45))),last=Int(floor(age/0.45))
+     if first<=last {for n in first...last {let time=birth+Double(n)*0.45,source=worldPoint(pt(45-Double(j)*38,0),finalTrackPose(0,time),a.scale);smokeCloud(c,source,e-time,5000+j*101+n,10*a.scale,0.13,0.45*damage,5)}}
+    }
+   }
   }
-  label(c,a.name,p.x,p.y+(i==1 ? 80:-30),a.tint)
  }
  aimWorld=nil
- var events:[Salvo]=[]
- if shot<46 {for (j,fire) in [0.0,100,240,420,650].enumerated(){events.append(Salvo(fire:fire,from:1,to:0,guns:j%2==0 ? 5:4,hit:j%9==0,serial:j))}
- for (j,fire) in [40.0,180,360,560].enumerated(){events.append(Salvo(fire:fire,from:2,to:0,guns:5,hit:j%11==0,serial:j+30))}
- if shot<45 {for (j,fire) in [60.0,280,500].enumerated(){events.append(Salvo(fire:fire,from:0,to:1,guns:4,hit:false,serial:j+60))}}
- gunnery(c,sim,10,actors,events,shot<44 ? 22.4:11)
- }
- if t>=276 && t<282 {for n in 0..<2 {let launch=276+Double(n)*1.8,age=t-launch
-  if age>=0 {let a=dorsetshirePose(launch-240),start=worldPoint(pt(95,0),a,0.55),target=actors[0].position((launch-240)*10+340),angle=atan2(Double(target.y-start.y),Double(target.x-start.x)),distance=hypot(Double(target.x-start.x),Double(target.y-start.y))
-   let s=min(distance,age*85),p=pt(start.x+cos(angle)*s,start.y+sin(angle)*s)
-   if s<distance {line(c,[pt(p.x-cos(angle)*12,p.y-sin(angle)*12),p],paper.withAlphaComponent(0.5),0.65)}else{explosion(c,p,age-distance/85,23,false)}
-  }
- }}
- if shot==47 {let p=actors[0].position(sim);for j in 0..<5 {waterSplash(c,p.x+Double(j)*12,p.y,u*8,1)}}
-
+ let events=[Salvo(fire:320,from:1,to:0,guns:5,hit:false,serial:100),Salvo(fire:330,from:2,to:0,guns:5,hit:true,serial:101),Salvo(fire:345,from:0,to:1,guns:4,hit:false,serial:102),Salvo(fire:365,from:3,to:0,guns:4,hit:false,serial:103),Salvo(fire:385,from:4,to:0,guns:4,hit:true,serial:104),Salvo(fire:420,from:1,to:0,guns:4,hit:true,serial:105),Salvo(fire:440,from:0,to:2,guns:2,hit:false,serial:106),Salvo(fire:485,from:2,to:0,guns:4,hit:true,serial:107),Salvo(fire:535,from:3,to:0,guns:4,hit:false,serial:108),Salvo(fire:575,from:1,to:0,guns:5,hit:true,serial:109),Salvo(fire:610,from:2,to:0,guns:2,hit:true,serial:110),Salvo(fire:630,from:4,to:0,guns:4,hit:false,serial:111)]
+ gunnery(c,sim,10,actors,events,22.4)
+ for n in 0..<3 {torpedo(c,finalRuns[n],e,finalContacts[n],0.33)}
 }
+
 
 // Motion and presentation are separate: the camera cannot change a vessel's course.
 struct Pose {let p:CGPoint;let yaw:Double}
@@ -647,7 +661,7 @@ func camera(_ group:Int,_ elapsed:Double)->Cam {
   let search=fittedCamera(Cam(x:630,y:430,z:2.2),members.filter{["BISMARCK","HMS ARK ROYAL"].contains($0.id)}+[plane])
   return blendCamera(tactical,search,smoother((elapsed-21)/6))
  }
- if group==8 {let main=fittedCamera(desired,members.filter{$0.id != "HMS DORSETSHIRE"}),all=fittedCamera(desired,members);return blendCamera(main,all,smoother((elapsed-29)/8))}
+ if group==8 {let all=fittedCamera(Cam(x:740,y:340,z:1.6),members),active=fittedCamera(Cam(x:640,y:260,z:2.1),members.filter{!["RODNEY","KING GEORGE V"].contains($0.id)});return blendCamera(all,active,smoother((elapsed-36)/8))}
  if group==6 {let close=fittedCamera(desired,members.filter{$0.id=="BISMARCK"}),wide=fittedCamera(desired,members),enter=blendCamera(camera(5,24),wide,smoother(elapsed/8));return blendCamera(enter,close,smoother((elapsed-24)/9))}
  if group==7 {let close=fittedCamera(desired,members.filter{$0.id=="BISMARCK"}),wide=fittedCamera(desired,members.filter{!["HMS ARK ROYAL","HMS SHEFFIELD"].contains($0.id)});return blendCamera(close,wide,smoother((elapsed-18)/6))}
  return fittedCamera(desired,members)
@@ -982,8 +996,8 @@ func preStrikeBismarck(_ t:Double)->Pose {
  let mapBM=chaseMapPose(chaseBismarck(36)),start=forcePoint(mapBM.p),end=attackShip(0),heading=mapBM.yaw-forceMapAngle
  return movingPose({r in let p=flightCurve(start,end.p,heading,end.yaw,15,0.9,r,24);return pt(p.x,p.y-300*pow(sin(Double.pi*r/24),2))},t)
 }
-func dorsetshirePose(_ t:Double)->Pose {forward(pt(-1000,760),-0.05,35,t)}
-func norfolkFinalPose(_ t:Double)->Pose {forward(pt(1170,680),-2.35,3,t)}
+func dorsetshirePose(_ t:Double)->Pose {finalTrackPose(4,t)}
+func norfolkFinalPose(_ t:Double)->Pose {finalTrackPose(3,t)}
 func deckPoint(_ x:Double,_ time:Double)->CGPoint {worldPoint(pt(x,0),carrierPose(time),1)}
 func flightCurve(_ a:CGPoint,_ b:CGPoint,_ startHeading:Double,_ endHeading:Double,_ startSpeed:Double,_ endSpeed:Double,_ elapsed:Double,_ duration:Double)->CGPoint {
  let c1=pt(a.x+cos(startHeading)*startSpeed*duration/3,a.y+sin(startHeading)*startSpeed*duration/3)
@@ -1082,7 +1096,7 @@ func sceneFleet(_ group:Int,_ e:Double)->[FleetMember] {
  case 5:return [member("HMS ARK ROYAL",carrierPose(e),0.33,5),member("HMS SHEFFIELD",sheffieldPose(e),0.42,1),member("BISMARCK",preStrikeBismarck(e),1.05,0)]
  case 6:return [member("BISMARCK",bismarckAttackPath(e),1.05,0),member("HMS ARK ROYAL",carrierPose(e+24),0.33,5),member("HMS SHEFFIELD",sheffieldPose(e+24),0.42,1)]
  case 7:return [member("BISMARCK",damagedShip(e),1.05,0),member("HMS ARK ROYAL",carrierPose(e+72),0.33,5),member("HMS SHEFFIELD",sheffieldPose(e+72),0.42,1)]+(0..<5).map{member(destroyerNames[$0],destroyerPose(e,$0),1,6)}
- case 8:return finalActors.map{a in member(a.name,Pose(p:a.position(e*10+300),yaw:a.yaw),a.scale,a.model.kind)}+[member("HMS NORFOLK",norfolkFinalPose(e),0.52,1),member("HMS DORSETSHIRE",dorsetshirePose(e),0.55,1)]
+ case 8:return finalActors.map{a in member(a.name,a.pose(e*10+300),a.scale,a.model.kind)}
  default:return []
  }
 }
@@ -1143,6 +1157,18 @@ func sweptContact(_ run:TorpedoRun,_ path:(Double)->Pose)->Contact? {
  }
  return nil
 }
+// Dorsetshire: two starboard-side runs, then a third after passing around the bow.
+let finalRuns:[TorpedoRun]=(0..<3).map{n in
+ let release=[39.0,39.35,44][n],impact=[40.1,40.5,44.85][n],ship=dorsetshirePose(release),target=worldPoint(pt(n==0 ? 22:n==1 ? -22:0,n<2 ? 15:-15),finalTrackPose(0,impact),0.33)
+ let local=hullLocal(target,ship,0.24),origin=worldPoint(pt(0,local.y>0 ? 10:-10),ship,0.24)
+ let dx=target.x-origin.x,dy=target.y-origin.y-2,heading=atan2(dy,dx),distance=hypot(dx,dy),speed=(distance-0.5*38*0.65)/(impact-release-0.325)
+ return TorpedoRun(plane:n,release:release,aimTime:impact,releasePoint:origin,aim:target,heading:heading,speed:speed)
+}
+let finalContacts:[Contact?]=finalRuns.map{run in
+ var t=run.release+0.65;let step=1.0/480
+ while t<run.release+3 {if let f=firstHullCrossing(run.position(t),run.position(t+step),finalTrackPose(0,t),0.33){return Contact(time:t+f*step,point:run.position(t+f*step))};t+=step}
+ return nil
+}
 let initialContacts=runs.map{sweptContact($0,attackShip)}
 let steeringContact=initialContacts[2]!
 func bismarckAttackPath(_ t:Double)->Pose {
@@ -1155,26 +1181,26 @@ let contacts=runs.map{sweptContact($0,bismarckAttackPath)}
 func damagedShip(_ t:Double)->Pose {bismarckAttackPath(48+t)}
 func attackPlane(_ t:Double,_ n:Int)->Pose {swordfishPose(t+24,n)}
 func torpedoPosition(_ t:Double)->CGPoint {runs[2].position(t)}
-func torpedoFoam(_ c:CGContext,_ run:TorpedoRun,_ time:Double,_ contact:Contact?){
+func torpedoFoam(_ c:CGContext,_ run:TorpedoRun,_ time:Double,_ contact:Contact?,_ scale:Double=1){
  let end=min(time,contact?.time ?? time),age=time-end
  guard time>run.release+0.65 && age<11 else{return}
  let maxAge=min(8.0,end-run.release-0.65)
  for j in 0..<48 {
   let a=Double(j)/48*maxAge,b=Double(j+1)/48*maxAge
   let p=run.position(end-a),q=run.position(end-b),opacity=exp(-(a+age)/4)*0.24
-  let width=0.45+a*0.22
+  let width=(0.45+a*0.22)*scale
   line(c,[p,q],paper.withAlphaComponent(opacity),width)
   let off=sin(Double(j)*2.4+Double(run.plane))*width*0.45
   ellipse(c,p.x-sin(run.heading)*off,p.y+cos(run.heading)*off,width*0.23,width*0.23,paper.withAlphaComponent(opacity*0.7))
  }
 }
-func torpedo(_ c:CGContext,_ run:TorpedoRun,_ time:Double,_ contact:Contact?){
+func torpedo(_ c:CGContext,_ run:TorpedoRun,_ time:Double,_ contact:Contact?,_ scale:Double=1){
  guard time>=run.release else{return}
- torpedoFoam(c,run,time,contact)
+ torpedoFoam(c,run,time,contact,scale)
  if let impact=contact,time>=impact.time {blast(c,impact.point.x,impact.point.y,time-impact.time,run.plane==2 ? 43:30,false);return}
  let p=run.position(time),age=time-run.release
  if age>22 {return}
- c.saveGState();c.translateBy(x:p.x,y:p.y);c.rotate(by:run.heading)
+ c.saveGState();c.translateBy(x:p.x,y:p.y);c.rotate(by:run.heading);c.scaleBy(x:scale,y:scale)
  c.setAlpha(age<0.65 ? 0.95:0.68)
  // 6.9-m body, 45-cm diameter; the leading tip is the collision point.
  c.setFillColor(NSColor(calibratedRed:0.23,green:0.27,blue:0.25,alpha:1).cgColor)
@@ -1312,6 +1338,7 @@ func renderBase(_ t:Double,_ c:CGContext){
   if group==2 && e<1.1 {drawWorld(c,0,5.999,-1280*smoother(e/1.1))}
   if group==3 {bowHitLens(c,t);battleLens(c,t);if e>17 && e<25 {hoodSection(c,e)}}
   if group==7 {suppressWorldText=true;steeringCutaway(c,e);suppressWorldText=false}
+  if group==8 {suppressWorldText=false;finalShipNames(c,e)}
   rain(c,t)
   // No ship-name leaders, header, footer, progress bar or large narration cards.
   if !suppressScriptCues,let cue=scriptCues.last(where:{$0.0<=t}) {let alpha=min(1,(t-cue.0)/0.35);c.saveGState();c.setAlpha(alpha)
@@ -1543,11 +1570,41 @@ func nightStrikeLens(_ c:CGContext,_ e:Double){
  annotationCamera=saved;c.restoreGState()
  c.saveGState();c.setAlpha(alpha);c.setStrokeColor(paper.withAlphaComponent(0.3).cgColor);c.setLineWidth(1);c.stroke(r);c.restoreGState()
 }
+var lastFinalNameTime = -100.0
+func finalShipNames(_ c:CGContext,_ e:Double){
+ if abs(e-lastFinalNameTime)>0.2 {labelHistory=[:]};lastFinalNameTime=e
+ let fleet=sceneFleet(8,e),cam=camera(8,e);annotationCamera=cam;annotationOffset=0
+ var occupied:[CGRect]=[]
+ let bodies=fleet.map{ship -> CGRect in let corners=ship.corners.map{screen($0)},xs=corners.map{$0.x},ys=corners.map{$0.y};return CGRect(x:xs.min()!,y:ys.min()!,width:xs.max()!-xs.min()!,height:ys.max()!-ys.min()!).insetBy(dx:-7,dy:-7)}
+ let alpha=smoother(e/0.8)
+ c.saveGState();c.setAlpha(alpha)
+ for item in fleet {let raw=screen(item.pose.p),outside=raw.x<25 || raw.x>1255 || raw.y<30 || raw.y>650
+  let anchor=pt(max(25,min(1255,raw.x)),max(32,min(646,raw.y)))
+  let name=(item.id=="RODNEY" || item.id=="KING GEORGE V" ? "HMS ":"")+item.id+(outside && e>36 ? " · retiring":"")
+  let width=min(240,Double(name.count)*7.6+14),height=24.0
+  let hull=item.corners.map{screen($0)},left=hull.map{$0.x}.min()!,right=hull.map{$0.x}.max()!,top=hull.map{$0.y}.min()!,bottom=hull.map{$0.y}.max()!
+  let candidates=[pt(right+13,top-12),pt(left-width-13,bottom-12),pt((left+right-width)/2,top-36),pt((left+right-width)/2,bottom+12),pt(anchor.x+15,anchor.y+32),pt(anchor.x-width-15,anchor.y-48),pt(anchor.x-width/2,anchor.y+65),pt(anchor.x-width/2,anchor.y-82)]
+  var chosen=CGRect(x:30,y:40+Double(occupied.count)*32,width:width,height:height)
+  for p in candidates {let r=CGRect(x:max(25,min(1255-width,p.x)),y:max(28,min(642,p.y)),width:width,height:height)
+   if !occupied.contains(where:{$0.insetBy(dx:-5,dy:-4).intersects(r)}) && !bodies.contains(where:{$0.intersects(r)}) {chosen=r;break}
+  }
+  let key="final:"+item.id
+  if let old=labelHistory[key] {chosen.origin.x=mix(old.origin.x,chosen.origin.x,0.18);chosen.origin.y=mix(old.origin.y,chosen.origin.y,0.18)}
+  labelHistory[key]=chosen;occupied.append(chosen)
+  let end=pt(chosen.midX,chosen.midY<anchor.y ? chosen.maxY:chosen.minY),color=item.id=="BISMARCK" ? red:paper
+  line(c,[anchor,end],color.withAlphaComponent(0.6),0.7)
+  c.setFillColor(ink.withAlphaComponent(0.86).cgColor);c.fill(chosen)
+  txt(name,chosen.minX+6,chosen.minY+3,13,color,true,width-10)
+  if outside {ellipse(c,anchor.x,anchor.y,2,2,blue)}
+ }
+ c.restoreGState()
+}
 func filmCueList()->[(Double,String)] {
  var cues=scriptCues.filter{$0.0<72}
  cues += [(72,"British intercept force · from Scapa Flow"),(86,"Hood leads · Prince of Wales follows toward Iceland"),(96,"Prinz Eugen moves into the German lead"),(100,"02:05 · Holland turns parallel, waiting for daylight"),(112,"03:40 · British force turns in at 28 knots"),(122,"05:35 · enemy sighted; range closes"),(132,"05:52 · Hood and Prince of Wales open fire"),(138,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"),(142,"German ships reply · ranging salvos"),(148,"Prince of Wales hits Bismarck's bow"),(153.5,"Another hit · flooding below the armour belt"),(156,"Bismarck · decisive salvo toward Hood"),(164,"Shell penetration · probable aft-magazine ignition"),(166,"Hood · aft-magazine explosion"),(176,"Hood sinks · Prince of Wales remains under fire"),(179,"Prince of Wales returns fire at Bismarck"),(184,"Bismarck shifts fire · Prince of Wales prepares to withdraw"),(186,"Bridge damage · Prince of Wales turns away under smoke"),(204,"Bismarck survives the action · fuel leaks astern"),(214,"Bow damage · schematic reconstruction"),(222,"Seawater enters · forward fuel tanks become unusable"),(230,"Further flooding · speed and endurance reduced"),(242,"Atlantic raiding abandoned · make for a French repair port")]
- cues += scriptCues.filter{$0.0>=108 && $0.0 != 120 && $0.0 != 123}.map{($0.0+150,$0.1)}
+ cues += scriptCues.filter{$0.0>=108 && $0.0<240 && $0.0 != 120 && $0.0 != 123}.map{($0.0+150,$0.1)}
  cues += [(327,"Bismarck AA batteries engage the Swordfish"),(267,"Victorious · Swordfish torpedo attack"),(270,"Torpedo hits Bismarck amidships · main armour belt"),(273,"Belt resists penetration · Bismarck continues underway"),(275,"25 May · HMS Suffolk + HMS Norfolk zigzag")]
+ cues += [(390,"27 May · final action · north up / enlarged ship symbols"),(392,"08:47 · HMS Rodney opens fire"),(393,"08:48 · HMS King George V opens fire; HMS Norfolk joins"),(398,"HMS Dorsetshire engages from the opposite side"),(406,"09:20 · battleships turn north on independent tracks"),(420,"Close-range bombardment · Bismarck loses effective fire"),(424,"HMS Rodney + HMS King George V begin retiring"),(426,"10:21 · battleship gunfire ends"),(429,"HMS Dorsetshire · two torpedoes against the starboard side"),(434,"Dorsetshire rounds the bow · final port-side torpedo"),(435,"Bismarck capsizes · British ships remain afloat")]
  return cues.sorted{$0.0<$1.0}
 }
 let filmCues=filmCueList()
@@ -1575,6 +1632,26 @@ func fleetOverlaps(_ a:FleetMember,_ b:FleetMember)->Bool {
  }}
  return true
 }
+func finalActionAudit(){
+ var overlaps=0,framing=0,maxSlip=0.0
+ for frame in 0...1152 {let e=Double(frame)/24,fleet=sceneFleet(8,e),cam=camera(8,e)
+  precondition(Set(fleet.map{$0.id})==Set(finalActors.map{$0.name}),"Final ship membership changed")
+  for a in 0..<fleet.count {for b in (a+1)..<fleet.count {if fleetOverlaps(fleet[a],fleet[b]){if overlaps<12 {print("FINAL OVERLAP t=\(e) \(fleet[a].id)/\(fleet[b].id)")};overlaps+=1}}}
+  if e<36 {for ship in fleet {for p in ship.corners {let x=640+(p.x-cam.x)*cam.z,y=355+(p.y-cam.y)*cam.z;if x<15 || x>1265 || y<15 || y>665 {framing+=1;break}}}}
+  for i in 0..<5 {let p=finalTrackPose(i,e),a=finalTrackPose(i,e-0.001),b=finalTrackPose(i,e+0.001),dx=b.p.x-a.p.x,dy=b.p.y-a.p.y;maxSlip=max(maxSlip,abs(sin(p.yaw)*dx-cos(p.yaw)*dy)/max(1e-8,hypot(dx,dy)))}
+ }
+ print("FINAL FLEET: overlaps=\(overlaps), early cropped hulls=\(framing), max sideslip=\(maxSlip)");fflush(stdout)
+ precondition(overlaps==0 && framing==0 && maxSlip<0.005)
+ let b=finalTrackPose(0,0).p,r=finalTrackPose(1,0).p,k=finalTrackPose(2,0).p,n=finalTrackPose(3,0).p,d=finalTrackPose(4,0).p
+ precondition(r.x<b.x && r.y<b.y && k.x<b.x && k.y<b.y && r.y<k.y && n.y<b.y && d.x>b.x && d.y>b.y,"Opening relative stations")
+ for i in 1...2 {let a=finalTrackPose(i,40).p,b=finalTrackPose(i,47).p;precondition(b.y<a.y && b.x>=a.x,"Battleships must retire north-east")}
+ for i in 0..<3 {let hit=finalContacts[i]!;let local=hullLocal(hit.point,finalTrackPose(0,hit.time),0.33)
+  print("DORSETSHIRE TORPEDO \(i+1): impact e=\(hit.time), local=\(local)")
+  precondition(i<2 ? local.y>0:local.y<0,"Torpedo hit wrong side")
+ }
+ print("HISTORICAL STAGING PASS: north-up WNW approach; separated battleships; flank cruisers; battleship retirement; two starboard and one port Dorsetshire runs. Positions between selected chart/report stations are illustrative.")
+}
+
 func longEditAudit(){
  print("Building coastline query index");fflush(stdout)
  var rows:[Int:[(CGPoint,CGPoint)]]=[:]
@@ -1832,12 +1909,13 @@ if CommandLine.arguments.contains("--export-cues") {
 else if CommandLine.arguments.contains("--weapon-report") {
  for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")");if let hit=nightContacts[n] {print("VICTORIOUS LOCAL CONTACT: \(hullLocal(hit.point,chaseBismarck(hit.time),0.85))")}}
 }
+else if CommandLine.arguments.contains("--final-audit") {finalActionAudit()}
 else if CommandLine.arguments.contains("--long-audit") {longEditAudit()}
 else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [179.8,180.5,181.0,182.0,187.0,191.0,327.3,329.2,331.6,335.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [390.5,394.0,400.0,406.0,414.0,424.0,429.3,431.0,434.4,436.5] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
