@@ -1,3 +1,4 @@
+continuity-audit.txt
 FLIGHT CHECK: closest pair 1,2 at 2.0208333333333335; minimum aircraft centre separation 21.999999999999968, maximum 2ms displacement 0.4944733727807641, 10371 samples
 TORPEDO CHECK PASS: carried-release continuity and Sheffield evasion
 FLEET OVERLAP COUNT: 0
@@ -5,30 +6,47 @@ FRAMING CHECK PASS: paired opening, carrier match zoom, continuous second-strike
 PRESENCE CHECK PASS: 564 scene samples; constant ship membership per scene, including all British ships at Bismarck sinking
 Entity ledger written: ship-state-ledger.csv
 
+
+long-edit-audit.txt
 Building coastline query index
-APPROACH: overlaps=0, shore intersections=0, cropped hulls=0, maximum sideslip=0.02038017116594529
-BATTLE HANDOFF BISMARCK: centre error 3.06111178766429e-13 px
-BATTLE HANDOFF PRINZ EUGEN: centre error 0.22470256447628303 px
+APPROACH: overlaps=0, shore intersections=0, cropped hulls=0, maximum sideslip=0.002962176398317211
+BATTLE HANDOFF BISMARCK: centre error 3.5612299842971617e-13 px
+BATTLE HANDOFF PRINZ EUGEN: centre error 0.04300119667053233 px
 BATTLE HANDOFF HOOD: centre error 3.595093471822542e-13 px
 BATTLE HANDOFF PRINCE OF WALES: centre error 0.06739502121541122 px
 FUEL CHECK PASS: bow and below-belt hits, inherited oil trail, continuous surviving ships
-EXTENDED LEDGER PASS: 900 sampled frames, 17 persistent ship identities, 468-second film
+EXTENDED LEDGER PASS: 948 sampled frames, 17 persistent ship identities, 492-second film; archival states carry no invented coordinates
 
+
+norwegian-route-audit.txt
+NORWEGIAN ROUTE: 1238 full-hull samples / 252552 outline and interior points; land contacts 0, overlaps 0, maximum sideslip 0.007680489661830529
+PASS: coastal arrival via Korsfjord approach; photo supplies anchorage detail; northbound exit, 22 May 65°53′N 3°38′E and 23 May 67°28′N 19°28′W anchors, northern Iceland passage; matched British approach; Suffolk starboard quarter / Norfolk port quarter
+
+
+final-action-audit.txt
 FINAL FLEET: overlaps=0, overview cropped hulls=0, max sideslip=0.0081936006272872
 DORSETSHIRE TORPEDO 1: impact e=40.092241701861006, local=(20.09586132773046, 17.701389264337067)
 DORSETSHIRE TORPEDO 2: impact e=40.49254390929801, local=(-22.92880086054638, 17.622493345278663)
 DORSETSHIRE TORPEDO 3: impact e=44.84507742166367, local=(-0.4070937775427028, -17.99777530841181)
 HISTORICAL STAGING PASS: north-up WNW approach; separated battleships; flank cruisers; battleship retirement; two starboard and one port Dorsetshire runs. Positions between selected chart/report stations are illustrative.
 
+
+entrance-camera-audit.txt
 FINAL HANDOFF: centre error 0.0 px, scale error 0.0, bearing error 0.0
 MORNING AIRCRAFT: 12 continuous tracks, minimum separation 23.999999999999886, minimum stand-off from Bismarck 139.97672999357516
 ENTRANCE PASS: matched hull and inherited wake/ocean mapping; camera reveals offscreen battleships and then focuses the pair. Earlier torpedo/AA sequences retained; morning force arrives armed and holds off.
 
-DAMAGE HIT BRIDGE / FORWARD CONTROL: film 408.27200000000005s, local (16.999999999999993, -1.6697754290362354e-13)
-DAMAGE HIT ANTON: film 410.96s, local (72.00000000000006, 7.815970093361102e-14)
-DAMAGE HIT BRUNO: film 412.08000000000004s, local (46.000000000000085, 0.0)
-DAMAGE HIT AFT DIRECTOR: film 416.0s, local (-36.99999999999992, 0.0)
-DAMAGE HIT DORA: film 421.88000000000005s, local (-90.99999999999991, -1.0658141036401503e-14)
-DAMAGE HIT CÄSAR: film 429.44000000000005s, local (-61.00000000000003, -1.1723955140041653e-13)
+
+gun-damage-audit.txt
+DAMAGE HIT BRIDGE / FORWARD CONTROL: film 432.27200000000005s, local (16.999999999999993, -1.6697754290362354e-13)
+DAMAGE HIT ANTON: film 434.96s, local (72.00000000000006, 7.815970093361102e-14)
+DAMAGE HIT BRUNO: film 436.08000000000004s, local (46.000000000000085, 0.0)
+DAMAGE HIT AFT DIRECTOR: film 440.0s, local (-36.99999999999992, 0.0)
+DAMAGE HIT DORA: film 445.88000000000005s, local (-90.99999999999991, -1.0658141036401503e-14)
+DAMAGE HIT CÄSAR: film 453.44000000000005s, local (-61.00000000000003, -1.1723955140041653e-13)
 GUN STATE PASS: 4 selected return salvos; destroyed turrets never emit later shots; Cäsar remains after Dora; all main guns stop after the last hit. Frozen turret training and persistent bridge/turret wreck overlays share these states.
-CLOCK PASS: 468 seconds, damage explanation stretched from 10 to 28 seconds; scene tracks and final contacts stay on their existing simulation clocks.
+CLOCK PASS: 492 seconds; Bergen insert adds 24 seconds, damage explanation stretched from 10 to 28 seconds; scene tracks and final contacts stay on their existing simulation clocks.
+
+
+bergen-audit.txt
+BERGEN PASS: 60–84s archival insert; outgoing and incoming map cameras retained; 577 photo crops cover the full frame; 492-second clock; later fleet simulation unchanged

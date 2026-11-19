@@ -2,17 +2,19 @@
 
 A eight-minute twelve-second original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. Animation artwork is drawn in native code, with a public-domain 1941 RAF reconnaissance photograph in the Bergen chapter. No AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v19-specs/bismarck-timeline-v19.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v20-norwegian-route/bismarck-timeline-v20.mp4).
 
 The action fills the frame. The old header, footer, progress bar and large explanatory captions are removed. Compact ship-name leaders are restored specifically for the final action, as requested. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
 ## Bergen and the reconnaissance sighting
 
-A new 01:00–01:24 chapter locates the Bergen fjord area, then moves into the original 21 May RAF reconnaissance photograph by F/O Michael Suckling (IWM CS 159). A travelling crop and attached bracket identify Bismarck at anchor in Grimstadfjord. This photograph shows Bismarck; it does not claim to show Prinz Eugen beside her. The cruiser refuelled farther north at Kalvenes Bay from Wollin, while Bismarck did not refuel. The captions connect photographic confirmation to British intelligence, the German evening departure in worsening weather, and the 22 May follow-up that found the anchorages empty. The outgoing view returns to the established North Sea / Denmark Strait passage map. The insert bridges dates and places; it is not a continuous real-time voyage into and out of a fjord.
+The 01:00–01:11 map now follows a dedicated coastal approach toward Korsfjord, instead of continuing the old westbound departure track while the camera pans to Bergen. Bismarck and Prinz Eugen share one arc-length track and a fixed interval; both hulls stay in water. The map stops offshore at the Korsfjord approach. It does not draw a straight shortcut through the coastal islands to a pin on land. The original RAF photograph then supplies the actual Grimstadfjord anchorage view, with an attached Bismarck marker. Prinz Eugen’s separate Kalvenes Bay refuelling remains in the small captions.
 
-The photograph enters and leaves with smooth lateral movement, while its camera crop advances toward the actual ship. Its small source credit sits at bottom left. Subsequent chapters shift by 24 seconds; the current timecodes are exported in `script-cues.csv`. The film now fades at 08:00, shows the human cost at 08:01, and ends on the title/dates from 08:06.
+After the photograph, the ships leave northbound in a dated Hjeltefjord/Norway departure view. The following map uses the Norwegian coastal leg, the reported 22 May noon position at 65°53′ N, 3°38′ E, the northerly passage, the reported 23 May noon position at 67°28′ N, 19°28′ W, and the approach north of Iceland into Denmark Strait. It no longer restarts south of Bergen or cuts directly across Iceland. `norwegian-route-anchors.csv` separates reported fixes from illustrative waypoints. Intermediate paths, symbol spacing and timing remain a compressed geographic illustration, not an exact navigation log. Enlarged symbols are kept offshore; precise fjord navigation is represented by the historical photograph rather than fabricated detail on the coarse coastline.
 
-`bergen-photo-attribution.json` records the source and expired Crown copyright status. The image is a historical photograph, not generated artwork. `bergen-audit.txt` checks photographic crop coverage, the chapter handoffs and the film clock. Archival ledger states leave coordinates blank instead of inventing a precise photo navigation fix.
+The Bergen label on the outgoing view explicitly identifies the city, so its land position cannot be confused with a ship anchorage. The first British shadowing stations connect to the revised SW-bound German entry: Suffolk on the starboard quarter and Norfolk on the port quarter. Their independent paths remain separated and meet the existing battle staging smoothly. An analytically evaluated cubic keeps Prinz Eugen’s passing offset continuous through the turn.
+
+`norwegian-route-audit.txt` checks both complete hull outlines and interior points at 24 fps through the coastal arrival and Norway–Iceland passage: 1,238 hull samples, 252,552 tested points, zero land contacts and zero ship overlaps. The British-approach audit separately checks the six ships through the later handoff: zero overlap, land or framing errors. The updated ledger and script cues reflect the corrected route. The film still runs 08:12, with the specs at 00:51, fade at 08:00, human cost at 08:01 and final title/dates from 08:06. The archival image’s source and public-domain status remain in `bergen-photo-attribution.json`.
 
 ## Visible specification labels
 
@@ -137,6 +139,7 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . --entrance-audit
 ./render . --final-audit
 ./render . --long-audit
+./render . --route-audit
 ./render . --export-cues
 ./render . --hull-audit
 ./render . --stills
@@ -145,4 +148,4 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . "$FFMPEG"
 ```
 
-The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v19.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
+The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v20.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.

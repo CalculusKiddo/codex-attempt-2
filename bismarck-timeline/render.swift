@@ -690,7 +690,7 @@ func desiredCamera(_ group:Int,_ elapsed:Double)->Cam {
  if group==5 {let p=carrierPose(elapsed),q=smoother(elapsed/5),previous=camera(4,36),ratio=0.037/0.33
   let start=forcePoint(pt(previous.x,previous.y))
   return Cam(x:mix(start.x,Double(p.p.x),q),y:mix(start.y,Double(p.p.y),q),z:exp(mix(log(previous.z*ratio),log(3.2),q)),angle:mix(previous.angle+forceMapAngle,0,q))}
- if group==10 {let p=geo(mix(3.5,-25,smoother(elapsed/12)),mix(58.25,65,smoother(elapsed/12)));return Cam(x:p.x,y:p.y,z:mix(5,1.7,smoother(elapsed/12)))}
+ if group==10 {let p=approachPose(elapsed).p;return Cam(x:p.x,y:p.y,z:mix(5,1.7,smoother(elapsed/12)))}
  if group==6 && elapsed>=28 {let p=bismarckAttackPath(elapsed),tip=runs[2].position(min(elapsed,steeringContact.time)),q=smoother((elapsed-28)/7)
   let base=interpolatedCamera(group,elapsed),stern=worldPoint(pt(-108,0),p,1.05),x=mix(base.x,Double(tip.x),q),y=mix(base.y,Double(tip.y),q),hold=smoother((elapsed-steeringContact.time)/2)
   return Cam(x:mix(x,Double(stern.x),hold),y:mix(y,Double(stern.y),hold),z:mix(base.z,3.8,q))}
@@ -910,15 +910,34 @@ func specificationText(_ c:CGContext,_ e:Double){
  }
  c.restoreGState()
 }
-func approachPose(_ t:Double,_ escort:Bool=false)->Pose {
- let path:(Double)->CGPoint={v in
-  let a=geo(3.5,58.25),b=geo(-25,65),heading=atan2(Double(b.y-a.y),Double(b.x-a.x))
-  if v<0{return forward(a,heading,0.49,v).p};if v>12{return forward(b,heading,0.49,v-12).p}
-  return geo(mix(3.5,-25,smoother(v/12)),mix(58.25,65,smoother(v/12)))
- }
- if !escort{return movingPose(path,t)}
- return movingPose({v in let a=movingPose(path,v);let p=forward(a.p,a.yaw,1,-20).p;return pt(p.x,p.y+4)},t)
+// Coastal arrival ends offshore at the Korsfjord approach; the photograph supplies
+// the real Grimstadfjord anchorage detail, beyond this map's coastline resolution.
+let bergenArrivalTrack:ArcTrack={
+ let start=departurePose(54),c1=forward(start.p,start.yaw,1,1.5).p,end=geo(4.65,60.10)
+ let middle=geo(3.65,59.2),join=geo(4.15,59.7)
+ var points=(0...1200).map{bezier(start.p,c1,middle,join,Double($0)/1200)}
+ let c2=geo(4.35,59.95),c3=geo(4.48,60.05)
+ points += (1...600).map{bezier(join,c2,c3,end,Double($0)/600)}
+ return ArcTrack(points)
+}()
+func bergenArrivalDistance(_ e:Double)->Double {e<0 ? e*0.035:e>10 ? bergenArrivalTrack.length+(e-10)*0.01:hermite(0,bergenArrivalTrack.length,0.035,0.01,10,e/10)}
+func bergenArrivalPose(_ e:Double,_ escort:Bool=false)->Pose {
+ let distance=bergenArrivalDistance(e)
+ let d=distance-(escort ? 5:0)
+ if d<0 {return departureAtDistance(departureDistances.last!+24*0.035+d)}
+ return bergenArrivalTrack.pose(d)
 }
+// Source-supported northbound Norwegian leg, northern Iceland passage and Strait.
+let norwegianPassageTrack:ArcTrack={
+ let end=geo(-28,65.8),last=forward(end,2.45,1,-15).p
+ let points=[geo(3.8,61.2),geo(4.2,63.4),geo(3.633333,65.883333),geo(0,68.8),geo(-9,69),geo(-19.466667,67.466667),geo(-25,66.5),last,end]
+ return ArcTrack((0...4000).map{smoothRoute(points,Double($0)/4000*Double(points.count-1))})
+}()
+func approachPose(_ t:Double,_ escort:Bool=false)->Pose {
+ let length=norwegianPassageTrack.length,distance=t<0 ? t*4:t>12 ? length+(t-12)*0.49:hermite(0,length,4,0.49,12,t/12)
+ return norwegianPassageTrack.pose(distance-(escort ? 20:0))
+}
+
 func departingTrack(_ t:Double,_ split:Double,_ base:(Double)->Pose,_ end:CGPoint,_ control:CGPoint,_ finish:Double)->Pose {
  if t<=split{return base(t)}
  let start=base(split),before=base(split-0.01),dx=(start.p.x-before.p.x)/0.01,dy=(start.p.y-before.p.y)/0.01,h=finish-split
@@ -1334,7 +1353,7 @@ func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
   chart(c)
   vessel(c,shipModel,{approachPose($0)},e,0.07,"BISMARCK",red)
   vessel(c,cruiserModel,{approachPose($0,true)},e,0.07,"PRINZ EUGEN",paper)
-  let suffolk:(Double)->Pose={forward(geo(-26.5,66.0),2.45,0.02,$0)},norfolk:(Double)->Pose={forward(geo(-25.5,64.0),2.45,0.02,$0)}
+  let suffolk:(Double)->Pose={approachingCruiser($0-12)},norfolk:(Double)->Pose={approachingCruiser($0-12,true)}
   vessel(c,cruiserModel,suffolk,e,0.07,"HMS SUFFOLK",blue);vessel(c,cruiserModel,norfolk,e,0.07,"HMS NORFOLK",blue)
   let p=approachPose(e),range=hypot(p.p.x-suffolk(e).p.x,p.p.y-suffolk(e).p.y)
   radar(c,suffolk(e).p,p.p,e,range<70,70)
@@ -1460,10 +1479,26 @@ struct ArcTrack {
 func hermite(_ a:Double,_ b:Double,_ va:Double,_ vb:Double,_ span:Double,_ q:Double)->Double {
  let q2=q*q,q3=q2*q;return (2*q3-3*q2+1)*a+(q3-2*q2+q)*span*va+(-2*q3+3*q2)*b+(q3-q2)*span*vb
 }
-let germanApproachTrack:ArcTrack={
- let a=approachPose(12).p,heading=approachPose(11.99).yaw,d=battleMapAnchor,b=forward(a,heading,1,24).p,cp=forward(d,2.45,1,-30).p
- return ArcTrack((0...1000).map{bezier(a,b,cp,d,Double($0)/1000)})
+struct CubicArcTrack {
+ let controls:[CGPoint],distances:[Double]
+ init(_ a:CGPoint,_ b:CGPoint,_ c:CGPoint,_ d:CGPoint){controls=[a,b,c,d];var ds=[0.0],old=a
+  for j in 1...3000 {let p=bezier(a,b,c,d,Double(j)/3000);ds.append(ds.last!+hypot(p.x-old.x,p.y-old.y));old=p};distances=ds
+ }
+ var length:Double {distances.last!}
+ func pose(_ distance:Double)->Pose {
+  if distance<0 {let p=pose(0);return forward(p.p,p.yaw,1,distance)}
+  if distance>length {let p=pose(length);return forward(p.p,p.yaw,1,distance-length)}
+  var lo=0,hi=3000;while hi-lo>1 {let m=(lo+hi)/2;if distances[m]<distance{lo=m}else{hi=m}}
+  let q=(Double(lo)+(distance-distances[lo])/max(1e-9,distances[hi]-distances[lo]))/3000,a=controls[0],b=controls[1],c=controls[2],d=controls[3],u=1-q
+  let dx=3*u*u*(b.x-a.x)+6*u*q*(c.x-b.x)+3*q*q*(d.x-c.x),dy=3*u*u*(b.y-a.y)+6*u*q*(c.y-b.y)+3*q*q*(d.y-c.y)
+  return Pose(p:bezier(a,b,c,d,q),yaw:atan2(dy,dx))
+ }
+}
+let germanApproachTrack:CubicArcTrack={
+ let a=approachPose(12).p,d=battleMapAnchor,b=forward(a,2.45,1,24).p,cp=forward(d,2.45,1,-30).p
+ return CubicArcTrack(a,b,cp,d)
 }()
+
 let britishApproachTrack:ArcTrack={
  let origin=geo(-3.5,60.4),a=geo(-22.5,62.5),b=geo(-27,60.6),end=battleToMap(denmarkActors[2].position(0)),heading = -2.35,lineStart=forward(end,heading,1,-50).p
  let parallel=atan2(Double(b.y-a.y),Double(b.x-a.x)),c1=geo(-10,62),c2=forward(a,parallel,1,-20).p
@@ -1489,12 +1524,12 @@ func approachingGerman(_ e:Double,_ eugen:Bool=false)->Pose {
  movingPose({t in
   let q=t/60,progress=hermite(0,1,0.003,0.005444444,60,q),d=t<0 ? t*0.49:germanApproachTrack.length*progress
   if !eugen{return germanApproachTrack.pose(d).p}
-  let phase=smoother((t-14)/24),lead=mix(-20,230*mapBattleRatio,phase),p=germanApproachTrack.pose(d+lead),lateral=8*sin(Double.pi*phase)
+  let phase=smoother((t-14)/24),lead=mix(-20,230*mapBattleRatio,phase),p=germanApproachTrack.pose(d+lead),lateral=12*sin(Double.pi*phase)
   return pt(p.p.x-sin(p.yaw)*lateral,p.p.y+cos(p.yaw)*lateral+4*(1-phase))
  },e)
 }
 func approachingCruiser(_ e:Double,_ norfolk:Bool=false)->Pose {
- let start=forward(norfolk ? geo(-25.5,64):geo(-26.5,66),2.45,0.02,12).p
+ let start=worldPoint(pt(norfolk ? -42:-25,norfolk ? -16:15),approachPose(12),1)
  let end=battleToMap(norfolk ? pt(1700,0):pt(1500,-600)),c1=forward(start,2.45,1,12).p,c2=forward(end,2.45,1,-12).p
  return movingPose({r in bezier(start,c1,c2,end,r/60)},e)
 }
@@ -1791,37 +1826,41 @@ func renderLegacy(_ t:Double,_ c:CGContext){
 func releaseFilmTime(_ legacy:Double)->Double {legacy<60 ? legacy:legacy+24}
 let bergenPhoto=NSImage(contentsOf:root.appendingPathComponent("bergen-reconnaissance-1941.jpg"))!.cgImage(forProposedRect:nil,context:nil,hints:nil)!
 let bergenCues:[(Double,String)]=[
- (60,"21 May · Bergen area, occupied Norway"),
- (64,"Bismarck anchors in Grimstadfjord"),
- (68,"Prinz Eugen refuels farther north · Bismarck takes no fuel"),
- (72,"RAF reconnaissance photographs the German ships near Bergen"),
- (74,"Photographs confirm the German breakout to British intelligence"),
- (76,"21 May evening · German ships depart in worsening weather"),
- (80,"22 May · follow-up reconnaissance finds the anchorages empty")]
+ (60,"20–21 May · Norwegian coastal approach toward Bergen"),
+ (64,"Via Korsfjord · toward the Bergen fjord anchorages"),
+ (71.2,"21 May · Bismarck anchors in Grimstadfjord"),
+ (73,"Prinz Eugen refuels at Kalvenes Bay · Bismarck takes no fuel"),
+ (75,"RAF reconnaissance photographs the German ships near Bergen"),
+ (77,"Photographs confirm the German breakout to British intelligence"),
+ (79.5,"21 May evening · depart via Hjeltefjord, then north along Norway"),
+ (82,"22 May · follow-up reconnaissance finds the fjord anchorages empty")]
+
 func drawBergen(_ c:CGContext,_ e:Double){
  environmentClock=60+e;narrativeClock=60;annotations=[];bodyRects=[]
  if e>=19 {
-  designFrame(c){drawWorld(c,10,60+min(0,(e-24)*0.08))}
+  designFrame(c){drawWorld(c,10,60+min(0,(e-24)*0.5))}
  }else{
   designFrame(c){
-   let q=smoother(e/4),a=camera(1,24),b=geo(5.25,60.35)
-   let cam=Cam(x:mix(a.x,b.x,q),y:mix(a.y,b.y,q),z:exp(mix(log(a.z),log(8),q)),angle:mix(a.angle,0,q))
+   let q=smoother(e/10),a=camera(1,24),p=bergenArrivalPose(e),companion=bergenArrivalPose(e,true)
+   let desired=fittedCamera(Cam(x:p.p.x,y:p.p.y,z:14),[FleetMember(id:"BISMARCK",pose:p,scale:0.012,kind:0),FleetMember(id:"PRINZ EUGEN",pose:companion,scale:0.012,kind:1)])
+   let cam=cinematicCamera(a,desired,q)
    beginWorld(c,cam,0);ocean(c,60+e,false,1/0.012);chart(c)
-   vessel(c,shipModel,{departurePose($0)},54+e,0.012,"BISMARCK",red)
-   vessel(c,cruiserModel,{departurePose($0,true)},54+e,0.012,"PRINZ EUGEN",paper)
-   let marker=geo(5.25,60.35);ellipse(c,marker.x,marker.y,3/cam.z,3/cam.z,gold)
+   c.saveGState();c.setLineDash(phase:0,lengths:[0.18,0.25]);let count=max(2,min(bergenArrivalTrack.points.count,(bergenArrivalTrack.distances.lastIndex(where:{$0<=bergenArrivalDistance(e)}) ?? 0)+1))
+   line(c,Array(bergenArrivalTrack.points.prefix(count)),gold.withAlphaComponent(0.65),0.05);c.restoreGState()
+   vessel(c,shipModel,{bergenArrivalPose($0)},e,0.012,"BISMARCK",red)
+   vessel(c,cruiserModel,{bergenArrivalPose($0,true)},e,0.012,"PRINZ EUGEN",paper)
    c.restoreGState()
-   let p=screen(geo(5.25,60.35));c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:p.x+12,y:p.y-35,width:197,height:29));txt("BERGEN / FJORD ANCHORAGES",p.x+19,p.y-30,13,gold,true,188)
+   if e>3 {let marker=screen(geo(4.75,60.12));c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:max(24,min(1010,marker.x+12)),y:max(30,min(580,marker.y-45)),width:245,height:29));txt("KORSFJORD · COASTAL APPROACH",max(31,min(1017,marker.x+19)),max(35,min(585,marker.y-40)),13,gold,true,230)}
   }
  }
  designFrame(c){
-  let enter=smoother((e-3.6)/1.2),leave=smoother((e-19)/1.4),offset=1280*(1-enter)+1280*leave
+  let enter=smoother((e-10)/1.2),leave=smoother((e-19)/1.4),offset=1280*(1-enter)+1280*leave
   if enter>0 && leave<1 {
    c.saveGState();c.translateBy(x:offset,y:0);c.clip(to:CGRect(x:0,y:0,width:1280,height:720))
-   let q=smoother((e-5)/12),scale=mix(0.66,1.0,q),cx=mix(976,1280,q),cy=mix(886,850,q)
+   let q=smoother((e-11.2)/7.8),scale=mix(0.66,1.0,q),cx=mix(976,1280,q),cy=mix(886,850,q)
    let x=640-cx*scale,y=355-cy*scale,w=1952*scale,h=1772*scale
    c.saveGState();c.translateBy(x:x,y:y+h);c.scaleBy(x:1,y:-1);c.draw(bergenPhoto,in:CGRect(x:0,y:0,width:w,height:h));c.restoreGState()
-   let bx=x+1430*scale,by=y+850*scale,a=smoother((e-6)/0.8)
+   let bx=x+1430*scale,by=y+850*scale,a=smoother((e-11.2)/0.8)
    c.setAlpha(a);let color=gold
    for side in [-1.0,1.0] {for vertical in [-1.0,1.0] {let p=pt(bx+side*60*scale,by+vertical*110*scale);line(c,[pt(p.x-side*14,p.y),p,pt(p.x,p.y-vertical*14)],color,1.2)}}
    let lx=max(40,bx-320*scale),ly=max(90,by-140*scale)
@@ -1831,7 +1870,7 @@ func drawBergen(_ c:CGContext,_ e:Double){
    c.restoreGState()
   }
   // A geographic locator stays attached to the actual Norwegian coast after the photo leaves.
-  if e>=20.4 {let p=screen(geo(5.25,60.35)),a=smoother((e-20.4)/0.6);c.setAlpha(a);ellipse(c,p.x,p.y,3,3,gold);line(c,[p,pt(p.x+25,p.y-25)],gold,1);c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:p.x+25,y:p.y-49,width:169,height:27));txt("BERGEN · NOW EMPTY",p.x+33,p.y-44,13,gold,true,155);c.setAlpha(1)}
+  if e>=20.4 {let p=screen(geo(5.324,60.392)),a=smoother((e-20.4)/0.6);c.setAlpha(a);ellipse(c,p.x,p.y,3,3,gold);line(c,[p,pt(p.x+25,p.y-25)],gold,1);c.setFillColor(ink.withAlphaComponent(0.9).cgColor);c.fill(CGRect(x:p.x+25,y:p.y-49,width:228,height:27));txt("BERGEN CITY · FJORDS EMPTY",p.x+33,p.y-44,13,gold,true,215);c.setAlpha(1)}
   if let cue=bergenCues.last(where:{$0.0<=60+e}) {let a=smoother((60+e-cue.0)/0.35);c.setAlpha(a);c.setFillColor(ink.withAlphaComponent(0.85).cgColor);c.fill(CGRect(x:22,y:670,width:min(1120,Double(cue.1.count)*8.4+24),height:30));txt(cue.1,34,674,15,paper,false,1150)}
  }
  environmentClock=nil
@@ -1849,6 +1888,38 @@ func fleetOverlaps(_ a:FleetMember,_ b:FleetMember)->Bool {
  }}
  return true
 }
+func norwegianRouteAudit(){
+ var rows:[Int:[(CGPoint,CGPoint)]]=[:]
+ func edge(_ a:CGPoint,_ b:CGPoint){let lo=Int(floor(min(a.y,b.y)/2)),hi=Int(floor(max(a.y,b.y)/2));if lo<=hi {for r in lo...hi {rows[r,default:[]].append((a,b))}}}
+ for path in landPaths {var first=CGPoint.zero,last=CGPoint.zero
+  path.applyWithBlock{pointer in let e=pointer.pointee;switch e.type{case .moveToPoint:first=e.points[0];last=first;case .addLineToPoint:edge(last,e.points[0]);last=e.points[0];case .closeSubpath:edge(last,first);default:break}}
+ }
+ func onLand(_ p:CGPoint)->Bool {var inside=false;for (a,b) in rows[Int(floor(p.y/2))] ?? [] {if (a.y>p.y) != (b.y>p.y) && p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x {inside.toggle()}};return inside}
+ var shore=0,overlaps=0,samples=0,points=0,maxSlip=0.0
+ func check(_ name:String,_ time:Double,_ path:(Double)->Pose,_ scale:Double,_ kind:Int){
+  let p=path(time),a=path(time-0.001),b=path(time+0.001),dx=b.p.x-a.p.x,dy=b.p.y-a.p.y,speed=hypot(dx,dy)
+  if speed>1e-8 {maxSlip=max(maxSlip,abs(sin(p.yaw)*dx-cos(p.yaw)*dy)/speed)}
+  var offsets=collisionHulls[kind]
+  for x in stride(from:-125.0,through:125,by:10) {for y in stride(from:-18.0,through:18,by:4) {let v=pt(x,y);if shipHullPaths[kind].contains(v){offsets.append(v)}}}
+  for v in offsets {points+=1;if onLand(worldPoint(v,p,scale)){if shore<5 {print("COAST CONTACT \(name) at \(time): \(p.p)")};shore+=1}}
+  samples+=1
+ }
+ for frame in 0...269 {let e=Double(frame)/24
+  check("Bismarck coastal arrival",e,{bergenArrivalPose($0)},0.012,0);check("Prinz Eugen coastal arrival",e,{bergenArrivalPose($0,true)},0.012,1)
+  let a=FleetMember(id:"BISMARCK",pose:bergenArrivalPose(e),scale:0.012,kind:0),b=FleetMember(id:"PRINZ EUGEN",pose:bergenArrivalPose(e,true),scale:0.012,kind:1);if fleetOverlaps(a,b){overlaps+=1}
+ }
+ for frame in -60...288 {let e=Double(frame)/24
+  check("Bismarck Norwegian passage",e,{approachPose($0)},0.07,0);check("Prinz Eugen Norwegian passage",e,{approachPose($0,true)},0.07,1)
+  let a=FleetMember(id:"BISMARCK",pose:approachPose(e),scale:0.07,kind:0),b=FleetMember(id:"PRINZ EUGEN",pose:approachPose(e,true),scale:0.07,kind:1);if fleetOverlaps(a,b){overlaps+=1}
+ }
+ for escort in [false,true] {let a=departurePose(54,escort),b=bergenArrivalPose(0,escort);precondition(hypot(a.p.x-b.p.x,a.p.y-b.p.y)<0.0001,"Arrival starts with a position jump")}
+ let ss=approachingCruiser(0),nn=approachingCruiser(0,true),b=approachPose(12)
+ precondition(hullLocal(ss.p,b,1).y>0 && hullLocal(nn.p,b,1).y<0,"Cruiser quarter stations reversed")
+ print("NORWEGIAN ROUTE: \(samples) full-hull samples / \(points) outline and interior points; land contacts \(shore), overlaps \(overlaps), maximum sideslip \(maxSlip)");fflush(stdout)
+ precondition(shore==0 && overlaps==0 && maxSlip<0.03,"Norwegian route validation failed")
+ print("PASS: coastal arrival via Korsfjord approach; photo supplies anchorage detail; northbound exit, 22 May 65°53′N 3°38′E and 23 May 67°28′N 19°28′W anchors, northern Iceland passage; matched British approach; Suffolk starboard quarter / Norfolk port quarter")
+}
+
 func gunDamageAudit(){
  let beats:[(Int,String,Double)]=[(105,"BRIDGE / FORWARD CONTROL",bridgeHitTime),(113,"ANTON",15.2),(114,"BRUNO",15.6),(116,"AFT DIRECTOR",aftDirectorHitTime),(117,"DORA",19.1),(118,"CÄSAR",21.8)]
  for (serial,name,beat) in beats {let salvo=finalSalvos.first{$0.serial==serial}!,impact=(salvo.fire+22.4-300)/10,b=finalActors[0],target=b.pose(salvo.fire+22.4),end=salvoAim(salvo,finalActors[salvo.from],b,target)
@@ -1970,7 +2041,7 @@ func longEditAudit(){
   for id in registry {
    var state="other_location",x="",y="",heading="",scale="",coords=""
    if id=="BISMARCK" || id=="PRINZ EUGEN" {
-    if e<4.8 || e>=20.4 {let p=e<4.8 ? departurePose(54+e,id=="PRINZ EUGEN"):approachPose(min(0,(e-24)*0.08),id=="PRINZ EUGEN");state="in_frame_or_offscreen";x="\(p.p.x)";y="\(p.p.y)";heading="\(p.yaw)";scale=e<4.8 ? "0.012":"0.07";coords="geographic_projection"}
+    if e<11.2 || e>=20.4 {let p=e<11.2 ? bergenArrivalPose(e,id=="PRINZ EUGEN"):approachPose(min(0,(e-24)*0.5),id=="PRINZ EUGEN");state="in_frame_or_offscreen";x="\(p.p.x)";y="\(p.p.y)";heading="\(p.yaw)";scale=e<11.2 ? "0.012":"0.07";coords="geographic_projection"}
     else {state=id=="BISMARCK" ? "archival_photo_at_anchor":"anchored_other_fjord"}
    }
    ledgerRows.append("\(t),Bergen archival chapter,\(id),\(state),\(x),\(y),\(heading),\(scale),\(coords)")
@@ -2190,11 +2261,12 @@ else if CommandLine.arguments.contains("--ocean-review") {
 else if CommandLine.arguments.contains("--bergen-audit") {
  let a=camera(1,24),prior=camera(1,23.999),p=departurePose(54),old=departurePose(53.999);precondition(hypot(a.x-prior.x,a.y-prior.y)<0.01 && hypot(p.p.x-old.p.x,p.p.y-old.p.y)<0.001)
  precondition(releaseFilmTime(60)==84 && releaseFilmTime(468)==492)
- for frame in 0...576 {let e=Double(frame)/24,q=smoother((e-5)/12),scale=mix(0.66,1.0,q),cx=mix(976,1280,q),cy=mix(886,850,q),x=640-cx*scale,y=355-cy*scale
+ for frame in 0...576 {let e=Double(frame)/24,q=smoother((e-11.2)/7.8),scale=mix(0.66,1.0,q),cx=mix(976,1280,q),cy=mix(886,850,q),x=640-cx*scale,y=355-cy*scale
   precondition(x<=0 && x+1952*scale>=1280 && y<=0 && y+1772*scale>=720,"Photograph crop exposes an empty edge")
  }
  print("BERGEN PASS: 60–84s archival insert; outgoing and incoming map cameras retained; 577 photo crops cover the full frame; 492-second clock; later fleet simulation unchanged")
 }
+else if CommandLine.arguments.contains("--route-audit") {norwegianRouteAudit()}
 else if CommandLine.arguments.contains("--damage-audit") {gunDamageAudit()}
 else if CommandLine.arguments.contains("--entrance-audit") {entranceCameraAudit()}
 else if CommandLine.arguments.contains("--final-audit") {finalActionAudit()}
@@ -2203,7 +2275,7 @@ else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [48.5,51.0,54.0,57.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [60.0,62.0,65.0,68.0,70.0,74.0,81.0,84.0,89.0,94.0,96.0] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview"),wavePreview=CommandLine.arguments.contains("--ocean-preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)

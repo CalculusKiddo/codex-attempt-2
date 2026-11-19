@@ -1,0 +1,7 @@
+date_or_phase,longitude,latitude,role,precision,source
+21 May morning,,,Korsfjord entry; Bismarck anchors in Grimstadfjord; Prinz Eugen in Kalvenes Bay,Reported geographic sequence; no exact ship fix assigned,https://www.kbismarck.com/bismarck-atlantic-operation.html
+21 May evening,,,Regroup in Kalvenes Bay; depart via Hjeltefjord around 2200,Reported sequence; map begins after exit in offshore water,https://www.kbismarck.com/bismarck-atlantic-operation.html
+22 May noon,3.633333,65.883333,Norwegian Sea position,Reported 65°53′N 3°38′E; source time basis,https://www.kbismarck.com/bismarck-atlantic-operation.html
+22 May northern passage,,69,Advance north before shaping for Denmark Strait,Reported intended northerly route; not a measured longitude fix,https://www.kbismarck.com/bismarck-atlantic-operation.html
+23 May noon,-19.466667,67.466667,North of Iceland before Denmark Strait,Reported 67°28′N 19°28′W; source time basis,https://www.kbismarck.com/bismarck-atlantic-operation.html
+23 May contact approach,-28,65.8,Illustrative SW-bound Strait handoff,Animation waypoint for enlarged hull clearance; not a reported fix,https://www.kbismarck.com/bismarck-atlantic-operation.html
