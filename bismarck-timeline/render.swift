@@ -922,6 +922,7 @@ let bergenArrivalTrack:ArcTrack={
 }()
 func bergenArrivalDistance(_ e:Double)->Double {e<0 ? e*0.035:e>10 ? bergenArrivalTrack.length+(e-10)*0.01:hermite(0,bergenArrivalTrack.length,0.035,0.01,10,e/10)}
 func bergenArrivalPose(_ e:Double,_ escort:Bool=false)->Pose {
+ if e<0 {return departurePose(54+e,escort)}
  let distance=bergenArrivalDistance(e)
  let d=distance-(escort ? 5:0)
  if d<0 {return departureAtDistance(departureDistances.last!+24*0.035+d)}

@@ -11,7 +11,7 @@
     }
   ],
   "audio_tracks": 0,
-  "bytes": 472946924,
-  "sha256": "6bf4ba6912fc246dfbd5ed7523216b07ed49339cc2b148c4038d0fa704226310",
+  "bytes": 472941091,
+  "sha256": "c14f4a65e20d3b2b50d6f728c65ccbec84e369f71243d2338206c1614a265e7b",
   "decode": "Full ffmpeg decode with -xerror completed without errors"
 }
