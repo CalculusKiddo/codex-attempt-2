@@ -2,7 +2,7 @@
 
 A five-minute original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v7-continuity/bismarck-timeline.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v8-continuity/bismarck-timeline.mp4).
 
 The action fills the frame. The old header, footer, progress bar, ship-name leaders and large explanatory captions are removed. Small bottom-left cues identify shots for a separate script. `script-cues.csv` lists those cues and timecodes.
 
@@ -14,7 +14,7 @@ Bismarck and Prinz Eugen remain in view together during departure and the horizo
 
 Reported historical positions are separated from animation coordinates. `reported-position-anchors.csv` transcribes a selection of King George V positions from the official despatch appendix, retaining the source's time basis. The film uses enlarged geographic symbols, compressed tactical ranges, interpolated tracks and accelerated time. It is **not an exact continuous navigation log** for every vessel; surviving sources do not establish every intermediate position. The tracked identities and documented relative stations are preserved without inventing that precision.
 
-Suffolk shadows on the starboard quarter, while Norfolk and Prince of Wales cover the port quarter. The escape shows cruiser zigzags near radar range and Bismarck's starboard turn astern. Returns become intermittent, then disappear, while the ship itself remains visible to the viewer. Radar-style acquisition and search pulses are explanatory graphics, not a reproduction of a 1941 display.
+Suffolk shadows on the starboard quarter, while Norfolk and Prince of Wales cover the port quarter. Prince of Wales remains in the shadowing view and then turns away to rejoin the fleet; it is not removed between those shots. The escape shows cruiser zigzags near radar range and Bismarck's starboard turn astern. Returns become intermittent, then disappear, while the ship itself remains visible to the viewer. Radar-style acquisition and search pulses are explanatory graphics, not a reproduction of a 1941 display.
 
 The Catalina is a distinct flying-boat drawing. Its water takeoff is from Lough Erne, not an aircraft carrier. The widening search view retains Ark Royal; the later visual sighting uses a contact pulse and is captioned as visual contact.
 

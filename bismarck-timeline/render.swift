@@ -562,7 +562,8 @@ func camera(_ group:Int,_ elapsed:Double)->Cam {
   let local=desiredCamera(4,min(elapsed,22)),mapped=chaseMapPose(Pose(p:pt(local.x,local.y),yaw:0))
   let near=Cam(x:mapped.p.x,y:mapped.p.y,z:local.z/chaseMapScale)
   let retained=members.filter{$0.id != "PRINZ EUGEN" && $0.id != "HMS ARK ROYAL"}
-  let tactical=blendCamera(fittedCamera(near,members.filter{$0.id != "HMS ARK ROYAL"}),fittedCamera(near,retained),smoother((elapsed-6)/5))
+  let joined=blendCamera(fittedCamera(near,members.filter{$0.id != "HMS ARK ROYAL"}),fittedCamera(near,retained),smoother((elapsed-6)/5))
+  let tactical=blendCamera(joined,fittedCamera(near,retained.filter{$0.id != "PRINCE OF WALES"}),smoother((elapsed-18)/4))
   let plane=FleetMember(id:"CATALINA",pose:mapCatalinaPose(max(0,elapsed-24)),scale:0.08,kind:1)
   let search=fittedCamera(Cam(x:630,y:430,z:2.2),members.filter{["BISMARCK","HMS ARK ROYAL"].contains($0.id)}+[plane])
   return blendCamera(tactical,search,smoother((elapsed-21)/6))
@@ -754,6 +755,14 @@ func shadowPose(_ t:Double,_ norfolk:Bool=false)->Pose {
  return movingPose({r in let a=forward(start,heading,9,r),offset=sin(r*0.65)*(norfolk ? 28:60)
   return pt(a.p.x-sin(heading)*offset,a.p.y+cos(heading)*offset)},t)
 }
+func princeWalesShadow(_ t:Double)->Pose {
+ let base:(Double)->Pose={shadowPose($0-25,true)}
+ if t<=18{return base(t)}
+ let start=base(18),u=min(8,t-18),a=start.yaw-Double.pi*u/8,r = -300.0
+ let p=pt(start.p.x+r*(sin(a)-sin(start.yaw)),start.p.y+r*(-cos(a)+cos(start.yaw)))
+ if t<=26{return Pose(p:p,yaw:a)}
+ return forward(p,a,40,t-26)
+}
 func escapeEugen(_ t:Double)->Pose {
  let heading=2.45,start=forward(pt(800,250),heading,1,170)
  if t<=6{return forward(start.p,heading,9,t)}
@@ -782,7 +791,7 @@ func searchMap(_ c:CGContext,_ t:Double){
  if t<3.5 {wake(c,{mapCatalinaPose($0)},t,0.015)}
  if t>=8 {radar(c,plane.p,bm(t).p,t,true,35)}
 }
-func victoriousPose(_ t:Double)->Pose {forward(pt(1200,-80),2.45,4,t)}
+func victoriousPose(_ t:Double)->Pose {forward(pt(1315.535,-175.665),2.45,4,t)}
 func nightPlanePose(_ t:Double,_ n:Int)->Pose {
  let launch=6.2+Double(n)*0.7
  return movingPose({r in
@@ -791,7 +800,7 @@ func nightPlanePose(_ t:Double,_ n:Int)->Pose {
   let age=r-launch,ship=victoriousPose(r)
   if age<1.4 {return worldPoint(pt(mix(50-Double(n)*22,123,pow(age/1.4,2)),0),ship,1)}
   let start=worldPoint(pt(123,0),victoriousPose(launch+1.4),1)
-  return forward(start,ship.yaw,90,age-1.4).p
+  return forward(start,ship.yaw,134.11764705882354,age-1.4).p
  },t)
 }
 let nightRuns:[TorpedoRun]=(0..<3).map{n in
@@ -832,6 +841,7 @@ func chaseScene(_ c:CGContext,_ e:Double){
  vessel(c,cruiserModel,{chaseMapPose(escapeEugen($0))},e,0.6*chaseMapScale,"PRINZ EUGEN",paper)
  vessel(c,cruiserModel,{chaseMapPose(shadowPose($0))},e,0.58*chaseMapScale,"HMS SUFFOLK",blue)
  vessel(c,cruiserModel,{chaseMapPose(shadowPose($0,true))},e,0.58*chaseMapScale,"HMS NORFOLK",blue)
+ vessel(c,kgvModel,{chaseMapPose(princeWalesShadow($0))},e,0.82*chaseMapScale,"PRINCE OF WALES",blue)
  let ref=chaseBismarck(22).p,anchor=geo(-23.5,50.2)
  c.saveGState();c.translateBy(x:anchor.x,y:anchor.y);c.scaleBy(x:chaseMapScale,y:chaseMapScale);c.translateBy(x:-ref.x,y:-ref.y);victoriousScene(c,e);c.restoreGState()
  radar(c,chaseMapPose(shadowPose(e)).p,chaseMapPose(chaseBismarck(e)).p,e,e<16 && hypot(shadowPose(e).p.x-chaseBismarck(e).p.x,shadowPose(e).p.y-chaseBismarck(e).p.y)<260,260*chaseMapScale)
@@ -978,7 +988,7 @@ func sceneFleet(_ group:Int,_ e:Double)->[FleetMember] {
  case 10:return [member("BISMARCK",approachPose(e),0.07,0),member("PRINZ EUGEN",approachPose(e,true),0.07,1)]
  case 3:return denmarkActors.map{a in member(a.name,Pose(p:a.position(denmarkTime(e)),yaw:a.yaw),a.scale,a.model.kind)}
  case 4:
-  return [member("BISMARCK",chaseMapPose(chaseBismarck(e)),0.85*chaseMapScale,0),member("PRINZ EUGEN",chaseMapPose(escapeEugen(e)),0.6*chaseMapScale,1),member("HMS SUFFOLK",chaseMapPose(shadowPose(e)),0.58*chaseMapScale,1),member("HMS NORFOLK",chaseMapPose(shadowPose(e,true)),0.58*chaseMapScale,1),member("HMS VICTORIOUS",chaseMapPose(victoriousPose(e)),0.33*chaseMapScale,5),member("HMS ARK ROYAL",searchArkPose(e),0.037,5)]
+  return [member("BISMARCK",chaseMapPose(chaseBismarck(e)),0.85*chaseMapScale,0),member("PRINZ EUGEN",chaseMapPose(escapeEugen(e)),0.6*chaseMapScale,1),member("HMS SUFFOLK",chaseMapPose(shadowPose(e)),0.58*chaseMapScale,1),member("HMS NORFOLK",chaseMapPose(shadowPose(e,true)),0.58*chaseMapScale,1),member("PRINCE OF WALES",chaseMapPose(princeWalesShadow(e)),0.82*chaseMapScale,3),member("HMS VICTORIOUS",chaseMapPose(victoriousPose(e)),0.33*chaseMapScale,5),member("HMS ARK ROYAL",searchArkPose(e),0.037,5)]
  case 5:return [member("HMS ARK ROYAL",carrierPose(e),0.33,5),member("HMS SHEFFIELD",sheffieldPose(e),0.42,1),member("BISMARCK",preStrikeBismarck(e),1.05,0)]
  case 6:return [member("BISMARCK",bismarckAttackPath(e),1.05,0),member("HMS ARK ROYAL",carrierPose(e+24),0.33,5),member("HMS SHEFFIELD",sheffieldPose(e+24),0.42,1)]
  case 7:return [member("BISMARCK",damagedShip(e),1.05,0),member("HMS ARK ROYAL",carrierPose(e+72),0.33,5),member("HMS SHEFFIELD",sheffieldPose(e+72),0.42,1)]+(0..<5).map{member(destroyerNames[$0],destroyerPose(e,$0),1,6)}
@@ -1197,7 +1207,7 @@ let scriptCues:[(Double,String)]=[
  (0,"Operation Rheinübung · 18–27 May 1941"),(6,"20 May · leaving Europe"),(24,"North Sea · clear of the narrows"),(36,"Bismarck · technical inspection"),
  (60,"21–23 May · passage toward Denmark Strait"),(72,"24 May · Denmark Strait"),(84,"Bismarck · decisive salvo"),(88,"Shell penetration · probable aft-magazine ignition"),(90,"Hood · aft magazine explosion"),(101,"Prince of Wales · breaking off"),
  (108,"24 May · Prinz Eugen separates"),(114,"Victorious · Swordfish night strike"),(120,"25 May · British cruisers zigzag at radar range"),(126,"Bismarck turns astern · contact lost"),
- (132,"26 May · Catalina leaves Lough Erne"),(138,"Catalina · visual contact regained"),(144,"Ark Royal · first strike launches"),(153,"Mistaken target · HMS Sheffield evades"),(156,"Premature magnetic pistols · remaining torpedoes evaded"),(161,"Return, rearm · second strike"),
+ (129,"Cruisers search · Prince of Wales rejoins the fleet"),(132,"26 May · Catalina leaves Lough Erne"),(138,"Catalina · visual contact regained"),(144,"Ark Royal · first strike launches"),(153,"Mistaken target · HMS Sheffield evades"),(156,"Premature magnetic pistols · remaining torpedoes evaded"),(161,"Return, rearm · second strike"),
  (168,"Swordfish · approach to Bismarck"),(192,"Torpedoes away"),(207,"Stern hit · steering disabled"),(217,"Steering damage · schematic section"),(231,"British destroyers close through the night"),
  (240,"27 May · Rodney and King George V close"),(252,"Selected salvos · progressive damage"),(276,"Dorsetshire · torpedo attack"),(282,"Bismarck sinks · British ships remain afloat")]
 func render(_ t:Double,_ c:CGContext){
@@ -1261,7 +1271,7 @@ func continuityAudit(){
  }
  print("TORPEDO CHECK PASS: carried-release continuity and Sheffield evasion");fflush(stdout)
  var overlapCount=0
- for g in [3,5,6,7,8] {let duration=groupEnd(g)-groups[g]
+ for g in [3,4,5,6,7,8] {let duration=groupEnd(g)-groups[g]
   for i in 0...Int(duration*2) {let e=Double(i)/2,members=sceneFleet(g,e)
    for a in 0..<members.count {for b in (a+1)..<members.count {if fleetOverlaps(members[a],members[b]){if overlapCount<12{print("FLEET OVERLAP: scene \(g), elapsed \(e), \(members[a].id) / \(members[b].id)")};overlapCount+=1}}}
   }

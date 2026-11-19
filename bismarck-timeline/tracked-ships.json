@@ -26,7 +26,7 @@
     {
       "id": "PRINCE OF WALES",
       "role": "British battleship",
-      "continuity": "Fights at Denmark Strait, then shadows with Norfolk on the port quarter",
+      "continuity": "Fights at Denmark Strait, shadows with Norfolk on the port quarter, then turns away to rejoin the fleet",
       "initial_state": "alive, possibly outside current view",
       "terminal_state": "alive outside the closing view"
     },
