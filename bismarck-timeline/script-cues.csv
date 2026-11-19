@@ -1,37 +1,53 @@
 film_seconds,timecode,script_cue
-0.0,00:00,Operation Rheinübung · 18–27 May 1941
-6.0,00:06,20 May · leaving Europe
-24.0,00:24,North Sea · clear of the narrows
-36.0,00:36,Bismarck · technical inspection
-60.0,01:00,21–23 May · passage toward Denmark Strait
-70.0,01:10,HMS Suffolk · radar contact
-71.0,01:11,HMS Norfolk · joins the shadow
-72.0,01:12,24 May · Denmark Strait
-84.0,01:24,Bismarck · decisive salvo
-88.0,01:28,Shell penetration · probable aft-magazine ignition
-90.0,01:30,Hood · aft magazine explosion
-101.0,01:41,Prince of Wales · breaking off
-108.0,01:48,24 May · Prinz Eugen separates
-114.0,01:54,Victorious · Swordfish night strike
-120.0,02:00,25 May · HMS Suffolk + HMS Norfolk zigzag
-123.0,02:03,HMS Suffolk · radar contact at extreme range
-126.0,02:06,Bismarck turns astern · Suffolk loses contact
-129.0,02:09,HMS Suffolk + HMS Norfolk search · Prince of Wales departs
-132.0,02:12,26 May · Catalina leaves Lough Erne
-138.0,02:18,Catalina · visual contact regained
-144.0,02:24,Ark Royal · first strike launches
-153.0,02:33,Mistaken target · HMS Sheffield evades
-156.0,02:36,Premature magnetic pistols · remaining torpedoes evaded
-161.0,02:41,"Return, rearm · second strike"
-168.0,02:48,Swordfish · approach to Bismarck
-192.0,03:12,Torpedoes away
-207.0,03:27,Stern hit · steering disabled
-217.0,03:37,Steering damage · schematic section
-231.0,03:51,British destroyers close through the night
-240.0,04:00,27 May · Rodney and King George V close
-252.0,04:12,Selected salvos · progressive damage
-276.0,04:36,Dorsetshire · torpedo attack
-282.0,04:42,Bismarck sinks · British ships remain afloat
-288,04:48,Fade to black
-289,04:49,"Human cost · 2,000+ dead / ~100 survivors"
-294,04:54,Operation Rheinübung · 18–27 May 1941
+0.0,00:00.0,"Operation Rheinübung · 18–27 May 1941"
+6.0,00:06.0,"20 May · leaving Europe"
+24.0,00:24.0,"North Sea · clear of the narrows"
+36.0,00:36.0,"Bismarck · technical inspection"
+60.0,01:00.0,"21–23 May · passage toward Denmark Strait"
+70.0,01:10.0,"HMS Suffolk · radar contact"
+71.0,01:11.0,"HMS Norfolk · joins the shadow"
+72.0,01:12.0,"British intercept force · from Scapa Flow"
+86.0,01:26.0,"Hood leads · Prince of Wales follows toward Iceland"
+96.0,01:36.0,"Prinz Eugen moves into the German lead"
+100.0,01:40.0,"02:05 · Holland turns parallel, waiting for daylight"
+112.0,01:52.0,"03:40 · British force turns in at 28 knots"
+122.0,02:02.0,"05:35 · enemy sighted; range closes"
+132.0,02:12.0,"05:52 · Hood and Prince of Wales open fire"
+138.0,02:18.0,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"
+142.0,02:22.0,"German ships reply · ranging salvos"
+148.0,02:28.0,"Prince of Wales hits Bismarck's bow"
+153.5,02:33.5,"Another hit · flooding below the armour belt"
+156.0,02:36.0,"Bismarck · decisive salvo toward Hood"
+164.0,02:44.0,"Shell penetration · probable aft-magazine ignition"
+166.0,02:46.0,"Hood · aft-magazine explosion"
+176.0,02:56.0,"Hood sinks · Prince of Wales remains under fire"
+186.0,03:06.0,"Bridge damage · Prince of Wales turns away under smoke"
+204.0,03:24.0,"Bismarck survives the action · fuel leaks astern"
+214.0,03:34.0,"Bow damage · schematic reconstruction"
+222.0,03:42.0,"Seawater enters · forward fuel tanks become unusable"
+230.0,03:50.0,"Further flooding · speed and endurance reduced"
+242.0,04:02.0,"Atlantic raiding abandoned · make for a French repair port"
+258.0,04:18.0,"24 May · Prinz Eugen separates"
+264.0,04:24.0,"Victorious · Swordfish night strike"
+270.0,04:30.0,"25 May · HMS Suffolk + HMS Norfolk zigzag"
+273.0,04:33.0,"HMS Suffolk · radar contact at extreme range"
+276.0,04:36.0,"Bismarck turns astern · Suffolk loses contact"
+279.0,04:39.0,"HMS Suffolk + HMS Norfolk search · Prince of Wales departs"
+282.0,04:42.0,"26 May · Catalina leaves Lough Erne"
+288.0,04:48.0,"Catalina · visual contact regained"
+294.0,04:54.0,"Ark Royal · first strike launches"
+303.0,05:03.0,"Mistaken target · HMS Sheffield evades"
+306.0,05:06.0,"Premature magnetic pistols · remaining torpedoes evaded"
+311.0,05:11.0,"Return, rearm · second strike"
+318.0,05:18.0,"Swordfish · approach to Bismarck"
+342.0,05:42.0,"Torpedoes away"
+357.0,05:57.0,"Stern hit · steering disabled"
+367.0,06:07.0,"Steering damage · schematic section"
+381.0,06:21.0,"British destroyers close through the night"
+390.0,06:30.0,"27 May · Rodney and King George V close"
+402.0,06:42.0,"Selected salvos · progressive damage"
+426.0,07:06.0,"Dorsetshire · torpedo attack"
+432.0,07:12.0,"Bismarck sinks · British ships remain afloat"
+438.0,07:18.0,"Fade to black"
+439.0,07:19.0,"Human cost · 2,000+ dead / ~100 survivors"
+444.0,07:24.0,"Operation Rheinübung · 18–27 May 1941"

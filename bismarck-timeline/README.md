@@ -1,8 +1,8 @@
 # Operation Rheinübung — silent script-cue edition
 
-A five-minute original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
+A seven-and-a-half-minute original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v9-named-cruisers/bismarck-timeline.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v10-denmark-strait/bismarck-timeline.mp4).
 
 The action fills the frame. The old header, footer, progress bar, ship-name leaders and large explanatory captions are removed. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
@@ -17,6 +17,12 @@ Reported historical positions are separated from animation coordinates. `reporte
 Suffolk shadows on the starboard quarter, while Norfolk and Prince of Wales cover the port quarter. Prince of Wales remains in the shadowing view and then turns away to rejoin the fleet; it is not removed between those shots. The escape shows cruiser zigzags near radar range and Bismarck's starboard turn astern. Returns become intermittent, then disappear, while the ship itself remains visible to the viewer. Radar-style acquisition and search pulses are explanatory graphics, not a reproduction of a 1941 display.
 
 The Catalina is a distinct flying-boat drawing. Its water takeoff is from Lough Erne, not an aircraft carrier. The widening search view retains Ark Royal; the later visual sighting uses a contact pulse and is captioned as visual contact.
+
+## Denmark Strait approach and fuel damage
+
+The 01:12 passage now opens into a full minute of British approach: a Scapa Flow route marker, Hood leading Prince of Wales, the parallel course, the turn in at 28 knots and sighting before opening fire. The camera ends at the exact projected hull positions and scales used by the battle. These tracks illustrate the documented sequence, not precise reported fixes throughout the approach. Prinz Eugen moves into the German lead with lateral passing clearance.
+
+The battle lasts 72 seconds. Prince of Wales scores a bow hit and a below-belt hit; the bow projectile passes through without detonating. Oil trails the moving ship. The aftermath includes a small section showing flooded bow compartments, isolated forward fuel and a separate below-belt flood. Fuel leaking out and fuel made inaccessible by flooding are different problems. Reduced speed and endurance lead into a planned French repair-port route, followed by the existing pursuit. No exact lost-fuel tonnage is asserted.
 
 ## Aircraft and weapons
 
@@ -34,13 +40,13 @@ Detailed original overhead plans are rendered at 4096-pixel source width. Class 
 
 Ark Royal has planked deck detail, lifts, arresting wires, runway markings, island glazing, funnel and edge fittings. Swordfish have ribs, bracing, roundels, propellers and visible underslung torpedoes; the Catalina has a boat hull, parasol wing, twin engines and floats.
 
-Animated wave crests overlay the procedural sea. Wakes follow past stern positions through turns, use a consistent foam lifetime and respect each hull's dimensions. Restrained rain streaks are a separate wind-driven screen layer. Explosions combine expanding shock rings, water columns, fire, sparks and drifting smoke instead of stacks of identical white circles.
+Animated wave crests overlay the procedural sea. Wakes follow past stern positions through turns, use a consistent age and distance fade and respect each hull's dimensions. Restrained rain streaks are a separate wind-driven screen layer. Explosions combine expanding shock rings, water columns, fire, sparks and drifting smoke instead of stacks of identical white circles.
 
 ## Ending
 
-- **04:48:** fade to black begins while the surviving British ships remain afloat.
-- **04:49–04:54:** human cost, `2,000+ DEAD` and `~100 SURVIVORS`.
-- **04:54–05:00:** only `OPERATION RHEINÜBUNG` and `18–27 MAY 1941`.
+- **07:18:** fade to black begins while the surviving British ships remain afloat.
+- **07:19–07:24:** human cost, `2,000+ DEAD` and `~100 SURVIVORS`.
+- **07:24–07:30:** only `OPERATION RHEINÜBUNG` and `18–27 MAY 1941`.
 
 The survivor figure is deliberately approximate, as requested.
 
@@ -48,16 +54,19 @@ The survivor figure is deliberately approximate, as requested.
 
 `continuity-audit.txt` checks aircraft spacing, carried-to-released torpedo continuity, Sheffield's evasion, hull separation during manoeuvres, paired opening framing, matched carrier zoom and unchanged ship membership within each scene. Its ledger is generated from actual renderer draw calls.
 
+`long-edit-audit.txt` checks the added approach for coastline intersections, hull overlaps, framing, sideslip and a matched battle handoff, and exports the extended ledger.
+
 `hull-audit.txt` checks 18,360 muzzle positions across 360 degrees and 4.89 million visible raster pixels across 144 ship/bearing combinations. Only subpixel antialias coverage crosses a mathematical edge. `hull-fit-review.png` shows the six ship plan types. `video-verification.json` records the final duration, frame count, video-only stream layout, file size and SHA-256 digest. The exported MP4 is decoded end to end with ffmpeg's error-stop option before release.
 
 ## Historical sources and limits
 
 - [Admiral Tovey's official despatch, ADM 234/509](https://www.hmshood.org.uk/reference/official/adm234/adm234-509tovey.htm): shadowing stations, loss of contact during zigzags, Force H, Sheffield's evasion and withdrawal, the night destroyers, and King George V's reported positions.
+- [NHHC British–American cooperation account](https://www.history.navy.mil/research/library/online-reading-room/title-list-alphabetically/s/sinking-of-the-bismarck/british-american-cooperation.html): fuel leakage, saltwater contamination and the decision to seek a French port.
 - [Admiralty war diary](https://www.kbismarck.com/admiralty-war-diary.html): contemporary operational reports and Force H chronology.
 - [Leonard B. Smith's Catalina report, NHHC](https://www.history.navy.mil/research/library/online-reading-room/title-list-alphabetically/s/sinking-of-the-bismarck/the-scouting-and-search-for-bismarck.html): the flying-boat search and contact. The contact graphic does not imply Catalina radar detected the ship.
 - [Coastal Command operations report](https://www.kbismarck.com/coastal-command-bismarck.html): search patrols, Lough Erne and subsequent shadowing.
 - [Hood loss enquiry, ADM 116/4351](https://www.hmshood.org.uk/reference/official/adm116/adm116-4351_to59.htm): probable shell penetration and aft-magazine explosion. The exact shell path in the section is illustrative.
-- [Bismarck survivor interrogation reports, ADM 267/137](https://www.kbismarck.com/archives/survivor-reports.pdf), and [Garzke/Dulin forensic discussion](https://www.navweaps.com/index_inro/INRO_Bismarck.php): steering damage and competing interpretations.
+- [Bismarck survivor interrogation reports, ADM 267/137](https://www.kbismarck.com/archives/survivor-reports.pdf), and [Garzke/Dulin forensic discussion](https://www.navweaps.com/index_inro/INRO_Bismarck.php): bow and below-belt damage, flooding, inaccessible forward fuel, steering damage and competing interpretations.
 - [Bismarck technical characteristics](https://www.kbismarck.com/genedata.html), [armament](https://www.kbismarck.com/armament.html), [38 cm range table](https://kbismarck.com/38cm.html), and [Rodney's preliminary gunnery report](https://www.kbismarck.com/rodney-gunnery-report.html): plan proportions, gun arrangements and representative salvo/flight treatment.
 - [BazBattles reference video](https://www.youtube.com/watch?v=zuG4qFXPMmk): overhead documentary presentation only; its artwork is not embedded.
 - Public-domain Natural Earth [1:10m land](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_land.geojson), [1:50m lakes](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_lakes.geojson), and [rivers](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_rivers_lake_centerlines.geojson).
@@ -75,6 +84,8 @@ python3 -m venv .venv
 swiftc -O render.swift -o render
 FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
 ./render . --continuity-audit
+./render . --long-audit
+./render . --export-cues
 ./render . --hull-audit
 ./render . --stills
 ./render . "$FFMPEG"

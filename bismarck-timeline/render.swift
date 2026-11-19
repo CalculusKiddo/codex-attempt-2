@@ -3,7 +3,7 @@ import CoreGraphics
 import Foundation
 
 let root=URL(fileURLWithPath:CommandLine.arguments[1])
-let W=1920, H=1080, fps=24, duration=300
+let W=1920, H=1080, fps=24, duration=450
 let ink=NSColor(calibratedRed:0.045,green:0.09,blue:0.115,alpha:1)
 let paper=NSColor(calibratedRed:0.89,green:0.90,blue:0.85,alpha:1)
 let gold=NSColor(calibratedRed:0.92,green:0.67,blue:0.34,alpha:1)
@@ -14,6 +14,10 @@ let deck=NSColor(calibratedRed:0.64,green:0.53,blue:0.36,alpha:1)
 func pt(_ x:Double,_ y:Double)->CGPoint{CGPoint(x:x,y:y)}
 func mix(_ a:Double,_ b:Double,_ q:Double)->Double{a+(b-a)*q}
 func ease(_ x:Double)->Double{let q=max(0,min(1,x));return q*q*(3-2*q)}
+var environmentClock:Double?=nil
+var narrativeClock=0.0
+var suppressScriptCues=false
+var explicitFuelOil=false
 var suppressWorldText=false
 func txt(_ s:String,_ x:Double,_ y:Double,_ size:Double,_ color:NSColor=paper,_ bold:Bool=false,_ width:Double=1150){
  if suppressWorldText{return}
@@ -232,7 +236,8 @@ func aircraft(_ c:CGContext,_ x:Double,_ y:Double,_ scale:Double,_ angle:Double,
  c.restoreGState()
 }
 let seaImage=NSImage(contentsOf:root.appendingPathComponent("ocean.png"))!.cgImage(forProposedRect:nil,context:nil,hints:nil)!
-func ocean(_ c:CGContext,_ t:Double,_ storm:Bool=false){
+func ocean(_ c:CGContext,_ time:Double,_ storm:Bool=false){
+ let t=environmentClock ?? time
  if presenceAuditOnly{return}
  c.setFillColor(ink.cgColor);c.fill(CGRect(x:-4096,y:-4096,width:8192,height:8192))
  c.saveGState()
@@ -261,7 +266,15 @@ let originalCaptions=[
  "THE HUMAN COST","THE HUNT FOR BISMARCK"
 ]
 struct Actor {let model:Model;let name:String;let x:Double;let y:Double;let yaw:Double;let scale:Double;let tint:NSColor;var speed:Double=0.35
- func position(_ sim:Double)->CGPoint {pt(x+cos(yaw)*sim*speed,y+sin(yaw)*sim*speed)}
+ var turnStart:Double?=nil;var turnDuration:Double=380;var turnAngle:Double=Double.pi/2;var turnRadius:Double=260
+ func pose(_ sim:Double)->Pose {
+  guard let start=turnStart,sim>start else{return forward(pt(x,y),yaw,speed,sim)}
+  let origin=forward(pt(x,y),yaw,speed,start),elapsed=min(turnDuration,sim-start),angle=yaw+turnAngle*elapsed/turnDuration,r=turnAngle>=0 ? turnRadius:-turnRadius
+  let p=pt(origin.p.x+r*(sin(angle)-sin(yaw)),origin.p.y+r*(-cos(angle)+cos(yaw)))
+  if sim>start+turnDuration{return forward(p,angle,speed,sim-start-turnDuration)}
+  return Pose(p:p,yaw:angle)
+ }
+ func position(_ sim:Double)->CGPoint {pose(sim).p}
 }
 struct Salvo {let fire:Double;let from:Int;let to:Int;let guns:Int;let hit:Bool;let serial:Int}
 func waterSplash(_ c:CGContext,_ x:Double,_ y:Double,_ age:Double,_ speed:Double){
@@ -270,13 +283,22 @@ func waterSplash(_ c:CGContext,_ x:Double,_ y:Double,_ age:Double,_ speed:Double
  c.setStrokeColor(paper.withAlphaComponent((1-q)*0.6).cgColor);c.setLineWidth(1);c.strokeEllipse(in:CGRect(x:x-r,y:y-r,width:r*2,height:r*2))
  for j in 0..<7{let a=Double(j)*2.399;ellipse(c,x+cos(a)*r*0.4,y+sin(a)*r*0.4,r*0.16,r*0.16,paper.withAlphaComponent((1-q)*0.9))}
 }
+func salvoAim(_ e:Salvo,_ a:Actor,_ b:Actor,_ future:Pose)->CGPoint {
+ if !e.hit{return future.p}
+ let local:CGPoint
+ if b.name=="HOOD" {local=a.name=="BISMARCK" ? pt(-72,0):pt(-10,12)}
+ else if b.name=="BISMARCK" && a.name=="PRINCE OF WALES" {local=e.serial==41 ? pt(102,-2):pt(-8,-13)}
+ else {local=pt(20,0)}
+ return worldPoint(local,future,b.scale)
+}
 func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events:[Salvo],_ flight:Double){
  if presenceAuditOnly{return}
  // Fall of shot is clustered; range errors are shared by a salvo, with individual dispersion.
  for e in events {
   let age=sim-e.fire;guard age>=0 && age<flight+8 else{continue}
-  let a=actors[e.from],b=actors[e.to],origin=a.position(e.fire),future=b.position(e.fire+flight)
-  let bearing:Double=atan2(Double(future.y-origin.y),Double(future.x-origin.x))
+  let a=actors[e.from],b=actors[e.to],shooterPose=a.pose(e.fire),futurePose=b.pose(e.fire+flight),origin=shooterPose.p,future=futurePose.p
+  let intended=salvoAim(e,a,b,futurePose)
+  let bearing:Double=atan2(Double(intended.y-origin.y),Double(intended.x-origin.x))
   let dir=pt(cos(bearing),sin(bearing)),normal=pt(-dir.y,dir.x)
   var offsets:[(Double,Double)] = []
   if a.model.kind==2 {
@@ -285,35 +307,35 @@ func gunnery(_ c:CGContext,_ sim:Double,_ speed:Double,_ actors:[Actor],_ events
   else if a.model.kind==4 {offsets=[(72,-2.4),(72,2.4),(46,-2.4),(46,2.4)]}
   else {let sign=e.serial%2==0 ? -2.4:2.4;offsets=[(72,sign),(46,sign),(-61,sign),(-91,sign)]}
   for (j,gun) in offsets.prefix(e.guns).enumerated(){
-   let relative=abs(atan2(sin(bearing-a.yaw),cos(bearing-a.yaw)))
+   let relative=abs(atan2(sin(bearing-shooterPose.yaw),cos(bearing-shooterPose.yaw)))
    if a.model.kind==2 && gun.0==12 && relative<0.61 {continue}
    if a.model.kind != 2 && gun.0<0 && relative<0.61 {continue}
    if gun.0>0 && relative>2.53 {continue}
-   let local=muzzleLocal(a.model.kind,gun.0,gun.1,bearing-a.yaw)
-   let start=worldPoint(local,Pose(p:origin,yaw:a.yaw),a.scale)
+   let local=muzzleLocal(a.model.kind,gun.0,gun.1,bearing-shooterPose.yaw)
+   let start=worldPoint(local,Pose(p:origin,yaw:shooterPose.yaw),a.scale)
    // Recoil flash lasts one frame at the displayed speed; smoke lingers separately.
    if age<max(0.12,speed/24){ellipse(c,start.x,start.y,4,4,gold.withAlphaComponent(0.8));ellipse(c,start.x,start.y,1.8,1.8,paper)}
    if age<10 {let q=age/10;ellipse(c,start.x+q*12,start.y-q*8,3+q*10,3+q*7,paper.withAlphaComponent((1-q)*0.18))}
    let rangeError=Double((e.serial*7)%5-2)*35.0
    let safetySide=e.serial%2==0 ? 34.0:-34.0
-   let offHull=pt(-sin(b.yaw)*safetySide,cos(b.yaw)*safetySide)
+   let offHull=pt(-sin(futurePose.yaw)*safetySide,cos(futurePose.yaw)*safetySide)
    let spread=sin(Double(e.serial*23+j*11))*3.5
    var end=pt(future.x+offHull.x+dir.x*(rangeError+spread)+normal.x*sin(Double(j*7+e.serial))*3,future.y+offHull.y+dir.y*(rangeError+spread)+normal.y*sin(Double(j*7+e.serial))*3)
-   if e.hit && j==0 {end=b.name=="HOOD" ? worldPoint(pt(-72,0),Pose(p:future,yaw:b.yaw),b.scale):future}
+   if e.hit && j==0 {end=intended}
    let q=min(1,age/flight)
    if age<flight {let pos=pt(mix(start.x,end.x,q),mix(start.y,end.y,q));ellipse(c,pos.x,pos.y,0.8,0.8,paper.withAlphaComponent(0.75))}
    else {
     let struck=actors.enumerated().first {index,target in
      if target.name=="HOOD" && e.fire+flight>660 {return false}
-     return insideHull(end,Pose(p:target.position(e.fire+flight),yaw:target.yaw),target.scale,target.model.kind)
+     return insideHull(end,target.pose(e.fire+flight),target.scale,target.model.kind)
     }
-    if struck != nil {blast(c,end.x,end.y,(age-flight)/speed,24,true)}
+    if struck != nil {let throughBow=a.name=="PRINCE OF WALES" && e.serial==41;blast(c,end.x,end.y,(age-flight)/speed,throughBow ? 12:24,!throughBow)}
     else {waterSplash(c,end.x,end.y,age-flight,speed)}
    }
   }
  }
 }
-let denmarkActors=[Actor(model:shipModel,name:"BISMARCK",x:610,y:285,yaw:2.45,scale:0.90,tint:red),Actor(model:cruiserModel,name:"PRINZ EUGEN",x:432.8,y:431.7,yaw:2.45,scale:0.65,tint:red),Actor(model:hoodModel,name:"HOOD",x:880,y:425,yaw:-2.35,scale:0.90,tint:blue),Actor(model:kgvModel,name:"PRINCE OF WALES",x:1111.9,y:659.9,yaw:-2.35,scale:0.82,tint:blue)]
+let denmarkActors=[Actor(model:shipModel,name:"BISMARCK",x:610,y:285,yaw:2.45,scale:0.90,tint:red),Actor(model:cruiserModel,name:"PRINZ EUGEN",x:432.8,y:431.7,yaw:2.45,scale:0.65,tint:red),Actor(model:hoodModel,name:"HOOD",x:880,y:425,yaw:-2.35,scale:0.90,tint:blue),Actor(model:kgvModel,name:"PRINCE OF WALES",x:1111.9,y:659.9,yaw:-2.35,scale:0.82,tint:blue,turnStart:700)]
 let finalActors=[Actor(model:shipModel,name:"BISMARCK",x:850,y:360,yaw:2.5,scale:0.85,tint:red,speed:0.08),Actor(model:rodneyModel,name:"RODNEY",x:330,y:240,yaw:0.25,scale:0.84,tint:blue),Actor(model:kgvModel,name:"KING GEORGE V",x:430,y:650,yaw:-0.5,scale:0.84,tint:blue)]
 func denmarkTime(_ e:Double)->Double {
  let keys:[(Double,Double)]=[(0,0),(5,180),(9,400),(12,508),(17,540),(21,600),(36,1080)]
@@ -355,7 +377,7 @@ func explosion(_ c:CGContext,_ p:CGPoint,_ age:Double,_ size:Double,_ fire:Bool)
  c.restoreGState()
 }
 func sinkingShip(_ c:CGContext,_ model:Model,_ pose:Pose,_ scale:Double,_ age:Double,_ broken:Bool){
- let q=smoother(age/7),opacity=1-smoother((age-5)/2.8)
+ let q=smoother(age/7),opacity=1-smoother((age-5)/2.8),rippleFade=exp(-max(0,age-7)/5)
  c.saveGState();c.translateBy(x:pose.p.x,y:pose.p.y);c.rotate(by:pose.yaw);c.scaleBy(x:scale,y:scale)
  for piece in 0..<(broken ? 2:1) {
   c.saveGState();let side=piece==0 ? 1.0:-1.0
@@ -366,12 +388,12 @@ func sinkingShip(_ c:CGContext,_ model:Model,_ pose:Pose,_ scale:Double,_ age:Do
   ship(c,model,0,0,1,0,Double.pi/2,age,false);c.restoreGState()
  }
  for j in 0..<22 {let x = -110+Double(j)*10+sin(Double(j))*q*28,y=sin(Double(j)*2.7)*(18+q*20)
-  ellipse(c,x,y,0.9+q,0.5,paper.withAlphaComponent(0.35*q*(1-q*0.6)))
+  ellipse(c,x,y,0.9+q,0.5,paper.withAlphaComponent(0.35*q*(1-q*0.6)*rippleFade))
  }
  c.restoreGState()
  let radius=90*scale*(0.3+q)
- puff(c,pose.p.x,pose.p.y,radius,radius*0.4,blue,0.15*q)
- for j in 0..<3 {let r=radius+Double(j)*15*scale;c.setStrokeColor(paper.withAlphaComponent(0.18*q).cgColor);c.setLineWidth(0.7);c.strokeEllipse(in:CGRect(x:pose.p.x-r,y:pose.p.y-r*0.4,width:r*2,height:r*0.8))}
+ puff(c,pose.p.x,pose.p.y,radius,radius*0.4,blue,0.15*q*rippleFade)
+ for j in 0..<3 {let r=radius+Double(j)*15*scale;c.setStrokeColor(paper.withAlphaComponent(0.18*q*rippleFade).cgColor);c.setLineWidth(0.7);c.strokeEllipse(in:CGRect(x:pose.p.x-r,y:pose.p.y-r*0.4,width:r*2,height:r*0.8))}
 }
 func hoodSection(_ c:CGContext,_ e:Double){
  let alpha=smoother((e-17)/0.7)*(1-smoother((e-23.5)/0.8));if alpha<0.001{return}
@@ -418,18 +440,25 @@ func animatedSea(_ c:CGContext,_ t:Double,_ storm:Bool){
 func denmark(_ c:CGContext,_ t:Double,_ shot:Int,_ u:Double){
  let sim=denmarkTime(t-72)
  let actors=denmarkActors
- for (i,a) in actors.enumerated(){let p=a.position(sim);recordPresence(a.name,Pose(p:p,yaw:a.yaw),a.scale,a.model.kind);let target=actors[i<2 ? 2:0].position(sim)
+ for (i,a) in actors.enumerated(){let pose=a.pose(sim),p=pose.p;recordPresence(a.name,pose,a.scale,a.model.kind);let targetIndex=i<2 ? (sim<540 ? 2:3):(i==2 && sim<180 ? 1:0),targetActor=actors[targetIndex],targetPose=targetActor.pose(sim+32)
+  var target=targetPose.p
+  if i==3 {target=worldPoint(sim<400 ? pt(102,-2):pt(-8,-13),targetPose,targetActor.scale)}
+  if i<2 && targetIndex==2 {target=worldPoint(i==0 ? pt(-72,0):pt(-10,12),targetPose,targetActor.scale)}
+  if i<2 && targetIndex==3 {target=worldPoint(pt(20,0),targetPose,targetActor.scale)}
   aimWorld=atan2(target.y-p.y,target.x-p.x)
-  let track:(Double)->Pose={r in Pose(p:a.position(r*30),yaw:a.yaw)}
+  let track:(Double)->Pose={r in a.pose(r*30)}
+  if i==0 && sim>=342 {oilSlick(c,track,sim/30,a.scale,(sim-342)/30)}
+  if i==3 && sim>=700 {smokeScreen(c,track,sim/30,a.scale,(sim-700)/30)}
   if i==2 && sim>540 {c.saveGState();c.setAlpha(exp(-(sim-540)/180));wake(c,track,18,a.scale,a.model.kind);c.restoreGState()}else{wake(c,track,sim/30,a.scale,a.model.kind)}
-  if i==2 && sim>540 {sinkingShip(c,a.model,Pose(p:p,yaw:a.yaw),a.scale,(t-89),true);blast(c,p.x-cos(a.yaw)*72*a.scale,p.y-sin(a.yaw)*72*a.scale,t-89,105,true)}
-  else {ship(c,a.model,p.x,p.y,a.scale,a.yaw,1.57,t,false);label(c,a.name,p.x,p.y-18,a.tint)}
+  if i==2 && sim>540 {sinkingShip(c,a.model,Pose(p:p,yaw:pose.yaw),a.scale,(t-89),true);blast(c,p.x-cos(pose.yaw)*72*a.scale,p.y-sin(pose.yaw)*72*a.scale,t-89,105,true)}
+  else {ship(c,a.model,p.x,p.y,a.scale,pose.yaw,1.57,t,false);label(c,a.name,p.x,p.y-18,a.tint)}
  }
  aimWorld=nil
  var events:[Salvo]=[]
- for (n,fire) in [180.0,340,508,690].enumerated(){events.append(Salvo(fire:fire,from:0,to:fire<540 ? 2:3,guns:4,hit:fire==508,serial:n))}
- for (n,fire) in [0.0,240,420].enumerated(){events.append(Salvo(fire:fire,from:2,to:1,guns:4,hit:false,serial:n+20))}
- for (n,fire) in [30.0,310,700].enumerated(){events.append(Salvo(fire:fire,from:3,to:0,guns:5,hit:n==3,serial:n+40))}
+ for (n,fire) in [180.0,340,508,690].enumerated(){events.append(Salvo(fire:fire,from:0,to:fire<540 ? 2:3,guns:4,hit:fire==508 || fire==690,serial:n))}
+ for (n,fire) in [0.0,240,420].enumerated(){events.append(Salvo(fire:fire,from:2,to:fire<180 ? 1:0,guns:4,hit:false,serial:n+20))}
+ for (n,fire) in [30.0,310,430].enumerated(){events.append(Salvo(fire:fire,from:3,to:0,guns:5,hit:n>=1,serial:n+40))}
+ events.append(Salvo(fire:170,from:1,to:2,guns:4,hit:true,serial:70))
  gunnery(c,sim,30,actors,events,32)
 
 }
@@ -501,6 +530,7 @@ func vessel(_ c:CGContext,_ model:Model,_ path:(Double)->Pose,_ t:Double,_ scale
  let identity = !id.isEmpty ? id:!name.isEmpty ? name:model.kind==0 ? "BISMARCK":"PRINZ EUGEN"
  recordPresence(identity,path(t),scale,model.kind)
  if presenceAuditOnly{return}
+ if !explicitFuelOil && model.kind==0 && identity=="BISMARCK" && narrativeClock>=108 {oilSlick(c,path,t,scale,45)}
  if trails {wake(c,path,t,scale,model.kind)}
  let p=path(t);ship(c,model,p.p.x,p.p.y,scale,p.yaw,Double.pi/2,t,false)
  if !name.isEmpty {label(c,name,p.p.x,p.p.y,tint)}
@@ -732,9 +762,13 @@ func departure(_ c:CGContext,_ e:Double,_ specs:Bool=false){
  }
 }
 func approachPose(_ t:Double,_ escort:Bool=false)->Pose {
- let path:(Double)->CGPoint={v in geo(mix(3.5,-25,smoother(v/12)),mix(58.25,65,smoother(v/12)))}
+ let path:(Double)->CGPoint={v in
+  let a=geo(3.5,58.25),b=geo(-25,65),heading=atan2(Double(b.y-a.y),Double(b.x-a.x))
+  if v<0{return forward(a,heading,0.49,v).p};if v>12{return forward(b,heading,0.49,v-12).p}
+  return geo(mix(3.5,-25,smoother(v/12)),mix(58.25,65,smoother(v/12)))
+ }
  if !escort{return movingPose(path,t)}
- return movingPose({v in let a=movingPose(path,v);return forward(a.p,a.yaw,1,-8).p},t)
+ return movingPose({v in let a=movingPose(path,v);let p=forward(a.p,a.yaw,1,-20).p;return pt(p.x,p.y+4)},t)
 }
 func departingTrack(_ t:Double,_ split:Double,_ base:(Double)->Pose,_ end:CGPoint,_ control:CGPoint,_ finish:Double)->Pose {
  if t<=split{return base(t)}
@@ -986,7 +1020,7 @@ func sceneFleet(_ group:Int,_ e:Double)->[FleetMember] {
   let t=group==1 ? e+30:e
   return [member("BISMARCK",departurePose(t),0.012,0),member("PRINZ EUGEN",departurePose(t,true),0.012,1)]
  case 10:return [member("BISMARCK",approachPose(e),0.07,0),member("PRINZ EUGEN",approachPose(e,true),0.07,1)]
- case 3:return denmarkActors.map{a in member(a.name,Pose(p:a.position(denmarkTime(e)),yaw:a.yaw),a.scale,a.model.kind)}
+ case 3:return denmarkActors.map{a in member(a.name,a.pose(denmarkTime(e)),a.scale,a.model.kind)}
  case 4:
   return [member("BISMARCK",chaseMapPose(chaseBismarck(e)),0.85*chaseMapScale,0),member("PRINZ EUGEN",chaseMapPose(escapeEugen(e)),0.6*chaseMapScale,1),member("HMS SUFFOLK",chaseMapPose(shadowPose(e)),0.58*chaseMapScale,1),member("HMS NORFOLK",chaseMapPose(shadowPose(e,true)),0.58*chaseMapScale,1),member("PRINCE OF WALES",chaseMapPose(princeWalesShadow(e)),0.82*chaseMapScale,3),member("HMS VICTORIOUS",chaseMapPose(victoriousPose(e)),0.33*chaseMapScale,5),member("HMS ARK ROYAL",searchArkPose(e),0.037,5)]
  case 5:return [member("HMS ARK ROYAL",carrierPose(e),0.33,5),member("HMS SHEFFIELD",sheffieldPose(e),0.42,1),member("BISMARCK",preStrikeBismarck(e),1.05,0)]
@@ -1098,28 +1132,22 @@ func torpedo(_ c:CGContext,_ run:TorpedoRun,_ time:Double,_ contact:Contact?){
 // One continuous foam mesh, tied to past stern positions. No random/frame-based particles.
 func wake(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ kind:Int=0){
  if presenceAuditOnly{return}
- let dimensions=classScale(kind),sternLength=123*dimensions.x,breadth=dimensions.y
- let before=path(t-0.05),after=path(t+0.05),speed=hypot(Double(after.p.x-before.p.x),Double(after.p.y-before.p.y))/0.1
- let span=45.0,steps=54
- _=speed
+ let dimensions=classScale(kind),length=max(0.01,300*scale*dimensions.x),sternLength=123*dimensions.x,breadth=dimensions.y
+ var positions:[Pose]=[path(t)],ages=[0.0],distances=[0.0],distance=0.0
+ for j in 1...180 {let age=Double(j)*0.25,p=path(t-age),prev=positions.last!,segment=hypot(p.p.x-prev.p.x,p.p.y-prev.p.y)
+  if distance+segment>=length && segment>1e-9 {let q=(length-distance)/segment,point=pt(mix(prev.p.x,p.p.x,q),mix(prev.p.y,p.p.y,q));positions.append(Pose(p:point,yaw:mix(prev.yaw,p.yaw,q)));ages.append(mix(ages.last!,age,q));distances.append(length);break}
+  distance+=segment;positions.append(p);ages.append(age);distances.append(distance)
+ }
  var left:[CGPoint]=[],right:[CGPoint]=[],mid:[CGPoint]=[]
- for j in 0...steps {let age=Double(j)/Double(steps)*span,p=path(t-age),width=(2.5+Double(j)*0.16)*scale*breadth
-  let stern=pt(p.p.x-cos(p.yaw)*sternLength*scale,p.p.y-sin(p.yaw)*sternLength*scale)
+ for i in positions.indices {let p=positions[i],q=distances[i]/length,width=(2.5+14*q)*scale*breadth,stern=worldPoint(pt(-sternLength,0),p,scale)
   mid.append(stern);left.append(pt(stern.x-sin(p.yaw)*width,stern.y+cos(p.yaw)*width));right.append(pt(stern.x+sin(p.yaw)*width,stern.y-cos(p.yaw)*width))
  }
- for j in 0..<steps {let ageFraction=Double(j)/Double(steps),alpha=0.21*pow(1-ageFraction,1.8)
-  polygon(c,[left[j],left[j+1],right[j+1],right[j]],paper.withAlphaComponent(alpha))
-  line(c,[mid[j],mid[j+1]],paper.withAlphaComponent(alpha*0.6),max(scale*0.6,0.001))
- }
- // Feathered shoulders broaden continuously downstream; foam is advected, not regenerated.
- for side in [-1.0,1.0] {var points:[CGPoint]=[]
-  for j in 0...steps {let age=Double(j)/Double(steps)*span,p=path(t-age),d=sternLength*scale,spread=(5+Double(j)*0.35)*scale*breadth*side
-   points.append(pt(p.p.x-cos(p.yaw)*d-sin(p.yaw)*spread,p.p.y-sin(p.yaw)*d+cos(p.yaw)*spread))}
-  for j in 0..<steps {line(c,[points[j],points[j+1]],paper.withAlphaComponent(0.17*pow(1-Double(j)/Double(steps),2)),max(0.001,scale*0.55))}
- }
+ if positions.count>1 {for i in 0..<(positions.count-1) {let q=distances[i]/length,fade=pow(max(0,1-q),1.8)*pow(max(0,1-ages[i]/45),1.2)
+  polygon(c,[left[i],left[i+1],right[i+1],right[i]],paper.withAlphaComponent(0.22*fade));line(c,[mid[i],mid[i+1]],paper.withAlphaComponent(0.12*fade),max(0.001,scale*breadth*0.6))
+  line(c,[left[i],left[i+1]],paper.withAlphaComponent(0.13*fade),max(0.001,scale*breadth*0.5));line(c,[right[i],right[i+1]],paper.withAlphaComponent(0.13*fade),max(0.001,scale*breadth*0.5))
+ }}
  let p=path(t)
- for side in [-1.0,1.0] {let bow=worldPoint(pt(120*dimensions.x,side*3*breadth),p,scale),edge=worldPoint(pt(100*dimensions.x,side*11*breadth),p,scale)
-  line(c,[bow,edge],paper.withAlphaComponent(0.26),max(0.001,scale*0.6))}
+ for side in [-1.0,1.0] {line(c,[worldPoint(pt(120*dimensions.x,side*3*breadth),p,scale),worldPoint(pt(100*dimensions.x,side*11*breadth),p,scale)],paper.withAlphaComponent(0.25),max(0.001,scale*breadth*0.6))}
 }
 
 func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
@@ -1138,10 +1166,10 @@ func drawWorld(_ c:CGContext,_ group:Int,_ t:Double,_ offset:Double=0){
   chart(c)
   vessel(c,shipModel,{approachPose($0)},e,0.07,"BISMARCK",red)
   vessel(c,cruiserModel,{approachPose($0,true)},e,0.07,"PRINZ EUGEN",paper)
-  let suffolk:(Double)->Pose={forward(geo(-23.8,65.2),2.45,0.02,$0)},norfolk:(Double)->Pose={forward(geo(-23,64.2),2.45,0.02,$0)}
+  let suffolk:(Double)->Pose={forward(geo(-26.5,66.0),2.45,0.02,$0)},norfolk:(Double)->Pose={forward(geo(-25.5,64.0),2.45,0.02,$0)}
   vessel(c,cruiserModel,suffolk,e,0.07,"HMS SUFFOLK",blue);vessel(c,cruiserModel,norfolk,e,0.07,"HMS NORFOLK",blue)
   let p=approachPose(e),range=hypot(p.p.x-suffolk(e).p.x,p.p.y-suffolk(e).p.y)
-  radar(c,suffolk(e).p,p.p,e,range<42,42)
+  radar(c,suffolk(e).p,p.p,e,range<70,70)
  case 3:denmark(c,t,min(17,Int(t/6)),e/36)
  case 4:chaseScene(c,e)
  case 5:wrongStrike(c,e);vessel(c,shipModel,preStrikeBismarck,e,mix(0.85*chaseMapScale/(0.037/0.33),1.05,smoother(e/5)),"BISMARCK",red);forceCatalina(c,e)
@@ -1210,7 +1238,8 @@ let scriptCues:[(Double,String)]=[
  (129,"HMS Suffolk + HMS Norfolk search · Prince of Wales departs"),(132,"26 May · Catalina leaves Lough Erne"),(138,"Catalina · visual contact regained"),(144,"Ark Royal · first strike launches"),(153,"Mistaken target · HMS Sheffield evades"),(156,"Premature magnetic pistols · remaining torpedoes evaded"),(161,"Return, rearm · second strike"),
  (168,"Swordfish · approach to Bismarck"),(192,"Torpedoes away"),(207,"Stern hit · steering disabled"),(217,"Steering damage · schematic section"),(231,"British destroyers close through the night"),
  (240,"27 May · Rodney and King George V close"),(252,"Selected salvos · progressive damage"),(276,"Dorsetshire · torpedo attack"),(282,"Bismarck sinks · British ships remain afloat")]
-func render(_ t:Double,_ c:CGContext){
+func renderBase(_ t:Double,_ c:CGContext){
+ narrativeClock=t
  let group=groupAt(t),e=t-groups[group]
  c.saveGState();c.translateBy(x:0,y:Double(H));c.scaleBy(x:1.5,y:-1.5)
  NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:c,flipped:true)
@@ -1219,16 +1248,16 @@ func render(_ t:Double,_ c:CGContext){
  if t<289 {
   let worldTime=min(t,287.999),worldGroup=groupAt(worldTime)
   // Changes of date/location retain the whole outgoing scene as it leaves the frame.
-  if group>0 && ![1,2,5,6,7].contains(group) && e<0.85 {
+  if group>0 && ![1,2,3,5,6,7].contains(group) && e<0.85 {
    let q=smoother(e/0.85),previous=groupOrder[max(0,groupOrder.firstIndex(of:group)!-1)]
-   drawWorld(c,previous,min(t,groupEnd(previous)-0.001),-1280*q);drawWorld(c,group,t,1280*(1-q))
+   if group==4 {drawFuelWorld(c,54+e,-1280*q)}else{drawWorld(c,previous,min(t,groupEnd(previous)-0.001),-1280*q)};drawWorld(c,group,t,1280*(1-q))
   }else {drawWorld(c,t>=288 ? worldGroup:group,worldTime)}
   if group==2 && e<1.1 {drawWorld(c,0,5.999,-1280*smoother(e/1.1))}
-  if group==3 {battleLens(c,t);if e>17 && e<25 {hoodSection(c,e)}}
+  if group==3 {bowHitLens(c,t);battleLens(c,t);if e>17 && e<25 {hoodSection(c,e)}}
   if group==7 {suppressWorldText=true;steeringCutaway(c,e);suppressWorldText=false}
   rain(c,t)
   // No ship-name leaders, header, footer, progress bar or large narration cards.
-  if let cue=scriptCues.last(where:{$0.0<=t}) {let alpha=min(1,(t-cue.0)/0.35);c.saveGState();c.setAlpha(alpha)
+  if !suppressScriptCues,let cue=scriptCues.last(where:{$0.0<=t}) {let alpha=min(1,(t-cue.0)/0.35);c.saveGState();c.setAlpha(alpha)
    c.setFillColor(ink.withAlphaComponent(0.72).cgColor);c.fill(CGRect(x:22,y:670,width:min(800,Double(cue.1.count)*8.4+24),height:30))
    txt(cue.1,34,674,15,paper,false,1150);c.restoreGState()}
   if t>=288 {c.setFillColor(NSColor.black.withAlphaComponent(smoother((t-288)/0.8)).cgColor);c.fill(CGRect(x:0,y:0,width:1280,height:720))}
@@ -1240,6 +1269,207 @@ func render(_ t:Double,_ c:CGContext){
  }
  NSGraphicsContext.restoreGraphicsState();c.restoreGState()
 }
+// Film clock: the earlier action remains on its tested local clocks, with new approach and damage chapters.
+let mapBattleRatio=0.07/0.90
+let battleMapAnchor=geo(-31.8,63.3)
+func battleToMap(_ p:CGPoint)->CGPoint {pt(battleMapAnchor.x+(p.x-610)*mapBattleRatio,battleMapAnchor.y+(p.y-285)*mapBattleRatio)}
+func mapBattleCamera()->Cam {let c=camera(3,0),p=battleToMap(pt(c.x,c.y));return Cam(x:p.x,y:p.y,z:c.z/mapBattleRatio,angle:c.angle)}
+struct ArcTrack {
+ let points:[CGPoint];let distances:[Double]
+ init(_ points:[CGPoint]) {self.points=points;var d=[0.0];for i in 1..<points.count {d.append(d.last!+hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y))};distances=d}
+ var length:Double {distances.last!}
+ func pose(_ distance:Double)->Pose {
+  if distance<=0 {let a=points[0],b=points[1];return forward(a,atan2(Double(b.y-a.y),Double(b.x-a.x)),1,distance)}
+  if distance>=length {let a=points[points.count-2],b=points.last!;return forward(b,atan2(Double(b.y-a.y),Double(b.x-a.x)),1,distance-length)}
+  var lo=0,hi=points.count-1;while hi-lo>1 {let m=(lo+hi)/2;if distances[m]<distance{lo=m}else{hi=m}}
+  let a=points[lo],b=points[hi],q=(distance-distances[lo])/max(1e-9,distances[hi]-distances[lo])
+  return Pose(p:pt(mix(a.x,b.x,q),mix(a.y,b.y,q)),yaw:atan2(Double(b.y-a.y),Double(b.x-a.x)))
+ }
+}
+func hermite(_ a:Double,_ b:Double,_ va:Double,_ vb:Double,_ span:Double,_ q:Double)->Double {
+ let q2=q*q,q3=q2*q;return (2*q3-3*q2+1)*a+(q3-2*q2+q)*span*va+(-2*q3+3*q2)*b+(q3-q2)*span*vb
+}
+let germanApproachTrack:ArcTrack={
+ let a=approachPose(12).p,heading=approachPose(11.99).yaw,d=battleMapAnchor,b=forward(a,heading,1,24).p,cp=forward(d,2.45,1,-30).p
+ return ArcTrack((0...1000).map{bezier(a,b,cp,d,Double($0)/1000)})
+}()
+let britishApproachTrack:ArcTrack={
+ let origin=geo(-3.5,60.4),a=geo(-22.5,62.5),b=geo(-27,60.6),end=battleToMap(denmarkActors[2].position(0)),heading = -2.35,lineStart=forward(end,heading,1,-50).p
+ let parallel=atan2(Double(b.y-a.y),Double(b.x-a.x)),c1=geo(-10,62),c2=forward(a,parallel,1,-20).p
+ var points=(0...800).map{bezier(origin,c1,c2,a,Double($0)/800)}
+ points += (1...250).map{pt(mix(a.x,b.x,Double($0)/250),mix(a.y,b.y,Double($0)/250))}
+ let t1=forward(b,parallel,1,10).p,t2=forward(lineStart,heading,1,-20).p
+ points += (1...300).map{bezier(b,t1,t2,lineStart,Double($0)/300)}
+ points += (1...250).map{pt(mix(lineStart.x,end.x,Double($0)/250),mix(lineStart.y,end.y,Double($0)/250))}
+ return ArcTrack(points)
+}()
+let britishApproachKnotDistances=[0.0,britishApproachTrack.distances[800],britishApproachTrack.distances[1050],britishApproachTrack.distances[1350],britishApproachTrack.length]
+func britishDistance(_ e:Double)->Double {
+ let ts=[0.0,28,40,48,60],vel=[12.0,5,5,5,0.49],ds=britishApproachKnotDistances
+ if e<=0{return e*vel[0]};if e>=60{return ds[4]+(e-60)*vel[4]}
+ let i=min(3,ts.lastIndex(where:{$0<=e})!),h=ts[i+1]-ts[i]
+ return hermite(ds[i],ds[i+1],vel[i],vel[i+1],h,(e-ts[i])/h)
+}
+func approachingHood(_ e:Double,_ pow:Bool=false)->Pose {
+ let a=denmarkActors[2].position(0),b=denmarkActors[3].position(0),lag=hypot(b.x-a.x,b.y-a.y)*mapBattleRatio
+ return britishApproachTrack.pose(britishDistance(e)-(pow ? lag:0))
+}
+func approachingGerman(_ e:Double,_ eugen:Bool=false)->Pose {
+ movingPose({t in
+  let q=t/60,progress=hermite(0,1,0.003,0.005444444,60,q),d=t<0 ? t*0.49:germanApproachTrack.length*progress
+  if !eugen{return germanApproachTrack.pose(d).p}
+  let phase=smoother((t-14)/24),lead=mix(-20,230*mapBattleRatio,phase),p=germanApproachTrack.pose(d+lead),lateral=8*sin(Double.pi*phase)
+  return pt(p.p.x-sin(p.yaw)*lateral,p.p.y+cos(p.yaw)*lateral+4*(1-phase))
+ },e)
+}
+func approachingCruiser(_ e:Double,_ norfolk:Bool=false)->Pose {
+ let start=forward(norfolk ? geo(-25.5,64):geo(-26.5,66),2.45,0.02,12).p
+ let end=battleToMap(norfolk ? pt(1700,0):pt(1500,-600)),c1=forward(start,2.45,1,12).p,c2=forward(end,2.45,1,-12).p
+ return movingPose({r in bezier(start,c1,c2,end,r/60)},e)
+}
+func approachFleet(_ e:Double)->[FleetMember] {
+ let size=mix(0.014,mapBattleRatio,smoother(e/26)),eugenScale=mix(0.07,0.65*mapBattleRatio,smoother((e-38)/12))
+ return [FleetMember(id:"BISMARCK",pose:approachingGerman(e),scale:0.07,kind:0),FleetMember(id:"PRINZ EUGEN",pose:approachingGerman(e,true),scale:eugenScale,kind:1),FleetMember(id:"HOOD",pose:approachingHood(e),scale:0.90*size,kind:4),FleetMember(id:"PRINCE OF WALES",pose:approachingHood(e,true),scale:0.82*size,kind:3),FleetMember(id:"HMS SUFFOLK",pose:approachingCruiser(e),scale:0.07,kind:1),FleetMember(id:"HMS NORFOLK",pose:approachingCruiser(e,true),scale:0.07,kind:1)]
+}
+func longApproachCamera(_ e:Double)->Cam {
+ let begin=camera(10,12),target=mapBattleCamera(),fleet=Array(approachFleet(e).prefix(4))
+ let wide=fittedCamera(Cam(x:620,y:290,z:1.45),fleet)
+ let desired=blendCamera(blendCamera(begin,wide,smoother(e/10)),target,smoother((e-40)/20))
+ let fitted=fittedCamera(desired,fleet)
+ return blendCamera(blendCamera(begin,fitted,smoother(e/6)),desired,smoother((e-58)/2))
+}
+func beginWorld(_ c:CGContext,_ cam:Cam,_ offset:Double){
+ c.saveGState();c.clip(to:CGRect(x:offset,y:0,width:1280,height:720));c.translateBy(x:offset,y:0)
+ annotationCamera=cam;annotationOffset=offset
+ c.translateBy(x:640,y:355);c.scaleBy(x:cam.z,y:cam.z);c.rotate(by:cam.angle);c.translateBy(x:-cam.x,y:-cam.y)
+}
+func drawLongApproach(_ c:CGContext,_ e:Double,_ offset:Double=0){
+ let cam=longApproachCamera(e);beginWorld(c,cam,offset);ocean(c,72+e,false);chart(c)
+ let routeAlpha=1-smoother((e-32)/8)
+ if routeAlpha>0 {c.saveGState();c.setLineDash(phase:0,lengths:[1.2,1.8]);let origin=geo(-3.1,58.85)
+  let leadIn=[origin,geo(-3.8,59.2),geo(-4.3,59.8),britishApproachTrack.points[0]]
+  let count=max(1,min(britishApproachTrack.points.count,Int(Double(britishApproachTrack.points.count)*max(0,min(1,britishDistance(e)/britishApproachTrack.length)))))
+  line(c,leadIn+britishApproachTrack.points.prefix(count),blue.withAlphaComponent(routeAlpha*0.6),0.6/max(1,cam.z));c.restoreGState();ellipse(c,origin.x,origin.y,2/max(1,cam.z),2/max(1,cam.z),blue.withAlphaComponent(routeAlpha))
+ }
+ let fleet=approachFleet(e)
+ let models=[shipModel,cruiserModel,hoodModel,kgvModel,cruiserModel,cruiserModel]
+ for i in fleet.indices {let item=fleet[i],path:(Double)->Pose={t in approachFleet(t)[i].pose};vessel(c,models[i],path,e,item.scale,item.id,i<2 ? red:blue)}
+ let s=approachingCruiser(e),b=approachingGerman(e);radar(c,s.p,b.p,e,true,70)
+ c.restoreGState()
+}
+func oilSlick(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ elapsed:Double){
+ if presenceAuditOnly || elapsed<=0{return}
+ let duration=min(45,elapsed),steps=96
+ var left:[CGPoint]=[],right:[CGPoint]=[]
+ for j in 0...steps {let age=duration*Double(j)/Double(steps),p=path(t-age),stern=worldPoint(pt(-123,-5),p,scale),width=(5+age*0.42)*scale
+  let centre=pt(stern.x+age*0.14,stern.y+age*0.09)
+  left.append(pt(centre.x-sin(p.yaw)*width,centre.y+cos(p.yaw)*width));right.append(pt(centre.x+sin(p.yaw)*width,centre.y-cos(p.yaw)*width))
+ }
+ for j in 0..<steps {let q=Double(j)/Double(steps);polygon(c,[left[j],left[j+1],right[j+1],right[j]],NSColor(calibratedRed:0.035,green:0.035,blue:0.025,alpha:0.43*(1-q*0.65)))
+  line(c,[left[j],left[j+1]],gold.withAlphaComponent(0.07*(1-q)),max(0.12,scale*0.55));line(c,[right[j],right[j+1]],blue.withAlphaComponent(0.10*(1-q)),max(0.12,scale*0.55))
+ }
+ let p=path(t);line(c,[worldPoint(pt(103,-8),p,scale),worldPoint(pt(20,-18),p,scale),worldPoint(pt(-123,-5),p,scale)],NSColor.black.withAlphaComponent(0.25),max(0.2,scale*1.4))
+}
+func smokeScreen(_ c:CGContext,_ path:(Double)->Pose,_ t:Double,_ scale:Double,_ elapsed:Double){
+ if presenceAuditOnly || elapsed<=0{return}
+ let duration=min(10,elapsed)
+ for j in 0..<25 {let age=duration*Double(j)/25,p=path(t-age),stern=worldPoint(pt(-125,0),p,scale),r=(4+age*2.0)*scale;puff(c,stern.x+age*1.2,stern.y-age*0.2,r*1.7,r,NSColor(calibratedWhite:0.42,alpha:1),0.3*(1-age/14))}
+}
+func fuelPose(_ e:Double,_ index:Int)->Pose {
+ let actor=denmarkActors[index],start=actor.pose(1080)
+ if e<0 && index != 2{return actor.pose(1080+16*e)}
+ if index==3{return forward(start.p,start.yaw,12,e)}
+ return forward(start.p,start.yaw,index==2 ? 0.25:5.0,e)
+}
+func fuelCruiser(_ e:Double,_ norfolk:Bool)->Pose {forward(norfolk ? pt(1550,-400):pt(1000,-1000),2.45,10,e)}
+func fuelFleet(_ e:Double)->[FleetMember] {
+ var result=denmarkActors.enumerated().map{FleetMember(id:$0.element.name,pose:fuelPose(e,$0.offset),scale:$0.element.scale,kind:$0.element.model.kind)}
+ result += [FleetMember(id:"HMS SUFFOLK",pose:fuelCruiser(e,false),scale:0.58,kind:1),FleetMember(id:"HMS NORFOLK",pose:fuelCruiser(e,true),scale:0.58,kind:1)]
+ return result
+}
+func fuelCamera(_ e:Double)->Cam {
+ let p=fuelPose(e,0),target=fittedCamera(Cam(x:p.p.x,y:p.p.y,z:1.7),Array(fuelFleet(e).prefix(2)))
+ return blendCamera(camera(3,36),target,smoother(e/10))
+}
+func drawFuelWorld(_ c:CGContext,_ e:Double,_ offset:Double=0){
+ narrativeClock=108+e;explicitFuelOil=true;let cam=fuelCamera(e);beginWorld(c,cam,offset);ocean(c,108+e,false)
+ for (i,a) in denmarkActors.enumerated() {let path:(Double)->Pose={fuelPose($0,i)},p=path(e)
+  if i==2 {recordPresence(a.name,p,a.scale,a.model.kind);sinkingShip(c,a.model,p,a.scale,19+e,true);continue}
+  if i==0 {oilSlick(c,{a.pose($0*30)},36+e/2.1,a.scale,24.6+e/2.1)}
+  if i==3 {smokeScreen(c,path,e,a.scale,max(0,18-e))}
+  vessel(c,a.model,path,e,a.scale,a.name,a.tint)
+ }
+ vessel(c,cruiserModel,{fuelCruiser($0,false)},e,0.58,"HMS SUFFOLK",blue)
+ vessel(c,cruiserModel,{fuelCruiser($0,true)},e,0.58,"HMS NORFOLK",blue)
+ explicitFuelOil=false;c.restoreGState()
+}
+func freeInset()->CGRect {
+ let candidates=[CGRect(x:26,y:28,width:520,height:300),CGRect(x:734,y:28,width:520,height:300),CGRect(x:26,y:345,width:520,height:300),CGRect(x:734,y:345,width:520,height:300)]
+ return candidates.min{a,b in bodyRects.filter{$0.intersects(a)}.count<bodyRects.filter{$0.intersects(b)}.count}!
+}
+func fuelSection(_ c:CGContext,_ e:Double){
+ let enter=smoother((e-10)/1),exit=1-smoother((e-37)/1);if enter*exit<0.001{return}
+ let r=freeInset();c.saveGState();c.clip(to:CGRect(x:r.minX,y:r.minY,width:r.width,height:r.height*enter));c.setAlpha(exit)
+ c.setFillColor(ink.withAlphaComponent(0.96).cgColor);c.fill(r);c.translateBy(x:r.minX,y:r.minY)
+ // Bow section: an AP shell passes through; water enters, and forward fuel is isolated.
+ polygon(c,[pt(30,65),pt(460,65),pt(490,135),pt(490,255),pt(60,255),pt(30,215)],grey.withAlphaComponent(0.6))
+ line(c,[pt(35,112),pt(477,112)],paper.withAlphaComponent(0.6),3)
+ for x in [76.0,174,272] {polygon(c,[pt(x,155),pt(x+75,155),pt(x+75,239),pt(x,239)],gold.withAlphaComponent(0.42));line(c,[pt(x,148),pt(x,246)],grey,3)}
+ let progress=smoother((e-12)/5),water=progress*92
+ polygon(c,[pt(60,247-water),pt(348,247-water),pt(348,247),pt(60,247)],blue.withAlphaComponent(0.72))
+ let shell=smoother((e-10.5)/2.3),x=mix(-25,540,shell)
+ if shell<1 {polygon(c,[pt(x-12,181),pt(x,181),pt(x+4,184),pt(x,187),pt(x-12,187)],paper)}
+ line(c,[pt(83,122),pt(83,142),pt(330,142),pt(330,165)],gold,3)
+ let valve=smoother((e-18)/3)
+ line(c,[pt(365,139),pt(392,139)],red,3);line(c,[pt(378.5,126),pt(378.5,152)],red,3)
+ if valve>0 {line(c,[pt(363,124),pt(394,155)],red.withAlphaComponent(valve),2);line(c,[pt(394,124),pt(363,155)],red.withAlphaComponent(valve),2)}
+ for j in 0..<20 {let phase=(e*0.35+Double(j)*0.21).truncatingRemainder(dividingBy:1),px=15-phase*50,py=185+sin(Double(j))*9;ellipse(c,px,py,5+phase*7,2+phase*3,NSColor.black.withAlphaComponent(0.35*progress*(1-phase)))}
+ if e>25 {let q=smoother((e-25)/5);line(c,[pt(385,180),pt(466,180)],grey,4);polygon(c,[pt(385,185),pt(466,185),pt(466,239),pt(385,239)],blue.withAlphaComponent(0.6*q))}
+ c.restoreGState()
+}
+func francePlan(_ c:CGContext,_ e:Double){
+ let q=smoother((e-40)/2);if q<0.001{return}
+ let r=freeInset(),cam=Cam(x:geo(-18,55.5).x,y:geo(-18,55.5).y,z:0.55),saved=annotationCamera
+ c.saveGState();c.clip(to:CGRect(x:r.minX,y:r.minY,width:r.width,height:r.height*q));c.setFillColor(ink.cgColor);c.fill(r)
+ c.translateBy(x:r.midX,y:r.midY);c.scaleBy(x:cam.z,y:cam.z);c.translateBy(x:-cam.x,y:-cam.y);annotationCamera=cam;ocean(c,e);chart(c)
+ let a=geo(-31.8,63.3),b=geo(-38,56),d=geo(-2.4,47.3),control=geo(-26,48),progress=smoother((e-42)/10)
+ var route:[CGPoint]=[];for i in 0...100 {route.append(bezier(a,b,control,d,progress*Double(i)/100))}
+ c.saveGState();c.setLineDash(phase:0,lengths:[3,3]);line(c,route,gold,1.5);c.restoreGState()
+ let p=bezier(a,b,control,d,progress),prev=bezier(a,b,control,d,max(0,progress-0.01)),angle=atan2(Double(p.y-prev.y),Double(p.x-prev.x))
+ c.saveGState();c.translateBy(x:p.x,y:p.y);c.rotate(by:angle);polygon(c,[pt(7,0),pt(-5,-4),pt(-5,4)],gold);c.restoreGState();ellipse(c,d.x,d.y,4,4,blue)
+ annotationCamera=saved;c.restoreGState()
+}
+func bowHitLens(_ c:CGContext,_ t:Double){
+ let e=t-72;if e<6.3 || e>9.4{return}
+ let alpha=smoother((e-6.3)/0.5)*(1-smoother((e-8.9)/0.5)),sim=denmarkTime(e),a=denmarkActors[3],b=denmarkActors[0],future=b.pose(342),target=worldPoint(pt(102,-2),future,b.scale),originPose=a.pose(310)
+ let bearing=atan2(Double(target.y-originPose.p.y),Double(target.x-originPose.p.x)),origin=worldPoint(muzzleLocal(3,72,-3,bearing-originPose.yaw),originPose,a.scale),q=max(0,min(1,(sim-310)/32))
+ let p=q<1 ? pt(mix(origin.x,target.x,q),mix(origin.y,target.y,q)):worldPoint(pt(102,-2),b.pose(sim),b.scale)
+ c.saveGState();c.setAlpha(alpha);c.clip(to:CGRect(x:25,y:24,width:520,height:300));c.setFillColor(ink.cgColor);c.fill(CGRect(x:25,y:24,width:520,height:300));c.translateBy(x:285,y:174);c.scaleBy(x:3,y:3);c.translateBy(x:-p.x,y:-p.y)
+ let saved=annotationCamera;annotationCamera=Cam(x:p.x,y:p.y,z:3);ocean(c,t);denmark(c,t,min(17,Int(t/6)),e/36);annotationCamera=saved
+ if q<1 {c.saveGState();c.translateBy(x:p.x,y:p.y);c.rotate(by:bearing);polygon(c,[pt(-3,-0.5),pt(1,-0.5),pt(2,0),pt(1,0.5),pt(-3,0.5)],grey);c.restoreGState()};c.restoreGState()
+}
+func filmCueList()->[(Double,String)] {
+ var cues=scriptCues.filter{$0.0<72}
+ cues += [(72,"British intercept force · from Scapa Flow"),(86,"Hood leads · Prince of Wales follows toward Iceland"),(96,"Prinz Eugen moves into the German lead"),(100,"02:05 · Holland turns parallel, waiting for daylight"),(112,"03:40 · British force turns in at 28 knots"),(122,"05:35 · enemy sighted; range closes"),(132,"05:52 · Hood and Prince of Wales open fire"),(138,"Hood initially targets Prinz Eugen · Prince of Wales targets Bismarck"),(142,"German ships reply · ranging salvos"),(148,"Prince of Wales hits Bismarck's bow"),(153.5,"Another hit · flooding below the armour belt"),(156,"Bismarck · decisive salvo toward Hood"),(164,"Shell penetration · probable aft-magazine ignition"),(166,"Hood · aft-magazine explosion"),(176,"Hood sinks · Prince of Wales remains under fire"),(186,"Bridge damage · Prince of Wales turns away under smoke"),(204,"Bismarck survives the action · fuel leaks astern"),(214,"Bow damage · schematic reconstruction"),(222,"Seawater enters · forward fuel tanks become unusable"),(230,"Further flooding · speed and endurance reduced"),(242,"Atlantic raiding abandoned · make for a French repair port")]
+ cues += scriptCues.filter{$0.0>=108}.map{($0.0+150,$0.1)}
+ return cues.sorted{$0.0<$1.0}
+}
+let filmCues=filmCueList()
+func designFrame(_ c:CGContext,_ draw:()->Void){
+ c.saveGState();c.translateBy(x:0,y:Double(H));c.scaleBy(x:1.5,y:-1.5);NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:c,flipped:true);draw();NSGraphicsContext.restoreGraphicsState();c.restoreGState()
+}
+func render(_ t:Double,_ c:CGContext){
+ environmentClock=t;suppressScriptCues=true
+ if t<72 {renderBase(t,c)}
+ else if t<132 {designFrame(c){annotations=[];bodyRects=[];drawLongApproach(c,t-72)}}
+ else if t<204 {renderBase(72+(t-132)/2,c)}
+ else if t<258 {designFrame(c){annotations=[];bodyRects=[];drawFuelWorld(c,t-204);fuelSection(c,t-204);francePlan(c,t-204)}}
+ else {renderBase(t-150,c)}
+ suppressScriptCues=false
+ if t<438,let cue=filmCues.last(where:{$0.0<=t}) {designFrame(c){suppressWorldText=false;let a=smoother((t-cue.0)/0.35);c.setAlpha(a);c.setFillColor(ink.withAlphaComponent(0.72).cgColor);c.fill(CGRect(x:22,y:670,width:min(1000,Double(cue.1.count)*8.4+24),height:30));txt(cue.1,34,674,15,paper,false,1150)}}
+ environmentClock=nil
+}
+
 func fleetOverlaps(_ a:FleetMember,_ b:FleetMember)->Bool {
  let p=a.corners,q=b.corners
  for poly in [p,q] {for i in poly.indices {let u=poly[i],v=poly[(i+1)%poly.count],nx=Double(v.y-u.y),ny=Double(u.x-v.x)
@@ -1249,6 +1479,69 @@ func fleetOverlaps(_ a:FleetMember,_ b:FleetMember)->Bool {
  }}
  return true
 }
+func longEditAudit(){
+ print("Building coastline query index");fflush(stdout)
+ var rows:[Int:[(CGPoint,CGPoint)]]=[:]
+ func edge(_ a:CGPoint,_ b:CGPoint){let lo=Int(floor(min(a.y,b.y)/2)),hi=Int(floor(max(a.y,b.y)/2));if lo<=hi {for row in lo...hi {rows[row,default:[]].append((a,b))}}}
+ for path in landPaths {var first=CGPoint.zero,last=CGPoint.zero
+  path.applyWithBlock{pointer in let e=pointer.pointee
+   switch e.type {
+   case .moveToPoint:first=e.points[0];last=first
+   case .addLineToPoint:let p=e.points[0];edge(last,p);last=p
+   case .closeSubpath:edge(last,first);last=first
+   default:break
+   }
+  }
+ }
+ func onLand(_ p:CGPoint)->Bool {var inside=false
+  for (a,b) in rows[Int(floor(p.y/2))] ?? [] {if (a.y>p.y) != (b.y>p.y) && p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x {inside.toggle()}}
+  return inside
+ }
+ var overlap=0,shore=0,framing=0,maxSideSlip=0.0
+ for i in 0...240 {let t=Double(i)/4,fleet=approachFleet(t),cam=longApproachCamera(t)
+  for a in 0..<fleet.count {for b in (a+1)..<fleet.count {if fleetOverlaps(fleet[a],fleet[b]){if overlap<12{print("APPROACH OVERLAP t=\(t) \(fleet[a].id)/\(fleet[b].id)")};overlap+=1}}}
+  for ship in fleet {if ship.corners.contains(where:{onLand($0)}) {if shore<12{print("LAND t=\(t) \(ship.id), pose=\(ship.pose.p)")};shore+=1}}
+  if t>=8 {for ship in fleet.prefix(4) {for p in ship.corners {let dx=p.x-cam.x,dy=p.y-cam.y,x=640+(dx*cos(cam.angle)-dy*sin(cam.angle))*cam.z,y=355+(dx*sin(cam.angle)+dy*cos(cam.angle))*cam.z
+   if x<15 || x>1265 || y<15 || y>665 {if framing<10{print("CROP t=\(t) \(ship.id), \(x),\(y)")};framing+=1;break}
+  }}}
+  let paths:[(Double)->Pose]=[{approachingGerman($0)},{approachingGerman($0,true)},{approachingHood($0)},{approachingHood($0,true)}]
+  for path in paths {let p=path(t),a=path(t-0.001),b=path(t+0.001),dx=b.p.x-a.p.x,dy=b.p.y-a.p.y,speed=hypot(dx,dy)
+   if speed>1e-8 {let error=abs(sin(p.yaw)*dx-cos(p.yaw)*dy)/speed;maxSideSlip=max(maxSideSlip,error)}
+  }
+ }
+ print("APPROACH: overlaps=\(overlap), shore intersections=\(shore), cropped hulls=\(framing), maximum sideslip=\(maxSideSlip)");fflush(stdout)
+ precondition(overlap==0 && shore==0 && framing==0 && maxSideSlip<0.03,"Approach staging check failed")
+ func project(_ p:CGPoint,_ cam:Cam)->CGPoint {let x=p.x-cam.x,y=p.y-cam.y;return pt(640+(x*cos(cam.angle)-y*sin(cam.angle))*cam.z,355+(x*sin(cam.angle)+y*cos(cam.angle))*cam.z)}
+ let last=approachFleet(60),a=longApproachCamera(60),b=camera(3,0)
+ for (i,s) in last.prefix(4).enumerated() {let actor=denmarkActors[i],aa=project(s.pose.p,a),bb=project(actor.position(0),b),error=hypot(aa.x-bb.x,aa.y-bb.y)
+  print("BATTLE HANDOFF \(s.id): centre error \(error) px")
+  precondition(error<1 && abs(s.scale*a.z-actor.scale*b.z)<0.005,"Battle handoff discontinuity")
+ }
+ for i in 0...108 {let t=Double(i)/2,fleet=fuelFleet(t)
+  for a in 0..<fleet.count {if fleet[a].id=="HOOD"{continue};for b in (a+1)..<fleet.count {if fleet[b].id=="HOOD"{continue};precondition(!fleetOverlaps(fleet[a],fleet[b]),"Fuel scene hull overlap")}}
+ }
+ let fuel0=fuelFleet(0),end=denmarkActors.map{$0.pose(1080)}
+ for i in 0..<4 {precondition(hypot(fuel0[i].pose.p.x-end[i].p.x,fuel0[i].pose.p.y-end[i].p.y)<1e-7)}
+ print("FUEL CHECK PASS: bow and below-belt hits, inherited oil trail, continuous surviving ships");fflush(stdout)
+ let ctx=CGContext(data:nil,width:1,height:1,bitsPerComponent:8,bytesPerRow:4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue)!
+ NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:ctx,flipped:true);presenceAuditOnly=true
+ let registry=["BISMARCK","PRINZ EUGEN","HOOD","PRINCE OF WALES","HMS SUFFOLK","HMS NORFOLK","HMS VICTORIOUS","HMS ARK ROYAL","HMS SHEFFIELD","RODNEY","KING GEORGE V","HMS DORSETSHIRE"]+destroyerNames
+ var csv="film_seconds,scene,ship,state,x,y,heading,scale,coordinate_system\n",samples=0
+ for frame in 12..<876 {let t=Double(frame)/2;presenceRecords=[];annotations=[];bodyRects=[];environmentClock=t
+  let cam:Cam,scene:String,coordinate:String
+  if t>=72 && t<132 {cam=longApproachCamera(t-72);scene="British approach";coordinate="geographic_projection";drawLongApproach(ctx,t-72)}
+  else if t>=204 && t<258 {cam=fuelCamera(t-204);scene="Fuel damage";coordinate="tactical_diagram";drawFuelWorld(ctx,t-204)}
+  else {let story=t<72 ? t:t<204 ? 72+(t-132)/2:t-150,g=groupAt(story);cam=camera(g,story-groups[g]);scene="\(g)";coordinate=[1,2,4,10].contains(g) ? "geographic_projection":"tactical_diagram";narrativeClock=story;drawWorld(ctx,g,story)}
+  for id in registry {if let ship=presenceRecords.first(where:{$0.id==id}) {let points=ship.corners.map{project($0,cam)},visible=points.contains{$0.x>=0 && $0.x<=1280 && $0.y>=0 && $0.y<=720},sunk=(id=="HOOD" && t>=182)||(id=="BISMARCK" && t>=437.5)
+   csv += "\(t),\(scene),\(id),\(sunk ? "sunk":visible ? "in_frame":"offscreen"),\(ship.pose.p.x),\(ship.pose.p.y),\(ship.pose.yaw),\(ship.scale),\(coordinate)\n"
+  }else{csv += "\(t),\(scene),\(id),\(id=="HOOD" && t>=182 ? "sunk":"other_location"),,,,,\n"}}
+  samples+=1
+ }
+ presenceAuditOnly=false;environmentClock=nil;explicitFuelOil=false;NSGraphicsContext.restoreGraphicsState()
+ try! csv.write(to:root.appendingPathComponent("ship-state-ledger.csv"),atomically:true,encoding:.utf8)
+ print("EXTENDED LEDGER PASS: \(samples) sampled frames, 17 persistent ship identities, 450-second film")
+}
+
 func continuityAudit(){
  var minPlaneGap=Double.infinity,maxJump=0.0,flightSamples=0,closestTime=0.0,closestPair=""
  for i in 0...3456 {let t=Double(i)/48
@@ -1434,21 +1727,28 @@ func audit(){
 }
 let pixels=UnsafeMutableRawPointer.allocate(byteCount:W*H*4,alignment:64)
 let context=CGContext(data:pixels,width:W,height:H,bitsPerComponent:8,bytesPerRow:W*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.noneSkipFirst.rawValue)!
-if CommandLine.arguments.contains("--weapon-report") {
+if CommandLine.arguments.contains("--export-cues") {
+ var csv="film_seconds,timecode,script_cue\n"
+ let cues=filmCues+[(438.0,"Fade to black"),(439.0,"Human cost · 2,000+ dead / ~100 survivors"),(444.0,"Operation Rheinübung · 18–27 May 1941")]
+ for (t,label) in cues {let time=String(format:"%02d:%04.1f",Int(t)/60,t.truncatingRemainder(dividingBy:60)),quoted=label.replacingOccurrences(of:"\"",with:"\"\"");csv += "\(t),\(time),\"\(quoted)\"\n"}
+ try! csv.write(to:root.appendingPathComponent("script-cues.csv"),atomically:true,encoding:.utf8);print("Script cues exported")
+}
+else if CommandLine.arguments.contains("--weapon-report") {
  for n in 0..<3 {print("FINAL STRIKE \(n+1): \(contacts[n]?.time.description ?? "miss")");print("VICTORIOUS \(n+1): \(nightContacts[n]?.time.description ?? "miss")")}
 }
+else if CommandLine.arguments.contains("--long-audit") {longEditAudit()}
 else if CommandLine.arguments.contains("--continuity-audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--hull-audit") {hullAudit()}
 else if CommandLine.arguments.contains("--audit") {continuityAudit()}
 else if CommandLine.arguments.contains("--stills") {
- for t in [0.0,17,39,43.5,65,81,85,88,91,96,110,116,123,128,132.5,136,141,145,149,154,158,163,167,173,195,207,211,220,235,255,280,285,288,291,295] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
+ for t in [65.0,72,76,86,100,112,122,130,132,140,148.5,154,164,168,184,203,205,216,224,235,249,257,270,294,345,405,435,441,446] {try autoreleasepool{render(t,context);let rep=NSBitmapImageRep(cgImage:context.makeImage()!);try rep.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent("shot-\(t).png"))}}
 }else{
  let ffmpeg=CommandLine.arguments[2],preview=CommandLine.arguments.contains("--preview")
  let process=Process();process.executableURL=URL(fileURLWithPath:ffmpeg)
  let output=preview ? "motion-preview.mp4":"bismarck-silent.mp4"
  process.arguments=["-y","-v","error","-f","rawvideo","-pixel_format","argb","-video_size","1920x1080","-framerate","24","-i","pipe:0","-an","-c:v","libx264","-crf","17","-preset","fast","-pix_fmt","yuv420p","-movflags","+faststart",root.appendingPathComponent(output).path]
  let pipe=Pipe();process.standardInput=pipe;try process.run()
- let ranges:[Range<Int>]=preview ? [0..<Int(72*fps),Int(192*fps)..<Int(232*fps)]:[0..<(duration*fps)]
+ let ranges:[Range<Int>]=preview ? [Int(65*fps)..<Int(260*fps)]:[0..<(duration*fps)]
  for range in ranges {for frame in range {autoreleasepool{render(Double(frame)/Double(fps),context);pipe.fileHandleForWriting.write(Data(bytesNoCopy:pixels,count:W*H*4,deallocator:.none))};if frame%720==0 {print("Rendered \(frame/fps)s");fflush(stdout)}}}
  try pipe.fileHandleForWriting.close();process.waitUntilExit();precondition(process.terminationStatus==0);print("VIDEO COMPLETE")
 }
