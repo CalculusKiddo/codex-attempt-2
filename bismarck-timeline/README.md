@@ -2,7 +2,7 @@
 
 A seven-minute forty-eight-second original 2D documentary animation: **1920 × 1080, 24 fps, H.264 MP4, no audio stream**. All artwork is drawn in native code; no AI-generated imagery is used.
 
-[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v15-gun-damage/bismarck-timeline-v15.mp4).
+[Download the current full-quality MP4](https://github.com/CalculusKiddo/codex-attempt-2/releases/download/bismarck-2d-v16-scuttling/bismarck-timeline-v16.mp4).
 
 The action fills the frame. The old header, footer, progress bar and large explanatory captions are removed. Compact ship-name leaders are restored specifically for the final action, as requested. Small bottom-left cues identify shots for a separate script. The cruiser contact, zigzag and search cues explicitly name **HMS Suffolk** and **HMS Norfolk**. `script-cues.csv` lists those cues and timecodes.
 
@@ -82,6 +82,10 @@ The survivor figure is deliberately approximate, as requested.
 
 ## Historical sources and limits
 
+- [Royal Navy account of Bismarck’s sinking](https://www.royalnavy.mod.uk/news/2021/may/27/20210527-bismarck-sunk): scuttling charges and Dorsetshire’s torpedoes in the final loss, alongside the survivor reports below.
+
+The scuttling captions appear at 7:18 (preparation), 7:20 (charges fired), and 7:33 (sinking after scuttling and British attacks).
+
 - [Ark Royal aircraft chronology](https://www.kbismarck.com/ark-royal.html): twelve Swordfish launched on 27 May and their arrival/held-off attack during the final bombardment.
 - [Bismarck final-action chronology](https://www.kbismarck.com/histoperi.html) and [action narrative](https://www.kbismarck.com/bismarck-last-battle.html): staged turret/control losses and the uncertain late forward salvo, compared against the contemporary survivor reports.
 - [Captain Patterson’s final-action report](https://www.kbismarck.com/patterson-bismarck-report.html): Rodney’s opening station relative to King George V, courses, phases, retirement and ceasefire.
@@ -97,7 +101,7 @@ The survivor figure is deliberately approximate, as requested.
 - [BazBattles reference video](https://www.youtube.com/watch?v=zuG4qFXPMmk): overhead documentary presentation only; its artwork is not embedded.
 - Public-domain Natural Earth [1:10m land](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_land.geojson), [1:50m lakes](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_lakes.geojson), and [rivers](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_rivers_lake_centerlines.geojson).
 
-Contemporary accounts contain conflicting times, estimates and mistaken identifications. A cinematic path, selected salvo or section illustration should not be read as a proven frame-by-frame forensic reconstruction. Scuttling and torpedo contributions to Bismarck's final loss are not adjudicated by the sinking animation.
+Contemporary accounts contain conflicting times, estimates and mistaken identifications. A cinematic path, selected salvo or section illustration should not be read as a proven frame-by-frame forensic reconstruction. The sinking sequence explicitly includes the crew preparing and firing scuttling charges, followed by the loss after scuttling and British attacks. The compressed presentation does not establish an exact scuttling time or quantify the relative contributions of scuttling, gunfire and torpedoes.
 
 ## Edit and render
 
@@ -120,4 +124,4 @@ FFMPEG=$(.venv/bin/python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ff
 ./render . "$FFMPEG"
 ```
 
-The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v15.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
+The render produces `bismarck-silent.mp4`; this release asset is named `bismarck-timeline-v16.mp4`. No soundtrack is generated or mixed. The older optional score source is not used.
