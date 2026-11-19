@@ -1,0 +1,17 @@
+{
+  "duration_seconds": 300.0,
+  "fps": 24,
+  "tracks": [
+    {
+      "type": "vide",
+      "codec": "avc1",
+      "width": 1920,
+      "height": 1080,
+      "frames": 7200
+    }
+  ],
+  "audio_tracks": 0,
+  "bytes": 124746369,
+  "sha256": "40d43b022db0357980cbfdfd0d22d99b5406682fee2c504ae440296a171171a4",
+  "decode": "Full ffmpeg decode with -xerror completed without errors"
+}
